@@ -6,6 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Contratos de domínio tipados, envelope 2.0 com leitura compatível de 1.0 e validação de referências de comprovantes.
+- Carregador genérico e schemas Zod dos três níveis normativos, com testes de integridade; dados oficiais permanecem pendentes.
+
 - Validador local de arquivos JSON de projeto, com metadados declarados e mensagens acessíveis.
 - Testes de leitura, rejeição estrutural, seleção concorrente e fluxo E2E com acessibilidade.
 

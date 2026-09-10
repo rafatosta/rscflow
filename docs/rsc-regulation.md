@@ -16,3 +16,11 @@ Exemplos de divergências que exigem decisão humana antes de implementar regras
 - RSC I/g.1: unidade “certame” no Anexo IV do PDF (página 19), versus “mês” em `RSC I!D64` da planilha.
 
 Não foi escolhida interpretação nem corrigida qualquer fonte. Os dados normativos continuam com `pending-official-validation`. O validador de arquivos de projeto verifica somente o envelope e independe dessas divergências.
+
+## Validação estrutural dos datasets
+
+Os envelopes incluem `directives` e `criteria`. O carregador verifica três níveis distintos, referência normativa, IDs globais únicos e códigos únicos por coleção/nível. A convenção estrutural de código é letras minúsculas para diretriz e `<diretriz>.<inteiro positivo>` para critério; o prefixo deve corresponder à diretriz referenciada. Estes formatos são contratos técnicos, não novos valores normativos.
+
+Cada linha registra status e referência de origem. Status validated exige identificação do validador; no nível agregado também exige conteúdo, fontes, versão normativa e todos os níveis validados. Aprovação estrutural não comprova validação humana. Os campos `$schema` anteriores foram removidos porque os arquivos são dados, não documentos JSON Schema.
+
+As divergências já registradas continuam sem decisão. Esta etapa não transcreve nem altera valores das fontes; os quatro arquivos permanecem pendentes, com versão normativa null e coleções vazias. Testes usam exemplos sintéticos expressamente identificados.

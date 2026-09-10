@@ -36,7 +36,7 @@ describe('validação estrutural de arquivo', () => {
     });
   });
   it.each([
-    [{ schemaVersion: '2.0' }, 'Versão do esquema'],
+    [{ schemaVersion: '99.0' }, 'Versão do esquema'],
     [{ schemaVersion: undefined }, 'Versão do esquema'],
     [{ applicationVersion: '' }, 'applicationVersion'],
     [{ applicationVersion: 1 }, 'applicationVersion'],

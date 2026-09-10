@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { projectFixture } from '../fixtures/project';
+import { projectFixture, currentProjectFixture } from '../fixtures/project';
 
 test('valida arquivos localmente e mantém estados acessíveis', async ({ page }) => {
   await page.goto('/');
@@ -31,7 +31,20 @@ test('valida arquivos localmente e mantém estados acessíveis', async ({ page }
   await input.setInputFiles({
     name: 'incompativel.json',
     mimeType: 'application/json',
-    buffer: Buffer.from(JSON.stringify({ ...projectFixture, schemaVersion: '2.0' })),
+    buffer: Buffer.from(JSON.stringify({ ...projectFixture, schemaVersion: '99.0' })),
   });
   await expect(page.getByRole('alert')).toContainText('Versão do esquema ausente ou incompatível');
+});
+
+test('importa o contrato tipado 2.0', async ({ page }) => {
+  await page.goto('/');
+  await page
+    .getByLabel('Arquivo de projeto JSON')
+    .setInputFiles({
+      name: 'atual.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(currentProjectFixture)),
+    });
+  await expect(page.getByText('Estrutura válida', { exact: true })).toBeVisible();
+  await expect(page.getByText('2.0', { exact: true })).toBeVisible();
 });

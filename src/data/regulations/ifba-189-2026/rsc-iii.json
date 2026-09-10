@@ -1,8 +1,8 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schemaVersion": "1.0",
   "regulationId": "ifba-189-2026",
   "section": "rsc-iii",
   "status": "pending-official-validation",
-  "criteria": []
+  "criteria": [],
+  "directives": []
 }
