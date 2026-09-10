@@ -27,3 +27,9 @@ npm run format:check
 Read [the architecture](docs/architecture.md), [the normative-data policy](docs/rsc-regulation.md), and [the agent contract](AGENTS.md) before implementing functionality.
 
 The regulation files under `src/data/regulations/ifba-189-2026/` are safe, empty, versioned envelopes. They will be populated only from the official resolution and official scoring spreadsheet validated by a human maintainer.
+
+## Verificar um projeto
+
+Execute `npm run dev` e selecione um arquivo JSON na tela inicial. A aplicação informa se a estrutura do envelope é válida e apresenta os metadados declarados. Erros de leitura, JSON inválido e incompatibilidade de esquema aparecem em português.
+
+A verificação é local, sem salvar ou enviar o arquivo. Validade estrutural não certifica a referência normativa nem calcula pontuação. Consulte o contrato em [docs/data-model.md](docs/data-model.md).

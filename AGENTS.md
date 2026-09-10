@@ -10,7 +10,7 @@ Before changing code, every agent must read this file and the relevant documenta
 6. Do not leave TODOs, stubs, or deliberately incomplete functionality.
 7. Update documentation and the changelog when applicable.
 8. Before concluding, run lint, typecheck, applicable tests, build, and applicable E2E checks; explicitly report any validation not run.
-9. Use English Conventional Commits in the format `type(scope): description`. Suggest a message at the end; never create a commit without explicit maintainer authorization.
+9. Use Conventional Commits with descriptions and bodies in Portuguese, retaining standard type tokens, in the format `type(escopo): descrição`. Suggest a message at the end; never create a commit without explicit maintainer authorization.
 
 ## Repository boundaries
 
