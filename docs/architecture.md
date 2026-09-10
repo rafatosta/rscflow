@@ -23,3 +23,11 @@ React components may present outcomes but must never contain normative criteria 
 `src/rules/scoring.ts` expõe `calculateActivity`, `roundFinalScore` e `calculateProjectScore`. O resultado discriminado está em `src/domain/scoring.ts`. Cálculos usam aritmética decimal baseada em BigInt, sem arredondamento binário intermediário ou configuração global; conversões fora do intervalo de number retornam indisponibilidade explícita. Dados de entrada são validados e não são alterados.
 
 A sequência é quantidade consolidada por critério → limite do item → fator e peso → soma/teto da diretriz → soma/teto do nível → total geral/arredondamento → mínimos. Pontuações não são persistidas nem incorporadas ao projeto como fonte de verdade.
+
+## Projetos locais
+
+`src/domain/local-project.ts` define ProjectRepository, LocalProject e SaveState. `src/storage/project-repository.ts` implementa CRUD, duplicação, revisão otimista e seleção ativa com Dexie/IndexedDB. `src/domain/portable-project.ts` valida o envelope e a representação JSON sem perdas.
+
+`src/features/local-projects/` contém criação e arquivos portáteis, fila serial de autosave com debounce e coordenação da sessão de edição. O hook preserva rascunhos em falhas, conclui gravações antes de navegar e permite descartar explicitamente alterações não gravadas. Componentes apresentam lista, formulário de criação, editor JSON, estados e ações locais. A verificação de arquivos permanece independente da gravação; importar é uma ação explícita que sempre cria outra cópia.
+
+A persistência não calcula pontuação, não valida referências normativas como oficiais e não contém regras normativas. Não há backend, autenticação, upload ou telemetria. Exportação usa Blob e download local.

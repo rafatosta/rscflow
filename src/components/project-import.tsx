@@ -4,7 +4,13 @@ import {
   type ProjectFileResult,
 } from '@/features/project-import/validate-project-file';
 
-export function ProjectImport() {
+export function ProjectImport({
+  onImport,
+  disabled = false,
+}: {
+  onImport?: (project: import('@/domain/project').ProjectExport) => void;
+  disabled?: boolean;
+}) {
   const [result, setResult] = useState<ProjectFileResult | null>(null);
   const [loading, setLoading] = useState(false);
   const selection = useRef(0);
@@ -29,7 +35,8 @@ export function ProjectImport() {
           Arquivo de projeto JSON
         </label>
         <p id="file-help" className="mt-2 text-sm leading-6 text-slate-300">
-          A leitura acontece neste navegador. O arquivo não é enviado nem salvo pela aplicação.
+          A leitura acontece neste navegador. O arquivo não é enviado. A importação local só
+          acontece ao escolher “Importar como novo projeto”.
         </p>
         <input
           id="project-file"
@@ -67,6 +74,16 @@ export function ProjectImport() {
                 <dd>{result.project.regulation.version}</dd>
               </div>
             </dl>
+            {onImport && (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => onImport(result.project)}
+                className="mt-4 rounded bg-cyan-300 px-4 py-2 font-medium text-slate-950 disabled:opacity-50"
+              >
+                Importar como novo projeto
+              </button>
+            )}
           </div>
         )}
       </div>

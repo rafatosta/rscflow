@@ -6,6 +6,11 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Persistência de múltiplos projetos em IndexedDB/Dexie com CRUD, duplicação e recuperação do projeto ativo.
+- Autosave com debounce, fila serial, estados visuais e detecção de conflitos entre abas.
+- Importação/exportação JSON portátil dos schemas 1.0 e 2.0, editor validado e proteção de rascunhos em falhas.
+- Testes de persistência e autosave com fake-indexeddb e transporte entre contextos de navegador no E2E.
+
 - Motor puro de pontuação com fator/peso, limites compartilhados, consolidação nos três níveis e estados quantitativos explícitos.
 - Política normativa em JSON, aritmética decimal exata, arredondamento final e escolha explícita de nível por atividade.
 - Testes unitários e regressões com recortes conferidos da resolução, incluindo indisponibilidade do catálogo pendente.

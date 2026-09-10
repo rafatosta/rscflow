@@ -13,3 +13,11 @@ Os testes unitários cobrem leitura, JSON malformado, raiz inválida, campos obr
 `tests/unit/scoring.test.ts` usa catálogo sintético para verificar fator/peso, limite compartilhado do critério, teto por diretriz e nível, soma, limites inclusivos 60/36, aritmética decimal, arredondamento somente final, escolha de nível, duplicidade de ID, versões incompatíveis, dados inválidos/pendentes, ausência de política, entradas vazias, imutabilidade e extremos numéricos. Alterações de parâmetros do dataset são testadas sem mudar o algoritmo.
 
 `tests/regulation/scoring.test.ts` fixa parâmetros conferidos nos arts. 12, 15 e 17 e recortes dos três níveis com proveniência em `tests/regulation/fixtures/resolution-excerpts.json`. Os resultados esperados são independentes da implementação. Esses recortes não certificam todo o catálogo: também há regressão que exige indisponibilidade do dataset de produção pendente. O E2E existente continua cobrindo importação e acessibilidade; não há interface de pontuação nesta etapa.
+
+## Persistência, autosave e arquivos
+
+`tests/unit/storage.test.ts` usa fake-indexeddb com bancos isolados para CRUD, múltiplas cópias, reabertura da conexão, seleção ativa, duplicação, exclusão, revisões concorrentes, preservação normativa e round-trip dos envelopes 1.0/2.0. Cobre também dados não portáveis, importações inválidas, debounce, gravação em andamento, falha/repetição e descarte de pendências.
+
+`tests/integration/local-projects.test.tsx` verifica estados visuais, edição após recarga, erro de armazenamento sem perda do rascunho, troca com gravação pendente e rejeição de edição inválida. Os testes antigos do validador agora montam diretamente ProjectImport.
+
+`tests/e2e/local-projects.spec.ts` executa criação, edição, autosave, reload, download real, duplicação, exclusão e importação do arquivo em um segundo contexto isolado de navegador. Confere também continuidade do legado, rejeição de versão desconhecida e acessibilidade axe no editor. Os testes de interface usam referências sintéticas, sem afirmar validação normativa.
