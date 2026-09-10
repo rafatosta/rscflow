@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0",
+  "regulation": {
+    "id": "ifba-189-2026",
+    "authority": "CONSUP/IFBA",
+    "number": "189",
+    "year": 2026
+  },
+  "status": "pending-official-validation",
+  "source": { "resolution": null, "officialScoringSpreadsheet": null },
+  "notice": "Os dados só poderão ser preenchidos após validação humana contra a Resolução CONSUP/IFBA nº 189/2026 e a planilha oficial fornecida pelo mantenedor."
+}
