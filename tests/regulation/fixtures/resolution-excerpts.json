@@ -1,0 +1,65 @@
+{
+  "notice": "Recortes conferidos visualmente na resolução; não constituem catálogo completo.",
+  "criteria": [
+    {
+      "id": "rsc-i-a-3",
+      "code": "a.3",
+      "description": "Exercício de magistério (Educação Infantil, Básica, Técnica e Superior)",
+      "unit": "mês",
+      "factor": 0.41,
+      "maxQuantity": 24,
+      "weight": 1,
+      "directiveId": "rsc-i-a",
+      "provenance": {
+        "status": "validated",
+        "sourceReference": "Resolução CONSUP/IFBA 189/2026, Anexo IV, PDF p. 17",
+        "validatedBy": "Conferência visual Codex, 10/09/2026"
+      }
+    },
+    {
+      "id": "rsc-i-g-1",
+      "code": "g.1",
+      "description": "Banca de Concurso Público: Organização / Coordenação / Elaboração / Revisão / Correção de Prova de Concurso Público / Membro de Banca de Concurso / Membro de Banca de Avaliação de Cursos e/ou Projetos",
+      "unit": "certame",
+      "factor": 2,
+      "maxQuantity": 5,
+      "weight": 1,
+      "directiveId": "rsc-i-g",
+      "provenance": {
+        "status": "validated",
+        "sourceReference": "Resolução CONSUP/IFBA 189/2026, Anexo IV, PDF p. 19",
+        "validatedBy": "Conferência visual Codex, 10/09/2026"
+      }
+    },
+    {
+      "id": "rsc-ii-c-1",
+      "code": "c.1",
+      "description": "Participação em núcleo de inovação tecnológica ou atividades correlatas",
+      "unit": "mês",
+      "factor": 0.41,
+      "maxQuantity": 12,
+      "weight": 2,
+      "directiveId": "rsc-ii-c",
+      "provenance": {
+        "status": "validated",
+        "sourceReference": "Resolução CONSUP/IFBA 189/2026, Anexo V, PDF p. 20",
+        "validatedBy": "Conferência visual Codex, 10/09/2026"
+      }
+    },
+    {
+      "id": "rsc-iii-b-1",
+      "code": "b.1",
+      "description": "Participação em elaboração de Projeto Pedagógico de Cursos (PPC)",
+      "unit": "PPC",
+      "factor": 14,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "validated",
+        "sourceReference": "Resolução CONSUP/IFBA 189/2026, Anexo VI, PDF p. 22",
+        "validatedBy": "Conferência visual Codex, 10/09/2026"
+      }
+    }
+  ]
+}

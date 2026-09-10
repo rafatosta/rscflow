@@ -4,7 +4,7 @@ Before changing code, every agent must read this file and the relevant documenta
 
 1. Do not invent, complete, adjust, or reinterpret missing normative rules.
 2. Source-of-truth priority is: current maintainer instruction > official resolution > official scoring spreadsheet > validated normative JSON > documentation > code.
-3. If the resolution, spreadsheet, and JSON diverge, stop the rule change and report the inconsistency for human decision.
+3. Em divergências entre resolução normativa, planilha e JSON, prevalece sempre a resolução normativa, conforme decisão do mantenedor em 10/09/2026. Registre a divergência e sua fonte. Não resolva por inferência ambiguidades internas da própria normativa.
 4. Keep domain, rules, persistence, UI, memorial, and PDF separate. Normative rules are forbidden in React components.
 5. Every behavioral change requires its corresponding test.
 6. Do not leave TODOs, stubs, or deliberately incomplete functionality.

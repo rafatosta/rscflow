@@ -8,9 +8,25 @@
   },
   "status": "pending-official-validation",
   "source": {
-    "resolution": null,
+    "resolution": "docs/ifba/res-consup-ifba-no-189-de-07-04-2026-2013-aprova-o-novo-regulamento-para-a-concessao-de-reconhecimento-de-saberes-e-competencias-do-instituto-federal-da-bahia-e-revogacao-da-resolucao-consup-ifba-no-171-2014.pdf",
     "officialScoringSpreadsheet": null
   },
-  "notice": "Os dados só poderão ser preenchidos após validação humana contra a Resolução CONSUP/IFBA nº 189/2026 e a planilha oficial fornecida pelo mantenedor.",
-  "version": null
+  "notice": "Catálogo de critérios pendente de transcrição e validação. Política de cálculo conferida nos arts. 12, 15–17. A normativa prevalece sobre a planilha, conforme decisão do mantenedor em 10/09/2026.",
+  "version": null,
+  "scoring": {
+    "minimumTotal": 60,
+    "minimumRequestedLevel": 36,
+    "maximumLevelScore": 100,
+    "quantityLimitScope": "criterion",
+    "rounding": {
+      "mode": "half-up",
+      "scope": "total",
+      "decimalPlaces": 0
+    },
+    "provenance": {
+      "status": "validated",
+      "sourceReference": "Resolução CONSUP/IFBA 189/2026, art. 12 §3; art. 15 §2 I, III, IV, V e VI; art. 16; art. 17 (PDF pp. 8–10).",
+      "validatedBy": "Conferência documental por Codex em 10/09/2026, sob orientação do mantenedor de prevalência da normativa."
+    }
+  }
 }

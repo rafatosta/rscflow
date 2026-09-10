@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Motor puro de pontuação com fator/peso, limites compartilhados, consolidação nos três níveis e estados quantitativos explícitos.
+- Política normativa em JSON, aritmética decimal exata, arredondamento final e escolha explícita de nível por atividade.
+- Testes unitários e regressões com recortes conferidos da resolução, incluindo indisponibilidade do catálogo pendente.
+
 - Contratos de domínio tipados, envelope 2.0 com leitura compatível de 1.0 e validação de referências de comprovantes.
 - Carregador genérico e schemas Zod dos três níveis normativos, com testes de integridade; dados oficiais permanecem pendentes.
 
@@ -13,6 +17,8 @@ This project follows Keep a Changelog and Semantic Versioning.
 - Testes de leitura, rejeição estrutural, seleção concorrente e fluxo E2E com acessibilidade.
 
 ### Changed
+
+- Prevalência da resolução normativa nas divergências com a planilha, conforme decisão do mantenedor; registrados os valores de RSC I/a.3 e g.1 e a ambiguidade interna de RSC II/d.5.
 
 - Convenção de commits com descrição e corpo em português, conforme orientação do mantenedor.
 - Documentação dos limites da validação estrutural e das divergências observadas nas fontes pendentes.

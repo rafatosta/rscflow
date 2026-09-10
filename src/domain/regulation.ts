@@ -7,6 +7,23 @@ export const rscLevelSchema = z.enum(['rsc-i', 'rsc-ii', 'rsc-iii']);
 export type RscLevel = z.infer<typeof rscLevelSchema>;
 const status = z.enum(['pending-official-validation', 'validated']);
 const provenance = z.object({ status, sourceReference: text, validatedBy: text.optional() });
+export const scoringPolicySchema = z
+  .object({
+    minimumTotal: amount,
+    minimumRequestedLevel: amount,
+    maximumLevelScore: amount,
+    quantityLimitScope: z.literal('criterion'),
+    rounding: z
+      .object({
+        mode: z.literal('half-up'),
+        scope: z.literal('total'),
+        decimalPlaces: z.number().int().min(0).max(10),
+      })
+      .strict(),
+    provenance,
+  })
+  .strict();
+export type ScoringPolicy = z.infer<typeof scoringPolicySchema>;
 export const directiveSchema = z
   .object({
     id,
@@ -94,6 +111,7 @@ export const regulationMetadataSchema = z
       .object({ resolution: text.nullable(), officialScoringSpreadsheet: text.nullable() })
       .strict(),
     notice: text,
+    scoring: scoringPolicySchema.optional(),
   })
   .strict();
 export const regulationSchema = z

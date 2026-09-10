@@ -16,7 +16,14 @@ export const evidenceSchema = z
   .object({ id: text, title: text, fileName: text.optional(), description: z.string().optional() })
   .strict();
 export const activitySchema = z
-  .object({ id: text, title: text, criterionId: text, quantity, evidenceIds: z.array(text) })
+  .object({
+    id: text,
+    title: text,
+    criterionId: text,
+    selectedLevel: rscLevelSchema.optional(),
+    quantity,
+    evidenceIds: z.array(text),
+  })
   .strict();
 export const memorialSchema = z
   .object({ title: text, introduction: z.string(), conclusion: z.string() })
