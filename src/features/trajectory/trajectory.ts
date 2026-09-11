@@ -178,6 +178,11 @@ export function updateActivity(
     ...(values.selectedLevel === undefined && activity.selectedLevel
       ? { selectedLevel: activity.selectedLevel }
       : {}),
+    ...(activity.generatedText !== undefined ? { generatedText: activity.generatedText } : {}),
+    ...(activity.editedText !== undefined ? { editedText: activity.editedText } : {}),
+    ...(activity.isManuallyEdited !== undefined
+      ? { isManuallyEdited: activity.isManuallyEdited }
+      : {}),
     createdAt: activity.createdAt ?? timestamp,
     updatedAt: timestamp,
   };

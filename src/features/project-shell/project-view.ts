@@ -51,7 +51,7 @@ export function completion(project: ProjectExport) {
     {
       label: 'Texto do memorial',
       section: 'memorial',
-      complete: Boolean(data.memorial?.introduction.trim() && data.memorial?.conclusion.trim()),
+      complete: Boolean(data.memorial?.conclusion.trim()),
     },
   ];
   return {

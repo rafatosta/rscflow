@@ -22,6 +22,10 @@ Critérios organiza o catálogo em abas RSC I, RSC II e RSC III, abertas inicial
 
 Pontuação apresenta o resultado em cartões que passam de três colunas para uma coluna em telas estreitas. Os estados usam texto e símbolos além de cor: “Requisitos quantitativos atingidos”, “Requisitos quantitativos ainda não atingidos” ou “Cálculo parcial”. As diretrizes permanecem recolhidas até a pessoa abrir os detalhes; ao atingir o teto, a mensagem “Pontuação máxima da diretriz atingida.” explica por que experiências adicionais não aumentam os pontos. A visão geral repete um resumo compacto e lista pendências com acesso à seção completa pela navegação.
 
+Memorial apresenta um editor por seções, com a apresentação introdutória identificada como opção editorial. Atividades aparecem do passado para o presente na seção correspondente à categoria declarada. O texto-base e o texto editável ficam visíveis no mesmo card, com estado “Texto-base” ou “Editado manualmente”. Toda geração ocorre no navegador e pode ser usada sem conexão.
+
+Depois de uma edição manual, mudanças na atividade ou em suas evidências mostram um alerta sem substituir o texto. “Manter texto atual” conserva a escrita autoral; “Regenerar texto” confirma a substituição pela nova base. A prévia mostra capa, identificação, sumário e todas as seções, inclusive estados vazios claros, sem rotular a introdução como exigência normativa.
+
 ## Limites transparentes
 
 O progresso é uma aproximação editorial: cinco grupos com o mesmo peso (identificação, formação, trajetória, enquadramento e texto). Não representa pontuação, elegibilidade ou aprovação. Revisão apenas ajuda a localizar campos ainda não preenchidos.

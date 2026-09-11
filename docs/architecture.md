@@ -9,7 +9,7 @@ The application is layered to keep legal/normative decisions auditable and indep
 - `data/regulations`: validated, versioned regulation datasets.
 - `storage`: local persistence adapters.
 - `features`: use-case orchestration.
-- `memorial` and `pdf`: future document assembly and output.
+- `memorial`: geração local de narrativas e montagem estruturada do documento; `pdf`: saída futura.
 - `utils`: framework-agnostic helpers.
 
 React components may present outcomes but must never contain normative criteria or scoring logic.
@@ -37,3 +37,9 @@ A persistência não calcula pontuação, não valida referências normativas co
 A etapa 04 substitui a tela única por um shell responsivo com React Router, sidebar e Sheet Radix. A sessão de persistência permanece acima das seções, preservando fila, revisão e rascunho durante a navegação. Rotas e projeções de preenchimento ficam em `features/project-shell`; componentes não contêm cálculos normativos.
 
 Criação por nível/dataset usa o envelope 2.1 para representar campos inicialmente ausentes e versão normativa null. Os formatos anteriores continuam aceitos sem migração automática. A prévia textual fica em `src/memorial/`, separada do motor. Consulte `docs/frontend.md` para rotas e `docs/ux.md` para comportamento e limites.
+
+## Montagem do memorial
+
+`src/memorial/generator.ts` contém funções puras para gerar texto-base na sequência contexto → atuação → resultados → saberes/competências → enquadramento → comprovação, agrupar experiências nas seções editoriais e ordenar datas do passado para o presente. `src/memorial/preview.ts` monta capa, identificação, sumário e seções sem acessar React, armazenamento, rede ou motor quantitativo.
+
+A última base fica em `Activity.generatedText`. Compará-la a uma nova geração detecta mudanças nos dados estruturados. Edição, aceite do texto atual e regeneração são operações explícitas e puras; somente a regeneração substitui `editedText`. O componente coordena essas operações e envia o projeto atualizado ao autosave existente.

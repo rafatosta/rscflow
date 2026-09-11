@@ -77,12 +77,30 @@ export const activitySchema = z
     selectedLevel: rscLevelSchema.optional(),
     quantity,
     evidenceIds: z.array(text),
+    generatedText: z.string().optional(),
+    editedText: z.string().optional(),
+    isManuallyEdited: z.boolean().optional(),
     createdAt: z.iso.datetime().optional(),
     updatedAt: z.iso.datetime().optional(),
   })
   .strict();
 export const memorialSchema = z
-  .object({ title: text, introduction: z.string(), conclusion: z.string() })
+  .object({
+    title: text,
+    introduction: z.string(),
+    conclusion: z.string(),
+    sectionTexts: z
+      .object({
+        education: z.string().optional(),
+        teaching: z.string().optional(),
+        production: z.string().optional(),
+        community: z.string().optional(),
+        management: z.string().optional(),
+        awards: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+  })
   .strict();
 export const scoringResultSchema = z
   .object({

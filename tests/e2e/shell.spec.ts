@@ -43,8 +43,8 @@ test('todas as seções funcionam por URL, reload e navegação', async ({ page 
   await page.getByLabel(/^Quantidade declarada/).fill('3');
   await page.getByRole('button', { name: 'Adicionar atividade' }).click();
   await page.getByRole('link', { name: 'Memorial', exact: true }).click();
-  await page.getByLabel('Introdução', { exact: true }).fill('Minha trajetória docente.');
-  await page.getByLabel('Conclusão', { exact: true }).fill('Considerações finais.');
+  await page.getByLabel(/Apresentação introdutória/).fill('Minha trajetória docente.');
+  await page.getByLabel('Texto da conclusão', { exact: true }).fill('Considerações finais.');
   await page.getByRole('link', { name: 'Ver prévia do memorial' }).click();
   await expect(page.getByRole('article')).toContainText('Especialização — Instituição de teste');
   await expect(page.getByRole('article')).toContainText('Atividade de ensino');
@@ -264,7 +264,67 @@ test('trajetória organiza períodos, filtros e evidências sem anexar arquivos'
     .getByRole('link', { name: 'Prévia' })
     .click();
   await expect(page.getByRole('article')).toContainText('Coordenação das atividades.');
-  await expect(page.getByRole('article')).toContainText('Evidências: Portaria de coordenação');
+  await expect(page.getByRole('article')).toContainText('Comprovação: Portaria de coordenação');
+});
+
+test('memorial gera, preserva e regenera narrativas localmente', async ({ page }) => {
+  await start(page);
+  const waitForSave = async () => {
+    await expect(page.getByText('Salvando…', { exact: true })).toBeVisible();
+    await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
+  };
+  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByLabel(/^Título da atividade/).fill('Docência no curso técnico');
+  await page.getByLabel(/^Categoria/).selectOption('Ensino');
+  await page.getByLabel(/^Quantidade declarada/).fill('1');
+  await page.getByLabel(/^Data inicial/).fill('2022-01-10');
+  await page.getByLabel(/^Resultados/).fill('Primeiro resultado');
+  await page.getByRole('button', { name: 'Adicionar atividade' }).click();
+  await waitForSave();
+
+  await page.getByRole('link', { name: 'Memorial', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Atuação docente' })).toBeVisible();
+  await page.getByRole('button', { name: 'Gerar textos-base ausentes' }).click();
+  await waitForSave();
+  const narrative = page.getByLabel('Texto da atividade');
+  await narrative.fill('Narrativa autoral preservada.');
+  await waitForSave();
+
+  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('button', { name: 'Editar atividade Docência no curso técnico' }).click();
+  await page.getByLabel(/^Resultados/).fill('Resultado estruturado alterado');
+  await page.getByRole('button', { name: 'Salvar atividade' }).click();
+  await waitForSave();
+  await page.getByRole('link', { name: 'Memorial', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('dados estruturados mudaram');
+  await expect(narrative).toHaveValue('Narrativa autoral preservada.');
+  await page.getByRole('button', { name: 'Manter texto atual' }).click();
+  await waitForSave();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel('Texto da atividade')).toHaveValue('Narrativa autoral preservada.');
+
+  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('button', { name: 'Editar atividade Docência no curso técnico' }).click();
+  await page.getByLabel(/^Resultados/).fill('Resultado final para regeneração');
+  await page.getByRole('button', { name: 'Salvar atividade' }).click();
+  await waitForSave();
+  await page.getByRole('link', { name: 'Memorial', exact: true }).click();
+  await page.getByRole('button', { name: 'Regenerar texto' }).click();
+  await waitForSave();
+  await expect(page.getByLabel('Texto da atividade')).toHaveValue(
+    /Resultado final para regeneração/,
+  );
+  await page.getByRole('link', { name: 'Ver prévia do memorial' }).click();
+  await expect(page.getByRole('heading', { name: 'Sumário' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Atuação docente' })).toBeVisible();
+  await expect(page.getByRole('article')).toContainText('Resultado final para regeneração');
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: '/tmp/rscflow-memorial-preview-mobile.png', fullPage: true });
 });
 
 test('critérios mostram o catálogo pendente sem presumir opções normativas', async ({ page }) => {

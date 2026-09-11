@@ -6,6 +6,11 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Memorial Descritivo estruturado com capa, identificação, sumário e seções cronológicas compatíveis com o art. 10.
+- Gerador local e determinístico de texto-base por atividade, sem backend ou serviço remoto.
+- Editor por seções com preservação de texto manual, aviso de dados alterados e regeneração exclusivamente explícita.
+- Persistência e transporte JSON de textos gerados/editados, com testes unitários, de integração e E2E.
+
 - Dashboard de pontuação com resultados por nível, total, requisitos 60/36 e detalhamento expansível por diretriz.
 - Resumo quantitativo e pendências na visão geral, com estado parcial explícito para dados normativos pendentes.
 - Indicadores textuais de teto, itens utilizados e experiências preservadas no memorial, com testes responsivos e de acessibilidade.

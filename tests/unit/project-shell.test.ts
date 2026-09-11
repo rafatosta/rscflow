@@ -87,6 +87,10 @@ describe('rotas e rascunhos do shell', () => {
     expect(completion(draft).percent).toBe(20);
     draft.userData.education.push({ id: 'e', title: 'Curso', institution: 'Instituição' });
     expect(completion(draft).percent).toBe(40);
+    draft.userData.memorial = { title: 'Memorial', introduction: '', conclusion: 'Síntese final' };
+    expect(completion(draft).items.find((item) => item.section === 'memorial')?.complete).toBe(
+      true,
+    );
     expect(completion(projectExportSchema.parse(projectFixture))).toEqual({
       percent: 0,
       items: [],

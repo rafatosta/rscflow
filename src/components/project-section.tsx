@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import type { FormEvent } from 'react';
 import type { LocalProject } from '@/domain/local-project';
 import type { TypedProjectExport } from '@/domain/project';
 import { completion, linkedDataset, projectScoring } from '@/features/project-shell/project-view';
 import { projectPath, type Section } from '@/features/project-shell/routes';
-import { buildMemorialPreview } from '@/memorial/preview';
+import { buildMemorialDocument } from '@/memorial/preview';
 import { CriteriaExplorer } from './criteria-explorer';
 import { EducationSection } from './education-section';
+import { MemorialSection } from './memorial-section';
 import { ScoringDashboard } from './scoring-dashboard';
 import { TeacherProfileForm } from './teacher-profile-form';
 import { TrajectorySection } from './trajectory-section';
@@ -21,10 +21,6 @@ type Props = {
   edit: (text: string) => void;
   onExport: () => void;
 };
-function values(event: FormEvent<HTMLFormElement>) {
-  return Object.fromEntries(new FormData(event.currentTarget));
-}
-
 function JsonEditor({
   draft,
   edit,
@@ -156,58 +152,22 @@ export function ProjectSection(props: Props) {
 
   if (section === 'memorial')
     return (
-      <section className="panel">
-        <h2 className="mb-4 text-xl font-semibold">Texto do memorial</h2>
-        <form
-          className="space-y-4"
-          onSubmit={(event) => event.preventDefault()}
-          onChange={(event) => {
-            const form = values(event);
-            update({
-              memorial: {
-                title: String(form.title),
-                introduction: String(form.introduction),
-                conclusion: String(form.conclusion),
-              },
-            });
-          }}
-        >
-          <label className="block">
-            Título do memorial
-            <input
-              className="field"
-              name="title"
-              defaultValue={data.memorial?.title ?? data.title}
-              disabled={busy}
-              required
-            />
-          </label>
-          <label className="block">
-            Introdução
-            <textarea
-              className="field min-h-40"
-              name="introduction"
-              defaultValue={data.memorial?.introduction ?? ''}
-              disabled={busy}
-            />
-          </label>
-          <label className="block">
-            Conclusão
-            <textarea
-              className="field min-h-40"
-              name="conclusion"
-              defaultValue={data.memorial?.conclusion ?? ''}
-              disabled={busy}
-            />
-          </label>
-        </form>
+      <>
+        <MemorialSection
+          projectTitle={data.title}
+          memorial={data.memorial}
+          activities={data.activities}
+          evidences={data.evidence}
+          disabled={busy}
+          onSave={(patch) => update(patch)}
+        />
         <Link
           className="mt-5 inline-block text-cyan-300 underline"
           to={projectPath(record.localId, 'preview')}
         >
           Ver prévia do memorial
         </Link>
-      </section>
+      </>
     );
 
   if (section === 'preview')
@@ -217,8 +177,22 @@ export function ProjectSection(props: Props) {
         <p className="mb-6 text-sm text-slate-300">
           Montada com os textos, formações e atividades registrados no projeto.
         </p>
-        <article className="whitespace-pre-wrap break-words rounded bg-white p-5 leading-8 text-slate-950">
-          {buildMemorialPreview(project)}
+        <article className="space-y-8 rounded bg-white p-5 leading-8 text-slate-950">
+          {buildMemorialDocument(project).map((documentSection, index) => (
+            <section key={documentSection.id} aria-labelledby={`preview-${documentSection.id}`}>
+              <h2
+                id={`preview-${documentSection.id}`}
+                className={index === 0 ? 'text-2xl font-semibold' : 'text-xl font-semibold'}
+              >
+                {documentSection.title}
+              </h2>
+              <div className="mt-3 space-y-3 whitespace-pre-wrap break-words">
+                {documentSection.paragraphs.map((paragraph, paragraphIndex) => (
+                  <p key={`${documentSection.id}-${paragraphIndex}`}>{paragraph}</p>
+                ))}
+              </div>
+            </section>
+          ))}
         </article>
       </section>
     );

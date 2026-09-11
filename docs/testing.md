@@ -41,3 +41,7 @@ Os testes unitários cobrem leitura, JSON malformado, raiz inválida, campos obr
 ## Trajetória profissional e evidências
 
 `tests/unit/trajectory.test.ts` cobre categorias, validação de período e quantidade, exigência condicional de critério, competências, timestamps, edição, duplicação, ordenação, agrupamento anual, busca, filtro, metadados de evidência, limpeza de vínculos, compatibilidade e round-trip JSON. `tests/integration/trajectory.test.tsx` verifica estados vazios, erros associados, CRUD persistido, reload, edição posterior, vínculos e filtros reais. O E2E cobre timeline, períodos, evidências, busca, categoria, persistência, layout móvel, axe, memorial e transporte completo por exportação/importação.
+
+## Memorial Descritivo
+
+`tests/unit/memorial.test.ts` cobre saída determinística, sequência narrativa, ordem cronológica, estrutura do art. 10, edição manual, detecção de dados alterados, manutenção, regeneração explícita e round-trip dos campos novos. `tests/integration/memorial-section.test.tsx` verifica o editor por seções e que nenhuma atualização implícita substitui o texto autoral. O E2E atravessa cadastro, geração, edição, alteração estruturada, manutenção, recarga, regeneração e prévia no armazenamento real do navegador.

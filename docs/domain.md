@@ -37,3 +37,9 @@ Além de ID, título, quantidade e vínculos, a atividade pode armazenar institu
 `Evidence` guarda metadados e referências: tipo, título, identificador, emissor, data, referência de processo e notas. `fileName` e `description` continuam aceitos como campos legados. Nenhum arquivo binário integra esse modelo. Excluir uma evidência remove seu ID das atividades vinculadas e atualiza o timestamp dessas atividades, mantendo a integridade referencial exigida pelo projeto.
 
 O critério pode permanecer vazio em rascunhos 2.1 e é obrigatório no contrato 2.0. Categoria, textos e evidências não determinam critério ou nível automaticamente; eventual pontuação continua sob responsabilidade exclusiva do motor e do dataset validado.
+
+## Memorial Descritivo
+
+`Memorial` preserva título, apresentação introdutória e conclusão dos arquivos anteriores e pode armazenar textos complementares para formação, atuação docente, produção, serviços à comunidade, gestão e títulos/prêmios/concursos. A introdução é uma opção editorial e não é usada como requisito de completude. Os campos adicionais são opcionais para manter compatibilidade com projetos 2.0 e 2.1 já exportados.
+
+Cada `Activity` pode armazenar `generatedText`, `editedText` e `isManuallyEdited`. O primeiro registra a última base produzida pelos dados estruturados; o segundo contém a versão apresentada no memorial; o terceiro distingue edição autoral. Esses campos são conteúdo do projeto e participam normalmente de IndexedDB, exportação e importação JSON. Pontuação e valores normativos não são copiados para eles.
