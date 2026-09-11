@@ -71,7 +71,7 @@ export function ProjectImport({
               </div>
               <div>
                 <dt className="text-slate-300">Versão normativa declarada</dt>
-                <dd>{result.project.regulation.version}</dd>
+                <dd>{result.project.regulation.version ?? 'Pendente de validação'}</dd>
               </div>
             </dl>
             {onImport && (

@@ -6,6 +6,12 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Shell responsivo com sidebar, Sheet Radix, cabeçalho de autosave e rotas por seção do projeto.
+- Gestão inicial com cartões, progresso editorial, criação por RSC/dataset e exclusão confirmada.
+- Formulários por seção, prévia textual, revisão e visualização do estado real do motor normativo.
+- Envelope de rascunho 2.1 com ausências explícitas, preservando importação dos formatos 1.0 e 2.0.
+- Testes de rotas diretas, navegação protegida, responsividade e acessibilidade do shell.
+
 - Persistência de múltiplos projetos em IndexedDB/Dexie com CRUD, duplicação e recuperação do projeto ativo.
 - Autosave com debounce, fila serial, estados visuais e detecção de conflitos entre abas.
 - Importação/exportação JSON portátil dos schemas 1.0 e 2.0, editor validado e proteção de rascunhos em falhas.

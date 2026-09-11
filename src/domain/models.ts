@@ -77,3 +77,9 @@ export type Evidence = z.infer<typeof evidenceSchema>;
 export type Memorial = z.infer<typeof memorialSchema>;
 export type ScoringResult = z.infer<typeof scoringResultSchema>;
 export type RscProject = z.infer<typeof rscProjectSchema>;
+
+/** Rascunho 2.1: ausência de nome/enquadramento é explícita, sem valores fictícios. */
+export const draftRscProjectSchema = rscProjectSchema.safeExtend({
+  teacher: teacherSchema.extend({ name: z.string() }),
+  activities: z.array(activitySchema.extend({ criterionId: z.string() })),
+});

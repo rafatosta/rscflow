@@ -85,6 +85,7 @@ export function useLocalProjects(repository: ProjectRepository) {
     try {
       const value = portableProject({ ...latest.current, userData: JSON.parse(text) });
       latest.current = value;
+      setActive((record) => (record ? { ...record, project: value } : record));
       invalidRef.current = false;
       setInvalid('');
       session.current?.schedule(value);
@@ -96,7 +97,7 @@ export function useLocalProjects(repository: ProjectRepository) {
     }
   }
 
-  async function perform(operation: () => Promise<void>, needsFlush = true) {
+  async function perform<T>(operation: () => Promise<T>, needsFlush = true) {
     if (busy) return;
     setBusy(true);
     setError('');
@@ -108,8 +109,9 @@ export function useLocalProjects(repository: ProjectRepository) {
         setError('Resolva os dados inválidos ou o erro de salvamento antes de trocar de projeto.');
         return;
       }
-      await operation();
+      const result = await operation();
       setProjects(await repository.list());
+      return result;
     } catch (cause) {
       setError(storageErrorMessage(cause));
     } finally {
@@ -123,6 +125,22 @@ export function useLocalProjects(repository: ProjectRepository) {
   }
 
   return {
+    flush: async () => {
+      if (invalidRef.current) {
+        setError('Corrija os dados antes de navegar.');
+        return false;
+      }
+      const ok = session.current ? await session.current.flush() : true;
+      if (!ok) setError('Resolva o erro de salvamento antes de navegar.');
+      return ok;
+    },
+    exportRecord: (record: LocalProject) => {
+      try {
+        downloadProject(record.project);
+      } catch (cause) {
+        setError(storageErrorMessage(cause));
+      }
+    },
     projects,
     active,
     draft,
@@ -141,22 +159,28 @@ export function useLocalProjects(repository: ProjectRepository) {
         const record = await repository.load(localId);
         if (!record) throw new Error('Projeto não encontrado');
         await activate(record);
+        return record;
       }),
     create: (project: ProjectExport) =>
       perform(async () => {
-        await activate(await repository.create(project));
+        const record = await repository.create(project);
+        await activate(record);
+        return record;
       }),
-    duplicate: () =>
+    duplicate: (localId = session.current?.current.localId) =>
       perform(async () => {
-        if (session.current)
-          await activate(await repository.duplicate(session.current.current.localId));
+        if (!localId) return;
+        const record = await repository.duplicate(localId);
+        await activate(record);
+        return record;
       }),
-    remove: () =>
+    remove: (localId = session.current?.current.localId) =>
       perform(async () => {
-        if (!session.current) return;
-        const record = session.current.current;
-        await repository.delete(record.localId, record.revision);
-        open(undefined);
+        if (!localId) return;
+        const record = await repository.load(localId);
+        if (!record) return;
+        await repository.delete(localId, record.revision);
+        if (session.current?.current.localId === localId) open(undefined);
       }),
     reopenSaved: () =>
       perform(async () => {

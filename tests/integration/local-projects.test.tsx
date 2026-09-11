@@ -1,72 +1,82 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { LocalProjects } from '@/components/local-projects';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { App } from '@/app/App';
 import { DexieProjectRepository, ProjectDatabase } from '@/storage/project-repository';
 import { projectExportSchema } from '@/domain/project';
+import { projectPath } from '@/features/project-shell/routes';
 import { currentProjectFixture } from '../fixtures/project';
 
 let repository: DexieProjectRepository;
+let routers: ReturnType<typeof createMemoryRouter>[];
 beforeEach(() => {
   repository = new DexieProjectRepository(new ProjectDatabase(`ui-${crypto.randomUUID()}`));
+  routers = [];
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
 });
 afterEach(async () => {
   cleanup();
+  routers.forEach((router) => router.dispose());
   vi.restoreAllMocks();
   await repository.database.delete();
 });
+function mount(path: string) {
+  const router = createMemoryRouter([{ path: '*', element: <App repository={repository} /> }], {
+    initialEntries: [path],
+  });
+  routers.push(router);
+  return { ...render(<RouterProvider router={router} />), router };
+}
 
-it('recupera, edita, salva e reabre o projeto ativo', async () => {
+it('recupera por URL, edita, salva e reabre o projeto', async () => {
   const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
-  await repository.select(record.localId);
-  const rendered = render(<LocalProjects repository={repository} />);
-  const editor = await screen.findByLabelText('Dados editáveis do projeto (JSON)');
-  const data = { ...currentProjectFixture.userData, title: 'Título salvo' };
-  fireEvent.change(editor, { target: { value: JSON.stringify(data) } });
+  const rendered = mount(projectPath(record.localId, 'profile'));
+  fireEvent.change(await screen.findByLabelText('Nome do docente'), {
+    target: { value: 'Nome salvo' },
+  });
   expect(screen.getByText('Salvando…')).toBeInTheDocument();
   await screen.findByText('Salvo localmente');
-  expect((await repository.load(record.localId))?.project.userData).toEqual(data);
+  const saved = await repository.load(record.localId);
+  expect(saved?.project.userData.teacher).toEqual({ name: 'Nome salvo' });
   rendered.unmount();
-  render(<LocalProjects repository={repository} />);
-  const reopened = await screen.findByLabelText<HTMLTextAreaElement>(
-    'Dados editáveis do projeto (JSON)',
-  );
-  expect(JSON.parse(reopened.value)).toEqual(data);
+  mount(projectPath(record.localId, 'profile'));
+  expect(await screen.findByLabelText('Nome do docente')).toHaveValue('Nome salvo');
 });
 
 it('mantém rascunho quando há erro ao salvar e recupera após nova tentativa', async () => {
   const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
-  await repository.select(record.localId);
   vi.spyOn(repository, 'update').mockRejectedValueOnce(new Error('quota'));
-  render(<LocalProjects repository={repository} />);
-  const editor = await screen.findByLabelText('Dados editáveis do projeto (JSON)');
-  const data = { ...currentProjectFixture.userData, title: 'Não perdido' };
-  fireEvent.change(editor, { target: { value: JSON.stringify(data) } });
-  expect(await screen.findByText(/Erro ao salvar:/)).toBeInTheDocument();
-  expect(editor).toHaveValue(JSON.stringify(data));
+  mount(projectPath(record.localId, 'profile'));
+  const editor = await screen.findByLabelText('Nome do docente');
+  fireEvent.change(editor, { target: { value: 'Não perdido' } });
+  expect(await screen.findByText('Erro ao salvar')).toBeInTheDocument();
+  expect(editor).toHaveValue('Não perdido');
   fireEvent.click(screen.getByRole('button', { name: 'Tentar salvar novamente' }));
   await screen.findByText('Salvo localmente');
-  expect((await repository.load(record.localId))?.project.userData).toEqual(data);
+  expect((await repository.load(record.localId))?.project.userData.teacher).toEqual({
+    name: 'Não perdido',
+  });
 });
 
-it('JSON inválido não substitui dados e impede troca silenciosa', async () => {
+it('JSON inválido impede mudança de rota sem substituir dados', async () => {
   const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
-  await repository.select(record.localId);
-  render(<LocalProjects repository={repository} />);
-  fireEvent.change(await screen.findByLabelText('Dados editáveis do projeto (JSON)'), {
-    target: { value: '{' },
-  });
-  expect(screen.getByText(/Dados inválidos/)).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Duplicar projeto' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent('Resolva os dados inválidos');
+  const { router } = mount(projectPath(record.localId, 'export'));
+  const editor = await screen.findByLabelText('Dados editáveis do projeto (JSON)');
+  fireEvent.change(editor, { target: { value: '{' } });
+  fireEvent.click(screen.getByRole('link', { name: 'Meus projetos' }));
+  await waitFor(() =>
+    expect(screen.getByText('Corrija os dados antes de navegar.')).toBeInTheDocument(),
+  );
+  expect(router.state.location.pathname).toBe(projectPath(record.localId, 'export'));
   expect((await repository.load(record.localId))?.project).toEqual(
     projectExportSchema.parse(currentProjectFixture),
   );
-  expect(await repository.list()).toHaveLength(1);
+  expect(editor).toHaveValue('{');
 });
 
 it('apresenta falha do IndexedDB sem alegar salvamento', async () => {
   vi.spyOn(repository, 'list').mockRejectedValue(new Error('denied'));
-  render(<LocalProjects repository={repository} />);
+  mount('/');
   expect(await screen.findByRole('alert')).toHaveTextContent('armazenamento local');
   await waitFor(() =>
     expect(screen.getByRole('button', { name: 'Atualizar lista' })).not.toBeDisabled(),
@@ -74,19 +84,17 @@ it('apresenta falha do IndexedDB sem alegar salvamento', async () => {
   expect(screen.queryByText('Salvo localmente')).not.toBeInTheDocument();
 });
 
-it('conclui autosave pendente antes de trocar de projeto', async () => {
-  const first = await repository.create(projectExportSchema.parse(currentProjectFixture));
-  const secondProject = projectExportSchema.parse(currentProjectFixture);
-  if (secondProject.schemaVersion === '2.0') secondProject.userData.title = 'Segundo projeto';
-  await repository.create(secondProject);
-  await repository.select(first.localId);
-  render(<LocalProjects repository={repository} />);
-  const editor = await screen.findByLabelText('Dados editáveis do projeto (JSON)');
-  const data = { ...currentProjectFixture.userData, title: 'Salvo antes de trocar' };
-  fireEvent.change(editor, { target: { value: JSON.stringify(data) } });
-  fireEvent.click(screen.getByRole('button', { name: 'Segundo projeto' }));
+it('conclui autosave antes de mudar de seção', async () => {
+  const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
+  const { router } = mount(projectPath(record.localId, 'profile'));
+  fireEvent.change(await screen.findByLabelText('Nome do docente'), {
+    target: { value: 'Salvo antes de navegar' },
+  });
+  fireEvent.click(screen.getByRole('link', { name: 'Formação' }));
   await waitFor(() =>
-    expect(JSON.parse((editor as HTMLTextAreaElement).value).title).toBe('Segundo projeto'),
+    expect(router.state.location.pathname).toBe(projectPath(record.localId, 'education')),
   );
-  expect((await repository.load(first.localId))?.project.userData).toEqual(data);
+  expect((await repository.load(record.localId))?.project.userData.teacher).toEqual({
+    name: 'Salvo antes de navegar',
+  });
 });

@@ -63,7 +63,7 @@ export class DexieProjectRepository implements ProjectRepository {
   async duplicate(localId: string): Promise<LocalProject> {
     const record = await this.load(localId);
     if (!record) throw new ProjectStorageError('Projeto não encontrado.');
-    if (record.project.schemaVersion === '2.0') {
+    if (record.project.schemaVersion !== '1.0') {
       record.project.userData.id = crypto.randomUUID();
       record.project.userData.title += ' (cópia)';
     }

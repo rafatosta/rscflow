@@ -1,0 +1,93 @@
+import { draftProjectExportSchema, type ProjectExport } from '@/domain/project';
+import { loadIfbaRegulation } from '@/data/regulations/load';
+import { rscLevelSchema, type RscLevel } from '@/domain/regulation';
+import { calculateProjectScore } from '@/rules/scoring';
+import packageMetadata from '../../../package.json';
+
+export const levels = rscLevelSchema.options;
+export const levelLabel = (level: RscLevel) => level.toUpperCase().replace('RSC-', 'RSC ');
+export const datasets = [loadIfbaRegulation()];
+export function createDraft(level: RscLevel, datasetId: string) {
+  const dataset = datasets.find((item) => item.metadata.regulation.id === datasetId);
+  if (!dataset) throw new Error('Dataset não encontrado.');
+  return draftProjectExportSchema.parse({
+    schemaVersion: '2.1',
+    applicationVersion: packageMetadata.version,
+    regulation: { id: datasetId, version: dataset.metadata.version },
+    userData: {
+      id: crypto.randomUUID(),
+      title: `Memorial ${levelLabel(rscLevelSchema.parse(level))}`,
+      teacher: { name: '' },
+      request: { level },
+      education: [],
+      activities: [],
+      evidence: [],
+      memorial: null,
+    },
+  });
+}
+export function projectTitle(project: ProjectExport) {
+  return project.schemaVersion === '1.0' ? 'Projeto legado' : project.userData.title;
+}
+export function completion(project: ProjectExport) {
+  if (project.schemaVersion === '1.0') return { percent: 0, items: [] };
+  const data = project.userData;
+  const items = [
+    {
+      label: 'Identificação do docente',
+      section: 'profile',
+      complete: Boolean(data.teacher.name.trim()),
+    },
+    { label: 'Formação registrada', section: 'education', complete: data.education.length > 0 },
+    { label: 'Trajetória registrada', section: 'activities', complete: data.activities.length > 0 },
+    {
+      label: 'Atividades com enquadramento',
+      section: 'criteria',
+      complete:
+        data.activities.length > 0 &&
+        data.activities.every((item) => item.criterionId && item.selectedLevel),
+    },
+    {
+      label: 'Texto do memorial',
+      section: 'memorial',
+      complete: Boolean(data.memorial?.introduction.trim() && data.memorial?.conclusion.trim()),
+    },
+  ];
+  return {
+    percent: Math.round((items.filter((item) => item.complete).length / items.length) * 100),
+    items,
+  };
+}
+export function linkedDataset(project: ProjectExport) {
+  return datasets.find(
+    (item) =>
+      item.metadata.regulation.id === project.regulation.id &&
+      item.metadata.version === project.regulation.version,
+  );
+}
+export function projectScoring(project: ProjectExport) {
+  const dataset = linkedDataset(project);
+  if (!dataset)
+    return {
+      status: 'unavailable' as const,
+      issues: [
+        {
+          code: 'regulation-mismatch' as const,
+          message: 'A versão normativa vinculada não está disponível neste navegador.',
+        },
+      ],
+    };
+  // 2.1 não migra o arquivo; adapta somente a entrada do cálculo, quando completa.
+  const input = project.schemaVersion === '2.1' ? { ...project, schemaVersion: '2.0' } : project;
+  if (dataset.metadata.status !== 'validated')
+    return {
+      status: 'unavailable' as const,
+      issues: [
+        {
+          code: 'pending-dataset' as const,
+          message: 'O catálogo normativo vinculado ainda está pendente de validação.',
+        },
+      ],
+    };
+  return calculateProjectScore(input, dataset);
+}
