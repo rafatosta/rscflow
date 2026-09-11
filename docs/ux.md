@@ -14,6 +14,10 @@ Na seção Dados do docente, nome completo, CPF, SIAPE, campus de lotação e RS
 
 Formação apresenta um estado vazio que orienta o primeiro cadastro e, depois, cards do registro mais recente para o mais antigo. Em telas estreitas, campos, detalhes e ações passam para uma coluna sem rolagem horizontal. Tipo, curso ou título, instituição e situação são marcados como obrigatórios; os demais campos são identificados como opcionais. Erros ficam associados ao respectivo controle. Exclusão exige confirmação. A edição mantém o ID; a duplicação cria um novo registro com ID próprio.
 
+Trajetória apresenta busca e filtro por categoria antes da timeline. Atividades com datas são agrupadas pelo ano e aparecem da mais recente para a mais antiga; registros sem período ficam no grupo “Sem data”. Quando nenhum item corresponde aos filtros, uma mensagem anuncia o resultado vazio. O cadastro amplo permanece na própria página e se reorganiza em uma coluna em telas estreitas.
+
+Atividades mostram quantidade, período, local, função, textos, competências, critério declarado e evidências vinculadas. A tela informa que o critério não é inferido pela categoria. Evidências são cadastradas como metadados, com tipo e título obrigatórios, e vinculadas por checkboxes. Exclusões exigem confirmação; a confirmação de uma evidência também explica que seus vínculos serão removidos.
+
 ## Limites transparentes
 
 O progresso é uma aproximação editorial: cinco grupos com o mesmo peso (identificação, formação, trajetória, enquadramento e texto). Não representa pontuação, elegibilidade ou aprovação. Revisão apenas ajuda a localizar campos ainda não preenchidos.

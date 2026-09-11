@@ -27,3 +27,13 @@ Quando um rascunho importado não contém solicitação, a tela mantém o RSC pr
 Tipo, curso ou título, instituição e situação são obrigatórios nos novos cadastros da interface. As demais informações são opcionais, e a conclusão, quando presente com a data inicial, não pode ser anterior a ela. Tipo e situação são textos declarados pelo usuário: não representam classificação ou validação normativa.
 
 Os campos acrescentados permanecem opcionais no schema portátil para aceitar registros de versões anteriores que continham somente ID, título, instituição e eventual conclusão. Editar um registro antigo acrescenta os campos exigidos pela tela e inicializa seus timestamps explicitamente.
+
+## Trajetória profissional e evidências
+
+`Activity` mantém os campos existentes `criterionId` e `evidenceIds`, que representam respectivamente a referência de critério (`criterionRef`) e a coleção de evidências (`evidences[]`) do cadastro. Essa escolha preserva o contrato usado pelo motor e evita duas fontes para o mesmo vínculo. A categoria admite somente Ensino, Pesquisa, Extensão, Gestão, Produção, Formação e Outros.
+
+Além de ID, título, quantidade e vínculos, a atividade pode armazenar instituição, setor ou departamento, datas inicial e final, papel ou função, descrição, resultados, competências e timestamps. Datas civis usam `YYYY-MM-DD`; a data final não pode anteceder a inicial. Competências são uma lista de textos. Os novos campos são opcionais no schema portátil para manter registros anteriores válidos, mas título e categoria são exigidos nos novos cadastros da interface.
+
+`Evidence` guarda metadados e referências: tipo, título, identificador, emissor, data, referência de processo e notas. `fileName` e `description` continuam aceitos como campos legados. Nenhum arquivo binário integra esse modelo. Excluir uma evidência remove seu ID das atividades vinculadas e atualiza o timestamp dessas atividades, mantendo a integridade referencial exigida pelo projeto.
+
+O critério pode permanecer vazio em rascunhos 2.1 e é obrigatório no contrato 2.0. Categoria, textos e evidências não determinam critério ou nível automaticamente; eventual pontuação continua sob responsabilidade exclusiva do motor e do dataset validado.

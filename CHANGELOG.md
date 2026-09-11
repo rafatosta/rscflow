@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Timeline da trajetória profissional com busca, filtro por categoria, agrupamento anual e CRUD completo de atividades.
+- Metadados de atividade para instituição, setor, período, função, descrição, resultados, competências, quantidade, critério e timestamps.
+- Gestão de referências de evidências com vínculo a atividades, remoção segura e transporte JSON sem arquivos binários.
+
 - CRUD de formação, aperfeiçoamento e titulação com ordenação cronológica, edição, duplicação e exclusão confirmada.
 - Metadados de tipo, área, período, situação, documento comprobatório, observações e timestamps no registro de formação.
 - Testes de validação, acessibilidade, responsividade, persistência e transporte JSON das formações.

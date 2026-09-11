@@ -42,6 +42,38 @@ test('cria rascunho, salva, recarrega, duplica, exclui e transporta JSON', async
         updatedAt: '2026-09-11T10:00:00.000Z',
       },
     ],
+    evidence: [
+      {
+        id: 'evidence-json',
+        type: 'Portaria',
+        title: 'Portaria transportada',
+        identifier: 'Portaria 42/2025',
+        issuer: 'Instituto Federal',
+        date: '2025-01-10',
+        processReference: 'Processo 123',
+        notes: 'Referência documental.',
+      },
+    ],
+    activities: [
+      {
+        id: 'activity-json',
+        title: 'Atividade transportada',
+        category: 'Gestão',
+        institution: 'Instituto Federal',
+        department: 'Departamento de Ensino',
+        startDate: '2025-01-10',
+        endDate: '2025-12-10',
+        role: 'Coordenadora',
+        description: 'Descrição transportada.',
+        results: 'Resultado transportado.',
+        competencies: ['Planejamento', 'Liderança'],
+        criterionId: '',
+        quantity: 2,
+        evidenceIds: ['evidence-json'],
+        createdAt: '2026-09-11T10:00:00.000Z',
+        updatedAt: '2026-09-11T10:00:00.000Z',
+      },
+    ],
   };
   await editor.fill(JSON.stringify(data));
   await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
@@ -90,6 +122,11 @@ test('cria rascunho, salva, recarrega, duplica, exclui e transporta JSON', async
     await other.getByRole('link', { name: 'Formação', exact: true }).click();
     await expect(other.getByRole('heading', { name: 'Curso transportado' })).toBeVisible();
     await expect(other.getByText('Certificado 42')).toBeVisible();
+    await other.getByRole('link', { name: 'Trajetória', exact: true }).click();
+    await expect(other.getByRole('heading', { name: 'Atividade transportada' })).toBeVisible();
+    await expect(other.getByRole('list', { name: 'Atividades' })).toContainText(
+      'Portaria transportada',
+    );
     await other.getByRole('link', { name: 'Exportar', exact: true }).click();
     await other.reload();
     await other.getByText('Edição avançada dos dados JSON').click();

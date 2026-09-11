@@ -8,7 +8,7 @@ O shell usa React Router com rotas de histórico do navegador. A aplicação é 
 | `/project/:id`            | Visão geral, progresso aproximado e regulamento vinculado                              |
 | `/project/:id/profile`    | Título, identificação do docente e RSC pretendido                                      |
 | `/project/:id/education`  | CRUD cronológico de formação, aperfeiçoamento e titulação                              |
-| `/project/:id/activities` | Registro/remoção de atividades e cadastro de referências de comprovantes               |
+| `/project/:id/activities` | Timeline, CRUD, busca, filtros e evidências da trajetória profissional                 |
 | `/project/:id/criteria`   | Vínculos existentes e seleção de critérios quando o dataset vinculado estiver validado |
 | `/project/:id/scoring`    | Resultado do motor ou motivos reais de indisponibilidade                               |
 | `/project/:id/memorial`   | Título, introdução e conclusão                                                         |
@@ -40,6 +40,14 @@ Cada alteração com estrutura de rascunho válida alimenta o mesmo autosave do 
 A rota de formação usa cards responsivos em ordem cronológica decrescente, considerando primeiro a conclusão e, na ausência dela, a data inicial. Registros sem datas ficam depois dos datados. A ordenação não altera silenciosamente dados importados; operações de criação, edição e duplicação salvam a coleção já ordenada.
 
 O formulário usa React Hook Form e Zod, com labels visíveis, datas nativas e erros associados por `aria-describedby`. Criar, editar, duplicar e excluir atualizam o projeto pelo autosave compartilhado. A exclusão exige confirmação em AlertDialog. O estado do formulário aberto serve apenas à edição corrente; a lista, a prévia e as exportações derivam do projeto persistido.
+
+## Trajetória profissional
+
+A rota de trajetória usa uma composição ampla com timeline em cards, ordenação cronológica decrescente e agrupamento pelo ano da data final ou, quando ausente, da inicial. Busca textual cobre título, categoria, local, função, descrição, resultados e competências. O filtro de categoria usa apenas as sete categorias editoriais definidas para a interface; não cria enquadramento normativo.
+
+O formulário de atividade usa React Hook Form e Zod, datas nativas, quantidade não negativa e associação por checkboxes às evidências existentes. Em rascunhos 2.1 a referência de critério pode ficar vazia; projetos 2.0 exigem o identificador já previsto pelo contrato. Edição preserva ID, criação e nível selecionado; duplicação gera novo ID e timestamps.
+
+A mesma página gerencia metadados de evidências. Exclusões usam AlertDialog; ao excluir uma evidência, o caso de uso limpa todos os vínculos correspondentes antes do autosave. O estado de busca, filtros e formulários é transitório. Atividades e evidências persistidas continuam sendo a única fonte para lista, memorial, revisão e exportação.
 
 ## Publicação estática
 

@@ -39,4 +39,6 @@ Os campos pessoais e funcionais adicionais de `teacher` são opcionais no contra
 
 Os campos estendidos de `education` também são opcionais no contrato para preservar arquivos anteriores. Novos registros incluem `createdAt` e `updatedAt`; edição mantém a criação e renova a atualização, e duplicação recebe novo ID e novos timestamps. A referência de documento é texto portátil e não incorpora arquivo binário.
 
+Os metadados adicionais de `activities` e `evidence` são opcionais no contrato 2.0/2.1 para leitura retrocompatível. Novas atividades recebem categoria, lista de competências, `createdAt` e `updatedAt`. `criterionId` representa a referência normativa declarada e `evidenceIds` mantém vínculos por ID com a coleção global `evidence`. Excluir uma evidência limpa esses vínculos na mesma atualização do projeto. Somente metadados e referências são exportados; não há blobs ou caminhos locais de anexos novos.
+
 Projetos 1.0 e 2.0 não são migrados automaticamente. Duplicação de 2.1 segue as mesmas regras de identidade de 2.0. Exportação/importação e persistência aceitam os três formatos. Null não é uma versão normativa validada e não é atualizado silenciosamente quando o catálogo mudar. Para dados 2.1 completos com catálogo validado, o caso de uso adapta apenas a entrada do cálculo ao contrato 2.0, sem alterar o arquivo persistido.

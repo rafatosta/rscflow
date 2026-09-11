@@ -38,8 +38,9 @@ test('todas as seções funcionam por URL, reload e navegação', async ({ page 
   await page.getByLabel(/^Instituição/).fill('Instituição de teste');
   await page.getByRole('button', { name: 'Adicionar formação' }).click();
   await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
-  await page.getByLabel('Descrição da atividade').fill('Atividade de ensino');
-  await page.getByLabel('Quantidade declarada').fill('3');
+  await page.getByLabel(/^Título da atividade/).fill('Atividade de ensino');
+  await page.getByLabel(/^Categoria/).selectOption('Ensino');
+  await page.getByLabel(/^Quantidade declarada/).fill('3');
   await page.getByRole('button', { name: 'Adicionar atividade' }).click();
   await page.getByRole('link', { name: 'Memorial', exact: true }).click();
   await page.getByLabel('Introdução', { exact: true }).fill('Minha trajetória docente.');
@@ -188,6 +189,80 @@ test('formações oferecem CRUD cronológico, responsivo e acessível', async ({
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.screenshot({ path: '/tmp/rscflow-education-mobile.png', fullPage: true });
+});
+
+test('trajetória organiza períodos, filtros e evidências sem anexar arquivos', async ({ page }) => {
+  await start(page);
+  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  const waitForSave = async () => {
+    await expect(page.getByText('Salvando…', { exact: true })).toBeVisible();
+    await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
+  };
+
+  await expect(page.getByText('Nenhuma atividade registrada.')).toBeVisible();
+  await page.getByRole('button', { name: 'Adicionar evidência' }).click();
+  await page.getByLabel(/^Tipo de evidência/).fill('Portaria');
+  await page.getByLabel(/^Título da evidência/).fill('Portaria de coordenação');
+  await page.getByLabel(/^Identificador/).fill('Portaria 42/2022');
+  await page.getByLabel(/^Emissor/).fill('Instituto Federal');
+  await page.getByLabel(/^Data da evidência/).fill('2022-02-01');
+  await page.getByLabel(/^Referência do processo/).fill('Processo 123');
+  await page.getByLabel(/^Notas/).fill('Documento publicado.');
+  await page.getByRole('button', { name: 'Adicionar evidência' }).click();
+  await waitForSave();
+
+  await page.getByLabel(/^Título da atividade/).fill('Coordenação de projeto');
+  await page.getByLabel(/^Categoria/).selectOption('Gestão');
+  await page.getByLabel(/^Quantidade declarada/).fill('2');
+  await page.getByLabel(/^Instituição/).fill('Instituto Federal');
+  await page.getByLabel(/^Setor ou departamento/).fill('Departamento de Ensino');
+  await page.getByLabel(/^Data inicial/).fill('2022-02-01');
+  await page.getByLabel(/^Data final/).fill('2023-12-20');
+  await page.getByLabel(/^Papel ou função/).fill('Coordenadora');
+  await page.getByLabel(/^Descrição/).fill('Coordenação das atividades.');
+  await page.getByLabel(/^Resultados/).fill('Projeto concluído.');
+  await page.getByLabel(/^Competências/).fill('Planejamento\nLiderança');
+  await page.getByRole('checkbox', { name: /Portaria de coordenação/ }).check();
+  await page.getByRole('button', { name: 'Adicionar atividade' }).click();
+  await waitForSave();
+
+  await page.getByRole('button', { name: 'Adicionar atividade' }).click();
+  await page.getByLabel(/^Título da atividade/).fill('Docência de graduação');
+  await page.getByLabel(/^Categoria/).selectOption('Ensino');
+  await page.getByLabel(/^Quantidade declarada/).fill('1');
+  await page.getByLabel(/^Data inicial/).fill('2025-01-10');
+  await page.getByRole('button', { name: 'Adicionar atividade' }).click();
+  await waitForSave();
+
+  const activities = page.getByRole('list', { name: 'Atividades' });
+  await expect(activities.getByRole('heading', { name: '2025' })).toBeVisible();
+  await expect(activities.getByRole('heading', { name: '2023' })).toBeVisible();
+  await expect(activities.getByRole('article').nth(0)).toContainText('Docência de graduação');
+  await page.getByLabel('Buscar atividades').fill('coordenação');
+  await expect(activities.getByRole('heading', { name: 'Coordenação de projeto' })).toBeVisible();
+  await expect(activities.getByRole('heading', { name: 'Docência de graduação' })).toHaveCount(0);
+  await page.getByLabel('Buscar atividades').clear();
+  await page.getByLabel('Filtrar por categoria').selectOption('Ensino');
+  await expect(activities.getByRole('heading', { name: 'Docência de graduação' })).toBeVisible();
+  await expect(activities.getByRole('heading', { name: 'Coordenação de projeto' })).toHaveCount(0);
+  await page.getByLabel('Filtrar por categoria').selectOption('');
+  await page.reload();
+  await expect(activities.getByRole('heading', { name: 'Coordenação de projeto' })).toBeVisible();
+  await expect(activities).toContainText('Portaria de coordenação');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: '/tmp/rscflow-trajectory-mobile.png', fullPage: true });
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await page
+    .getByRole('dialog', { name: 'Navegação' })
+    .getByRole('link', { name: 'Prévia' })
+    .click();
+  await expect(page.getByRole('article')).toContainText('Coordenação das atividades.');
+  await expect(page.getByRole('article')).toContainText('Evidências: Portaria de coordenação');
 });
 
 test('endereços inexistentes e projetos ausentes oferecem recuperação', async ({ page }) => {

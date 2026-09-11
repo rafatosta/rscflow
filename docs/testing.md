@@ -35,3 +35,7 @@ Os testes unitários cobrem leitura, JSON malformado, raiz inválida, campos obr
 ## Formação, aperfeiçoamento e titulação
 
 `tests/unit/education.test.ts` cobre schema, intervalo de datas, timestamps, edição, duplicação, ordenação estável, compatibilidade e round-trip JSON. `tests/integration/education.test.tsx` cobre erros acessíveis e o ciclo persistido de criação, recarga, edição, duplicação e exclusão confirmada. O E2E verifica ordem cronológica, CRUD, reload, layout móvel, axe e transporte dos campos estendidos por exportação e importação JSON.
+
+## Trajetória profissional e evidências
+
+`tests/unit/trajectory.test.ts` cobre categorias, validação de período e quantidade, exigência condicional de critério, competências, timestamps, edição, duplicação, ordenação, agrupamento anual, busca, filtro, metadados de evidência, limpeza de vínculos, compatibilidade e round-trip JSON. `tests/integration/trajectory.test.tsx` verifica estados vazios, erros associados, CRUD persistido, reload, edição posterior, vínculos e filtros reais. O E2E cobre timeline, períodos, evidências, busca, categoria, persistência, layout móvel, axe, memorial e transporte completo por exportação/importação.

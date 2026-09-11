@@ -37,7 +37,29 @@ export function buildMemorialPreview(project: TypedProjectExport): string {
         .join('\n'),
     ),
     'Trajetória',
-    ...data.activities.map((item) => item.title),
+    ...data.activities.map((item) => {
+      const evidenceTitles = item.evidenceIds
+        .map((id) => data.evidence.find((evidence) => evidence.id === id)?.title)
+        .filter(Boolean);
+      return [
+        `${item.category ? `${item.category}: ` : ''}${item.title}`,
+        item.institution || item.department
+          ? `Local: ${[item.institution, item.department].filter(Boolean).join(' · ')}`
+          : '',
+        item.startDate || item.endDate
+          ? `Período: ${item.startDate ?? 'não informado'} a ${item.endDate ?? 'em andamento'}`
+          : '',
+        item.role ? `Papel ou função: ${item.role}` : '',
+        item.description ? `Descrição: ${item.description}` : '',
+        item.results ? `Resultados: ${item.results}` : '',
+        item.competencies?.length ? `Competências: ${item.competencies.join('; ')}` : '',
+        `Quantidade declarada: ${item.quantity}`,
+        item.criterionId ? `Referência de critério: ${item.criterionId}` : '',
+        evidenceTitles.length ? `Evidências: ${evidenceTitles.join('; ')}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
+    }),
     data.memorial?.conclusion || '',
   ]
     .filter(Boolean)

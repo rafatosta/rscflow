@@ -44,16 +44,41 @@ export const educationSchema = z
   })
   .strict();
 export const evidenceSchema = z
-  .object({ id: text, title: text, fileName: text.optional(), description: z.string().optional() })
+  .object({
+    id: text,
+    type: z.string().optional(),
+    title: text,
+    identifier: z.string().optional(),
+    issuer: z.string().optional(),
+    date: z.iso.date().optional(),
+    processReference: z.string().optional(),
+    notes: z.string().optional(),
+    /** Campos legados preservados para leitura dos formatos anteriores. */
+    fileName: text.optional(),
+    description: z.string().optional(),
+  })
   .strict();
 export const activitySchema = z
   .object({
     id: text,
     title: text,
+    category: z
+      .enum(['Ensino', 'Pesquisa', 'Extensão', 'Gestão', 'Produção', 'Formação', 'Outros'])
+      .optional(),
+    institution: z.string().optional(),
+    department: z.string().optional(),
+    startDate: z.iso.date().optional(),
+    endDate: z.iso.date().optional(),
+    role: z.string().optional(),
+    description: z.string().optional(),
+    results: z.string().optional(),
+    competencies: z.array(text).optional(),
     criterionId: text,
     selectedLevel: rscLevelSchema.optional(),
     quantity,
     evidenceIds: z.array(text),
+    createdAt: z.iso.datetime().optional(),
+    updatedAt: z.iso.datetime().optional(),
   })
   .strict();
 export const memorialSchema = z

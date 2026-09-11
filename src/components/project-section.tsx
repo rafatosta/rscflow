@@ -12,6 +12,7 @@ import { projectPath, type Section } from '@/features/project-shell/routes';
 import { buildMemorialPreview } from '@/memorial/preview';
 import { EducationSection } from './education-section';
 import { TeacherProfileForm } from './teacher-profile-form';
+import { TrajectorySection } from './trajectory-section';
 import { Button } from './ui/button';
 
 type Props = {
@@ -140,131 +141,13 @@ export function ProjectSection(props: Props) {
 
   if (section === 'activities')
     return (
-      <div className="space-y-6">
-        <section className="panel space-y-4">
-          <h2 className="text-xl font-semibold">Atividades da trajetória</h2>
-          {!data.activities.length && (
-            <p className="text-slate-300">
-              Nenhuma atividade registrada. Comece descrevendo uma experiência.
-            </p>
-          )}
-          <ul className="space-y-3">
-            {data.activities.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded border border-slate-600 p-3"
-              >
-                <span className="min-w-0 break-words">
-                  {item.title} · quantidade: {item.quantity}
-                </span>
-                <Button
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() =>
-                    update({ activities: data.activities.filter((entry) => entry.id !== item.id) })
-                  }
-                  aria-label={`Remover atividade ${item.title}`}
-                >
-                  Remover
-                </Button>
-              </li>
-            ))}
-          </ul>
-          <form
-            className="space-y-4"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const form = values(event);
-              update({
-                activities: [
-                  ...data.activities,
-                  {
-                    id: crypto.randomUUID(),
-                    title: String(form.title),
-                    quantity: Number(form.quantity),
-                    criterionId: String(form.criterionId ?? ''),
-                    evidenceIds: [],
-                  },
-                ],
-              });
-              event.currentTarget.reset();
-            }}
-          >
-            <label className="block">
-              Descrição da atividade
-              <input className="field" name="title" required disabled={busy} />
-            </label>
-            <label className="block">
-              Quantidade declarada
-              <input
-                className="field"
-                type="number"
-                min="0"
-                step="any"
-                name="quantity"
-                required
-                disabled={busy}
-              />
-            </label>
-            {project.schemaVersion === '2.0' && (
-              <label className="block">
-                Identificador do critério no arquivo original
-                <input className="field" name="criterionId" required disabled={busy} />
-              </label>
-            )}
-            <Button disabled={busy} type="submit">
-              Adicionar atividade
-            </Button>
-          </form>
-          <p className="text-sm text-slate-300">
-            O enquadramento e a unidade devem ser conferidos em Critérios antes do cálculo.
-          </p>
-        </section>
-        <section className="panel space-y-4">
-          <h2 className="text-xl font-semibold">Referências de comprovantes</h2>
-          <p className="text-sm text-slate-300">
-            Registre a identificação do documento. Arquivos binários não são anexados nesta etapa.
-          </p>
-          <ul>
-            {data.evidence.map((item) => (
-              <li key={item.id}>
-                {item.title}
-                {item.fileName ? ` — ${item.fileName}` : ''}
-              </li>
-            ))}
-          </ul>
-          <form
-            className="space-y-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const form = values(event);
-              update({
-                evidence: [
-                  ...data.evidence,
-                  {
-                    id: crypto.randomUUID(),
-                    title: String(form.title),
-                    ...(form.fileName ? { fileName: String(form.fileName) } : {}),
-                  },
-                ],
-              });
-              event.currentTarget.reset();
-            }}
-          >
-            <label className="block">
-              Título do comprovante
-              <input name="title" className="field" required disabled={busy} />
-            </label>
-            <label className="block">
-              Nome do arquivo
-              <input name="fileName" className="field" disabled={busy} />
-            </label>
-            <Button disabled={busy} type="submit">
-              Adicionar referência
-            </Button>
-          </form>
-        </section>
-      </div>
+      <TrajectorySection
+        activities={data.activities}
+        evidences={data.evidence}
+        criterionRequired={project.schemaVersion === '2.0'}
+        disabled={busy}
+        onSave={(patch) => update(patch)}
+      />
     );
 
   if (section === 'criteria')
