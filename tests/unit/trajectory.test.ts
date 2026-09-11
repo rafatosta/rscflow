@@ -127,6 +127,9 @@ describe('trajetória profissional', () => {
       createdAt: '2026-09-11T10:00:00.000Z',
       updatedAt: '2026-09-11T11:00:00.000Z',
     });
+    expect(
+      updateActivity(original, { ...activityValues, selectedLevel: '' }).selectedLevel,
+    ).toBeUndefined();
     const copy = duplicateActivity(original, 'copy', '2026-09-11T12:00:00.000Z');
     expect(copy.id).toBe('copy');
     expect(copy.createdAt).toBe('2026-09-11T12:00:00.000Z');

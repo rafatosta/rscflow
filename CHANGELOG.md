@@ -6,6 +6,11 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Exploração somente leitura dos critérios por abas RSC, hierarquia normativa e busca textual tolerante a acentos.
+- Combobox acessível para vincular atividades a critérios validados, com contexto normativo obtido diretamente do dataset.
+- Estados explícitos para catálogo pendente, ausente, vazio ou referência inválida, sem valores ou cálculos presumidos.
+- Testes unitários, de integração e E2E para busca, níveis, seleção por teclado, atualização via JSON e catálogo não validado.
+
 - Timeline da trajetória profissional com busca, filtro por categoria, agrupamento anual e CRUD completo de atividades.
 - Metadados de atividade para instituição, setor, período, função, descrição, resultados, competências, quantidade, critério e timestamps.
 - Gestão de referências de evidências com vínculo a atividades, remoção segura e transporte JSON sem arquivos binários.

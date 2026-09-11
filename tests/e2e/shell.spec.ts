@@ -265,6 +265,25 @@ test('trajetória organiza períodos, filtros e evidências sem anexar arquivos'
   await expect(page.getByRole('article')).toContainText('Evidências: Portaria de coordenação');
 });
 
+test('critérios mostram o catálogo pendente sem presumir opções normativas', async ({ page }) => {
+  await start(page);
+  await page.getByRole('link', { name: 'Critérios', exact: true }).click();
+
+  await expect(page.getByRole('tab', { name: 'RSC II', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.getByText('Pendente de validação oficial')).toBeVisible();
+  await expect(page.getByText(/ainda não contém critérios transcritos/)).toBeVisible();
+  await expect(page.getByLabel('Buscar no RSC II')).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: '/tmp/rscflow-criteria-pending.png', fullPage: true });
+
+  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await expect(page.getByRole('combobox', { name: /Critério RSC/ })).toBeDisabled();
+  await expect(page.getByText(/A seleção exige um catálogo vinculado e validado/)).toBeVisible();
+});
+
 test('endereços inexistentes e projetos ausentes oferecem recuperação', async ({ page }) => {
   await page.goto('/nao-existe');
   await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();

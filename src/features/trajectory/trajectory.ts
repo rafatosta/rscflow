@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Activity, Evidence } from '@/domain/models';
+import { rscLevelSchema } from '@/domain/regulation';
 
 export const activityCategories = [
   'Ensino',
@@ -30,6 +31,7 @@ const activityFields = z.object({
   results: longText,
   competencies: longText,
   criterionId: z.string().trim().max(200, 'A referência de critério está muito longa.'),
+  selectedLevel: z.union([z.literal(''), rscLevelSchema]).default(''),
   quantity: z
     .number({ error: 'Informe uma quantidade válida.' })
     .finite('Informe uma quantidade válida.')
@@ -74,6 +76,7 @@ export const emptyActivityForm: ActivityFormValues = {
   results: '',
   competencies: '',
   criterionId: '',
+  selectedLevel: '',
   quantity: 0,
   evidenceIds: [],
 };
@@ -119,6 +122,7 @@ export function activityFormValues(activity?: Activity): ActivityFormValues {
     results: activity.results ?? '',
     competencies: activity.competencies?.join('\n') ?? '',
     criterionId: activity.criterionId,
+    selectedLevel: activity.selectedLevel ?? '',
     quantity: activity.quantity,
     evidenceIds: activity.evidenceIds,
   };
@@ -141,6 +145,7 @@ function activityData(values: ActivityFormValues, criterionRequired: boolean) {
       .map((item) => item.trim())
       .filter(Boolean),
     criterionId: parsed.criterionId.trim(),
+    ...(parsed.selectedLevel ? { selectedLevel: parsed.selectedLevel } : {}),
     quantity: parsed.quantity,
     evidenceIds: parsed.evidenceIds,
   };
@@ -166,10 +171,13 @@ export function updateActivity(
   criterionRequired = false,
   timestamp = new Date().toISOString(),
 ): Activity {
+  const data = activityData(values, criterionRequired);
   return {
     id: activity.id,
-    ...activityData(values, criterionRequired),
-    ...(activity.selectedLevel ? { selectedLevel: activity.selectedLevel } : {}),
+    ...data,
+    ...(values.selectedLevel === undefined && activity.selectedLevel
+      ? { selectedLevel: activity.selectedLevel }
+      : {}),
     createdAt: activity.createdAt ?? timestamp,
     updatedAt: timestamp,
   };

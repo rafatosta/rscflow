@@ -10,6 +10,7 @@ import {
 } from '@/features/project-shell/project-view';
 import { projectPath, type Section } from '@/features/project-shell/routes';
 import { buildMemorialPreview } from '@/memorial/preview';
+import { CriteriaExplorer } from './criteria-explorer';
 import { EducationSection } from './education-section';
 import { TeacherProfileForm } from './teacher-profile-form';
 import { TrajectorySection } from './trajectory-section';
@@ -144,6 +145,7 @@ export function ProjectSection(props: Props) {
       <TrajectorySection
         activities={data.activities}
         evidences={data.evidence}
+        dataset={dataset}
         criterionRequired={project.schemaVersion === '2.0'}
         disabled={busy}
         onSave={(patch) => update(patch)}
@@ -151,74 +153,7 @@ export function ProjectSection(props: Props) {
     );
 
   if (section === 'criteria')
-    return (
-      <section className="panel space-y-4">
-        <h2 className="text-xl font-semibold">Enquadramento das atividades</h2>
-        {!dataset || dataset.metadata.status !== 'validated' ? (
-          <p className="text-amber-200">
-            O catálogo vinculado não está disponível para enquadramento validado. Os vínculos
-            existentes são preservados; nenhuma opção normativa será inventada.
-          </p>
-        ) : (
-          <p>Escolha um único critério e nível por atividade.</p>
-        )}
-        {!data.activities.length && (
-          <p>
-            Nenhuma atividade para enquadrar.{' '}
-            <Link
-              className="text-cyan-300 underline"
-              to={projectPath(record.localId, 'activities')}
-            >
-              Registrar trajetória
-            </Link>
-          </p>
-        )}
-        {data.activities.map((activity) => (
-          <div className="rounded border border-slate-600 p-4" key={activity.id}>
-            <h3 className="font-medium">{activity.title}</h3>
-            <p className="my-2 break-words text-sm text-slate-300">
-              Vínculo atual: {activity.criterionId || 'não definido'} ·{' '}
-              {activity.selectedLevel ? levelLabel(activity.selectedLevel) : 'nível não escolhido'}
-            </p>
-            {dataset?.metadata.status === 'validated' && (
-              <label className="block">
-                Critério de {activity.title}
-                <select
-                  className="field"
-                  disabled={busy}
-                  value={activity.criterionId}
-                  onChange={(event) => {
-                    const criterionId = event.target.value;
-                    const level = dataset.levels.find((entry) =>
-                      entry.criteria.some((criterion) => criterion.id === criterionId),
-                    );
-                    if (level)
-                      update({
-                        activities: data.activities.map((item) =>
-                          item.id === activity.id
-                            ? { ...item, criterionId, selectedLevel: level.section }
-                            : item,
-                        ),
-                      });
-                  }}
-                >
-                  <option value="">Selecione</option>
-                  {dataset.levels.map((level) => (
-                    <optgroup key={level.section} label={levelLabel(level.section)}>
-                      {level.criteria.map((criterion) => (
-                        <option key={criterion.id} value={criterion.id}>
-                          {criterion.code} — {criterion.description} ({criterion.unit})
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
-              </label>
-            )}
-          </div>
-        ))}
-      </section>
-    );
+    return <CriteriaExplorer dataset={dataset} initialLevel={data.request?.level} />;
 
   if (section === 'scoring')
     return (

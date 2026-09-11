@@ -1,0 +1,181 @@
+{
+  "metadata": {
+    "schemaVersion": "1.0",
+    "regulation": { "id": "criteria-fixture", "authority": "Teste", "number": "0", "year": 2026 },
+    "version": "fixture-1",
+    "status": "validated",
+    "source": { "resolution": "fixture", "officialScoringSpreadsheet": "fixture" },
+    "notice": "Dataset sintético exclusivo para testes de interface."
+  },
+  "levels": [
+    {
+      "schemaVersion": "1.0",
+      "regulationId": "criteria-fixture",
+      "section": "rsc-i",
+      "status": "validated",
+      "directives": [
+        {
+          "id": "rsc-i-a",
+          "code": "a",
+          "title": "Ensino e orientação",
+          "maxScore": 20,
+          "weight": 1,
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética",
+            "validatedBy": "teste"
+          }
+        }
+      ],
+      "criteria": [
+        {
+          "id": "rsc-i-a-1",
+          "code": "a.1",
+          "description": "Orientação de TCC",
+          "unit": "orientação",
+          "factor": 2,
+          "maxQuantity": 5,
+          "weight": 1,
+          "directiveId": "rsc-i-a",
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética TCC",
+            "validatedBy": "teste"
+          }
+        },
+        {
+          "id": "rsc-i-a-2",
+          "code": "a.2",
+          "description": "Participação em comissão",
+          "unit": "comissão",
+          "factor": 1,
+          "maxQuantity": 10,
+          "weight": 1,
+          "directiveId": "rsc-i-a",
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética comissão",
+            "validatedBy": "teste"
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": "1.0",
+      "regulationId": "criteria-fixture",
+      "section": "rsc-ii",
+      "status": "validated",
+      "directives": [
+        {
+          "id": "rsc-ii-b",
+          "code": "b",
+          "title": "Gestão e difusão",
+          "maxScore": 30,
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética",
+            "validatedBy": "teste"
+          }
+        }
+      ],
+      "criteria": [
+        {
+          "id": "rsc-ii-b-1",
+          "code": "b.1",
+          "description": "Coordenação de curso",
+          "unit": "curso",
+          "factor": 3,
+          "maxQuantity": 4,
+          "weight": 2,
+          "directiveId": "rsc-ii-b",
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética curso",
+            "validatedBy": "teste"
+          }
+        },
+        {
+          "id": "rsc-ii-b-2",
+          "code": "b.2",
+          "description": "Palestra ministrada",
+          "unit": "palestra",
+          "factor": 1.5,
+          "maxQuantity": 8,
+          "weight": 1,
+          "directiveId": "rsc-ii-b",
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética palestra",
+            "validatedBy": "teste"
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": "1.0",
+      "regulationId": "criteria-fixture",
+      "section": "rsc-iii",
+      "status": "validated",
+      "directives": [
+        {
+          "id": "rsc-iii-c",
+          "code": "c",
+          "title": "Produção e projetos",
+          "maxScore": 40,
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética",
+            "validatedBy": "teste"
+          }
+        }
+      ],
+      "criteria": [
+        {
+          "id": "rsc-iii-c-1",
+          "code": "c.1",
+          "description": "Publicação de artigo",
+          "unit": "artigo",
+          "factor": 4,
+          "maxQuantity": 6,
+          "weight": 2,
+          "directiveId": "rsc-iii-c",
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética artigo",
+            "validatedBy": "teste"
+          }
+        },
+        {
+          "id": "rsc-iii-c-2",
+          "code": "c.2",
+          "description": "Coordenação de projeto de pesquisa",
+          "unit": "projeto",
+          "factor": 5,
+          "maxQuantity": 3,
+          "weight": 2,
+          "directiveId": "rsc-iii-c",
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética projeto",
+            "validatedBy": "teste"
+          }
+        },
+        {
+          "id": "rsc-iii-c-3",
+          "code": "c.3",
+          "description": "Supervisão de estágio",
+          "unit": "estágio",
+          "factor": 2,
+          "maxQuantity": 10,
+          "weight": 1,
+          "directiveId": "rsc-iii-c",
+          "provenance": {
+            "status": "validated",
+            "sourceReference": "Fixture sintética estágio",
+            "validatedBy": "teste"
+          }
+        }
+      ]
+    }
+  ]
+}

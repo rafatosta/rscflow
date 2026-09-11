@@ -16,7 +16,9 @@ Formação apresenta um estado vazio que orienta o primeiro cadastro e, depois, 
 
 Trajetória apresenta busca e filtro por categoria antes da timeline. Atividades com datas são agrupadas pelo ano e aparecem da mais recente para a mais antiga; registros sem período ficam no grupo “Sem data”. Quando nenhum item corresponde aos filtros, uma mensagem anuncia o resultado vazio. O cadastro amplo permanece na própria página e se reorganiza em uma coluna em telas estreitas.
 
-Atividades mostram quantidade, período, local, função, textos, competências, critério declarado e evidências vinculadas. A tela informa que o critério não é inferido pela categoria. Evidências são cadastradas como metadados, com tipo e título obrigatórios, e vinculadas por checkboxes. Exclusões exigem confirmação; a confirmação de uma evidência também explica que seus vínculos serão removidos.
+Atividades mostram quantidade, período, local, função, textos, competências, critério declarado e evidências vinculadas. A tela informa que o critério não é inferido pela categoria. Em catálogo validado, o critério é localizado por termos comuns, código, unidade ou diretriz; a opção expõe nível e contexto antes da escolha. O combobox anuncia expansão, lista e opção ativa, aceita setas, Enter e Escape e permite limpar a escolha. Em catálogo pendente, permanece desabilitado com o motivo visível. Evidências são cadastradas como metadados, com tipo e título obrigatórios, e vinculadas por checkboxes. Exclusões exigem confirmação; a confirmação de uma evidência também explica que seus vínculos serão removidos.
+
+Critérios organiza o catálogo em abas RSC I, RSC II e RSC III, abertas inicialmente no nível pretendido. Setas laterais, Home e End movem o foco e ativam as abas. A busca tolera caixa e acentuação, para que termos como “comissão”, “coordenação”, “curso”, “palestra”, “artigo”, “projeto”, “estágio” e “TCC” encontrem as descrições disponíveis sem memorização de códigos. Cada resultado permanece sob sua diretriz e expõe os valores e a proveniência do JSON. A página é somente leitura.
 
 ## Limites transparentes
 

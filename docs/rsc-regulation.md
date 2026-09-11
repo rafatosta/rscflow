@@ -27,11 +27,15 @@ O máximo de quantidade é compartilhado por todas as atividades do mesmo crité
 
 Os três arquivos de níveis continuam com status `pending-official-validation` e arrays vazios: não foi concluída a transcrição e validação integral dos anexos. A conferência da política de cálculo não torna o catálogo validado. A versão normativa permanece null. O motor retorna `unavailable`, sem total, para esse dataset.
 
+O explorador de critérios lê diretamente os níveis, diretrizes, critérios e proveniência desse contrato. A busca e a apresentação não mantêm cópias de fator, unidade, peso, quantidade máxima, descrição ou teto de diretriz. Assim, editar um JSON validado altera a interface sem alterar componentes. Enquanto o catálogo IFBA permanecer pendente e vazio, a tela informa essa condição e o seletor de atividades fica indisponível, preservando referências importadas sem criar enquadramentos fictícios.
+
 Durante a conferência, a célula de peso de RSC II/d.5 (Anexo V, PDF p. 20) apresenta a sequência “14”, enquanto os arts. 7 e 15 descrevem pesos 1 ou 2. A célula não foi interpretada nem transcrita. Sua eventual anotação/ambiguidade interna precisa ser esclarecida antes da validação integral do catálogo; a precedência sobre a planilha não resolve ambiguidades dentro da própria normativa.
 
 Schemas verificam três níveis distintos, referência normativa, IDs globais únicos, códigos únicos por coleção/nível e vínculo critério–diretriz. A convenção técnica de código é letras minúsculas para diretriz e `<diretriz>.<inteiro positivo>` para critério. Valores devem ser finitos e não negativos. Valores ausentes nunca são convertidos em zero.
 
 Cada linha registra status, origem e responsável pela conferência. Dataset validado exige versão, fontes e todos os níveis com conteúdo validado. Aprovação estrutural não certifica validação humana. Fixtures normativas são recortes identificados e não substituem um catálogo completo.
+
+Os testes de exploração usam uma fixture sintética, declarada como tal e validada somente para exercitar busca, seleção e renderização. Ela não é carregada pela aplicação e não acrescenta valores ao catálogo oficial pendente.
 
 ## Estados do motor
 

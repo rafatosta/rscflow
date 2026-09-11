@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type FieldError, type UseFormRegister } from 'react-hook-form';
 import type { Activity, Evidence } from '@/domain/models';
+import type { Regulation } from '@/domain/regulation';
 import {
   activityCategories,
   activityFormSchema,
@@ -24,10 +25,12 @@ import {
 } from '@/features/trajectory/trajectory';
 import { Button } from './ui/button';
 import { ConfirmDialog } from './ui/confirm-dialog';
+import { CriterionCombobox } from './criterion-combobox';
 
 type Props = {
   activities: Activity[];
   evidences: Evidence[];
+  dataset?: Regulation;
   criterionRequired: boolean;
   disabled: boolean;
   onSave: (patch: { activities: Activity[]; evidence: Evidence[] }) => void;
@@ -174,6 +177,7 @@ function dateLabel(value?: string): string {
 export function TrajectorySection({
   activities,
   evidences,
+  dataset,
   criterionRequired,
   disabled,
   onSave,
@@ -198,6 +202,7 @@ export function TrajectorySection({
     defaultValues: emptyEvidenceForm,
     mode: 'onTouched',
   });
+  const selectedCriterionId = activityForm.watch('criterionId');
 
   useEffect(() => {
     activityForm.reset(activityFormValues(editingActivity));
@@ -512,12 +517,22 @@ export function TrajectorySection({
                 register={activityForm.register}
                 error={activityForm.formState.errors.role}
               />
-              <ActivityField
-                id="criterionId"
-                label="Referência de critério"
+              <CriterionCombobox
+                dataset={dataset}
+                value={selectedCriterionId}
                 required={criterionRequired}
-                register={activityForm.register}
-                error={activityForm.formState.errors.criterionId}
+                disabled={disabled}
+                error={activityForm.formState.errors.criterionId?.message}
+                onSelect={(criterionId, level) => {
+                  activityForm.setValue('criterionId', criterionId, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                  activityForm.setValue('selectedLevel', level ?? '', {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }}
               />
               <div className="sm:col-span-2">
                 <ActivityTextArea
