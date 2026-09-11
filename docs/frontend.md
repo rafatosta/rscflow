@@ -12,7 +12,7 @@ O shell usa React Router com rotas de histórico do navegador. A aplicação é 
 | `/project/:id/criteria`   | Exploração somente leitura do catálogo normativo por nível, diretriz e critério     |
 | `/project/:id/scoring`    | Resultado do motor ou motivos reais de indisponibilidade                            |
 | `/project/:id/memorial`   | Editor por seções e narrativas locais das atividades                                |
-| `/project/:id/preview`    | Memorial estruturado com capa, sumário e seções cronológicas                        |
+| `/project/:id/preview`    | Prévia A4 paginada, navegação e geração local do PDF                                 |
 | `/project/:id/review`     | Checklist de preenchimento com links às seções                                      |
 | `/project/:id/export`     | Download JSON e edição avançada integral dos dados                                  |
 
@@ -27,6 +27,7 @@ O parâmetro `id` corresponde ao `localId` da cópia. Acesso direto carrega o pr
 - `components/criterion-combobox.tsx`: pesquisa e seleção acessível de referência normativa na atividade.
 - `components/scoring-dashboard.tsx`: resumo e detalhamento responsivo do resultado produzido pelo motor.
 - `components/memorial-section.tsx`: editor de seções e controle das narrativas geradas e manuais.
+- `components/pdf-preview.tsx`: navegação pela representação A4 e acionamento do download local.
 - `components/ui/`: primitives genéricos Button, Sheet (Radix Dialog) e ConfirmDialog (Radix AlertDialog).
 - `features/project-shell/`: interpretação de rotas, criação de rascunhos, projeção do progresso e ligação ao motor existente.
 - `memorial/generator.ts`: geração determinística, ordenação e estado dos textos das atividades.
@@ -73,6 +74,18 @@ Quando catálogo ou política normativa estão pendentes, o dashboard usa “Cá
 O editor apresenta título, introdução editorial, seis seções de conteúdo e conclusão. Cada seção aceita texto complementar e reúne as atividades correspondentes em ordem cronológica. Um comando gera somente bases ausentes; edições manuais são persistidas imediatamente e nunca são substituídas por mudanças posteriores nos cadastros.
 
 Quando os dados usados pela última geração mudam, o card anuncia a desatualização e oferece “Manter texto atual” e “Regenerar texto”. Manter atualiza a referência de geração sem alterar a narrativa autoral. Regenerar é a única ação que substitui o texto editado pela nova base. A prévia usa a versão editada, ou a base determinística quando ainda não houve edição, e monta capa/identificação, sumário e todas as seções previstas.
+
+## Prévia A4 e geração do PDF
+
+A edição permanece em `/memorial`; `/preview` apresenta uma página A4 por vez, com comandos para
+avançar, retornar, voltar ao editor e gerar o arquivo. A escala visual se adapta à largura da tela
+sem alterar as proporções da página. O sumário recebe os números calculados depois da paginação,
+e cada seção começa em página própria. Parágrafos podem continuar em novas páginas, sempre dentro
+das margens e com indicação de continuação.
+
+O botão “Gerar PDF” executa a montagem em memória e baixa um `application/pdf` com nome derivado do
+docente. O arquivo contém capa, sumário, cabeçalhos, rodapés e numeração. Todo o processamento ocorre
+no navegador e nenhum dado do memorial sai do dispositivo.
 
 ## Publicação estática
 

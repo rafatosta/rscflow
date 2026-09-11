@@ -9,7 +9,8 @@ The application is layered to keep legal/normative decisions auditable and indep
 - `data/regulations`: validated, versioned regulation datasets.
 - `storage`: local persistence adapters.
 - `features`: use-case orchestration.
-- `memorial`: geração local de narrativas e montagem estruturada do documento; `pdf`: saída futura.
+- `memorial`: geração local de narrativas e montagem estruturada do documento.
+- `pdf`: paginação A4 determinística e desenho do arquivo final no navegador.
 - `utils`: framework-agnostic helpers.
 
 React components may present outcomes but must never contain normative criteria or scoring logic.
@@ -43,3 +44,16 @@ Criação por nível/dataset usa o envelope 2.1 para representar campos inicialm
 `src/memorial/generator.ts` contém funções puras para gerar texto-base na sequência contexto → atuação → resultados → saberes/competências → enquadramento → comprovação, agrupar experiências nas seções editoriais e ordenar datas do passado para o presente. `src/memorial/preview.ts` monta capa, identificação, sumário e seções sem acessar React, armazenamento, rede ou motor quantitativo.
 
 A última base fica em `Activity.generatedText`. Compará-la a uma nova geração detecta mudanças nos dados estruturados. Edição, aceite do texto atual e regeneração são operações explícitas e puras; somente a regeneração substitui `editedText`. O componente coordena essas operações e envia o projeto atualizado ao autosave existente.
+
+## Pré-visualização e PDF
+
+`src/pdf/layout.ts` transforma o documento semântico em páginas A4 usando as métricas da mesma
+família tipográfica incorporada no arquivo. O resultado descreve linhas, posições, estilos,
+margens, cabeçalhos e rodapés sem depender do DOM. A interface e o gerador consomem esse mesmo
+layout, o que mantém iguais a ordem, as quebras e a paginação exibidas e baixadas.
+
+`src/pdf/generator.ts` usa `pdf-lib` no navegador, incorpora fontes PDF padrão, desenha cada página
+e inicia um download por Blob. Não há envio de dados, backend ou serviço de conversão. Caracteres
+portugueses são preservados; símbolos não representáveis pela fonte são substituídos de modo
+seguro para que conteúdo livre não interrompa a exportação. A camada não consulta nem implementa
+regras normativas.

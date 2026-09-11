@@ -45,3 +45,12 @@ Os testes unitários cobrem leitura, JSON malformado, raiz inválida, campos obr
 ## Memorial Descritivo
 
 `tests/unit/memorial.test.ts` cobre saída determinística, sequência narrativa, ordem cronológica, estrutura do art. 10, edição manual, detecção de dados alterados, manutenção, regeneração explícita e round-trip dos campos novos. `tests/integration/memorial-section.test.tsx` verifica o editor por seções e que nenhuma atualização implícita substitui o texto autoral. O E2E atravessa cadastro, geração, edição, alteração estruturada, manutenção, recarga, regeneração e prévia no armazenamento real do navegador.
+
+## Prévia A4 e PDF
+
+`tests/unit/pdf.test.ts` verifica dados principais, caracteres portugueses, ordem das seções,
+paginação de texto longo, divisão de palavras extensas, limites geométricos e validade estrutural do
+PDF. O teste de integração cobre carregamento, navegação, retorno ao editor e comando de geração.
+`tests/e2e/pdf.spec.ts` usa o navegador real para montar conteúdo extenso, conferir as duas primeiras
+páginas, executar o download e reabrir o arquivo com `pdf-lib`, incluindo nome, assinatura, tamanho
+e quantidade de páginas. As regressões de layout usam coordenadas e margens, sem snapshots de pixels.

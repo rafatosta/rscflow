@@ -29,4 +29,9 @@
   .nav-link {
     @apply flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-slate-200 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300;
   }
+  .a4-page {
+    container-type: inline-size;
+    width: min(100%, 49.61rem);
+    aspect-ratio: 210 / 297;
+  }
 }

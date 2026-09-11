@@ -8,6 +8,16 @@ async function start(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/project\/[^/]+$/);
 }
 
+async function collectPreviewText(page: import('@playwright/test').Page) {
+  const next = page.getByRole('button', { name: 'Próxima página' });
+  let content = '';
+  for (;;) {
+    content += `\n${await page.getByRole('article').innerText()}`;
+    if (await next.isDisabled()) return content;
+    await next.click();
+  }
+}
+
 test('todas as seções funcionam por URL, reload e navegação', async ({ page }) => {
   await start(page);
   const url = page.url();
@@ -46,9 +56,10 @@ test('todas as seções funcionam por URL, reload e navegação', async ({ page 
   await page.getByLabel(/Apresentação introdutória/).fill('Minha trajetória docente.');
   await page.getByLabel('Texto da conclusão', { exact: true }).fill('Considerações finais.');
   await page.getByRole('link', { name: 'Ver prévia do memorial' }).click();
-  await expect(page.getByRole('article')).toContainText('Especialização — Instituição de teste');
-  await expect(page.getByRole('article')).toContainText('Atividade de ensino');
-  await expect(page.getByRole('article')).toContainText('Minha trajetória docente.');
+  const previewText = await collectPreviewText(page);
+  expect(previewText).toContain('Especialização - Instituição de teste');
+  expect(previewText).toContain('Atividade de ensino');
+  expect(previewText).toContain('Minha trajetória docente.');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.getByRole('link', { name: 'Pontuação', exact: true }).click();
   await expect(
@@ -263,8 +274,9 @@ test('trajetória organiza períodos, filtros e evidências sem anexar arquivos'
     .getByRole('dialog', { name: 'Navegação' })
     .getByRole('link', { name: 'Prévia' })
     .click();
-  await expect(page.getByRole('article')).toContainText('Coordenação das atividades.');
-  await expect(page.getByRole('article')).toContainText('Comprovação: Portaria de coordenação');
+  const previewText = await collectPreviewText(page);
+  expect(previewText).toContain('Coordenação das atividades.');
+  expect(previewText).toContain('Comprovação: Portaria de coordenação');
 });
 
 test('memorial gera, preserva e regenera narrativas localmente', async ({ page }) => {
@@ -316,9 +328,10 @@ test('memorial gera, preserva e regenera narrativas localmente', async ({ page }
     /Resultado final para regeneração/,
   );
   await page.getByRole('link', { name: 'Ver prévia do memorial' }).click();
-  await expect(page.getByRole('heading', { name: 'Sumário' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Atuação docente' })).toBeVisible();
-  await expect(page.getByRole('article')).toContainText('Resultado final para regeneração');
+  const previewText = await collectPreviewText(page);
+  expect(previewText).toContain('Sumário');
+  expect(previewText).toContain('Atuação docente');
+  expect(previewText).toContain('Resultado final para regeneração');
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,

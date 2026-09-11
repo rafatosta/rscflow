@@ -3,10 +3,10 @@ import type { LocalProject } from '@/domain/local-project';
 import type { TypedProjectExport } from '@/domain/project';
 import { completion, linkedDataset, projectScoring } from '@/features/project-shell/project-view';
 import { projectPath, type Section } from '@/features/project-shell/routes';
-import { buildMemorialDocument } from '@/memorial/preview';
 import { CriteriaExplorer } from './criteria-explorer';
 import { EducationSection } from './education-section';
 import { MemorialSection } from './memorial-section';
+import { PdfPreview } from './pdf-preview';
 import { ScoringDashboard } from './scoring-dashboard';
 import { TeacherProfileForm } from './teacher-profile-form';
 import { TrajectorySection } from './trajectory-section';
@@ -170,32 +170,7 @@ export function ProjectSection(props: Props) {
       </>
     );
 
-  if (section === 'preview')
-    return (
-      <section className="panel">
-        <h2 className="mb-4 text-xl font-semibold">Prévia textual</h2>
-        <p className="mb-6 text-sm text-slate-300">
-          Montada com os textos, formações e atividades registrados no projeto.
-        </p>
-        <article className="space-y-8 rounded bg-white p-5 leading-8 text-slate-950">
-          {buildMemorialDocument(project).map((documentSection, index) => (
-            <section key={documentSection.id} aria-labelledby={`preview-${documentSection.id}`}>
-              <h2
-                id={`preview-${documentSection.id}`}
-                className={index === 0 ? 'text-2xl font-semibold' : 'text-xl font-semibold'}
-              >
-                {documentSection.title}
-              </h2>
-              <div className="mt-3 space-y-3 whitespace-pre-wrap break-words">
-                {documentSection.paragraphs.map((paragraph, paragraphIndex) => (
-                  <p key={`${documentSection.id}-${paragraphIndex}`}>{paragraph}</p>
-                ))}
-              </div>
-            </section>
-          ))}
-        </article>
-      </section>
-    );
+  if (section === 'preview') return <PdfPreview record={record} />;
 
   if (section === 'review')
     return (

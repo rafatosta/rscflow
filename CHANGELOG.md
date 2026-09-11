@@ -6,6 +6,11 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Pré-visualização A4 paginada com capa, sumário numerado, seções, margens e navegação entre páginas.
+- Geração integralmente local do PDF no navegador, com download adequado ao fluxo de anexação no SEI.
+- Paginação compartilhada entre tela e arquivo, incluindo textos longos, acentos, cabeçalhos e rodapés.
+- Testes unitários, de integração e E2E para conteúdo, ordem, geometria, acessibilidade e download real.
+
 - Memorial Descritivo estruturado com capa, identificação, sumário e seções cronológicas compatíveis com o art. 10.
 - Gerador local e determinístico de texto-base por atividade, sem backend ou serviço remoto.
 - Editor por seções com preservação de texto manual, aviso de dados alterados e regeneração exclusivamente explícita.
