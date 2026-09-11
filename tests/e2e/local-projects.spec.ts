@@ -23,7 +23,26 @@ test('cria rascunho, salva, recarrega, duplica, exclui e transporta JSON', async
   await page.getByRole('link', { name: 'Exportar', exact: true }).click();
   await page.getByText('Edição avançada dos dados JSON').click();
   const editor = page.getByLabel('Dados editáveis do projeto (JSON)');
-  const data = { ...currentProjectFixture.userData, title: 'Memorial editado' };
+  const data = {
+    ...currentProjectFixture.userData,
+    title: 'Memorial editado',
+    education: [
+      {
+        id: 'education-json',
+        type: 'Aperfeiçoamento',
+        title: 'Curso transportado',
+        institution: 'Instituto Federal',
+        area: 'Educação',
+        startedAt: '2025-01-10',
+        completedAt: '2025-03-20',
+        status: 'Concluído',
+        evidenceReference: 'Certificado 42',
+        notes: 'Carga horária no certificado.',
+        createdAt: '2026-09-11T10:00:00.000Z',
+        updatedAt: '2026-09-11T10:00:00.000Z',
+      },
+    ],
+  };
   await editor.fill(JSON.stringify(data));
   await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
   const downloadPromise = page.waitForEvent('download');
@@ -68,6 +87,10 @@ test('cria rascunho, salva, recarrega, duplica, exclui e transporta JSON', async
     await other.getByText('Edição avançada dos dados JSON').click();
     const otherEditor = other.getByLabel('Dados editáveis do projeto (JSON)');
     expect(JSON.parse(await otherEditor.inputValue())).toEqual(data);
+    await other.getByRole('link', { name: 'Formação', exact: true }).click();
+    await expect(other.getByRole('heading', { name: 'Curso transportado' })).toBeVisible();
+    await expect(other.getByText('Certificado 42')).toBeVisible();
+    await other.getByRole('link', { name: 'Exportar', exact: true }).click();
     await other.reload();
     await other.getByText('Edição avançada dos dados JSON').click();
     expect(JSON.parse(await otherEditor.inputValue())).toEqual(data);

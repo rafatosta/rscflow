@@ -10,6 +10,7 @@ import {
 } from '@/features/project-shell/project-view';
 import { projectPath, type Section } from '@/features/project-shell/routes';
 import { buildMemorialPreview } from '@/memorial/preview';
+import { EducationSection } from './education-section';
 import { TeacherProfileForm } from './teacher-profile-form';
 import { Button } from './ui/button';
 
@@ -130,72 +131,11 @@ export function ProjectSection(props: Props) {
 
   if (section === 'education')
     return (
-      <section className="panel space-y-5">
-        <h2 className="text-xl font-semibold">Formações registradas</h2>
-        {!data.education.length && (
-          <p className="text-slate-300">
-            Nenhuma formação registrada. Adicione um curso ou uma titulação.
-          </p>
-        )}
-        <ul className="space-y-3">
-          {data.education.map((item) => (
-            <li
-              key={item.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded border border-slate-600 p-3"
-            >
-              <span>
-                {item.title} — {item.institution}
-                {item.completedAt ? ` · ${item.completedAt}` : ''}
-              </span>
-              <Button
-                variant="outline"
-                disabled={busy}
-                onClick={() =>
-                  update({ education: data.education.filter((entry) => entry.id !== item.id) })
-                }
-                aria-label={`Remover formação ${item.title}`}
-              >
-                Remover
-              </Button>
-            </li>
-          ))}
-        </ul>
-        <form
-          className="grid gap-4 sm:grid-cols-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const form = values(event);
-            update({
-              education: [
-                ...data.education,
-                {
-                  id: crypto.randomUUID(),
-                  title: String(form.title),
-                  institution: String(form.institution),
-                  ...(form.date ? { completedAt: String(form.date) } : {}),
-                },
-              ],
-            });
-            event.currentTarget.reset();
-          }}
-        >
-          <label>
-            Curso ou titulação
-            <input className="field" name="title" required disabled={busy} />
-          </label>
-          <label>
-            Instituição
-            <input className="field" name="institution" required disabled={busy} />
-          </label>
-          <label>
-            Data de conclusão
-            <input className="field" type="date" name="date" disabled={busy} />
-          </label>
-          <Button type="submit" disabled={busy} className="self-end">
-            Adicionar formação
-          </Button>
-        </form>
-      </section>
+      <EducationSection
+        education={data.education}
+        disabled={busy}
+        onSave={(education) => update({ education })}
+      />
     );
 
   if (section === 'activities')

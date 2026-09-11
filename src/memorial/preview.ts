@@ -22,9 +22,19 @@ export function buildMemorialPreview(project: TypedProjectExport): string {
       : '',
     data.memorial?.introduction || '',
     'Formação',
-    ...data.education.map(
-      (item) =>
-        `${item.title} — ${item.institution}${item.completedAt ? ` (${item.completedAt})` : ''}`,
+    ...data.education.map((item) =>
+      [
+        `${item.type ? `${item.type}: ` : ''}${item.title} — ${item.institution}`,
+        item.area ? `Área: ${item.area}` : '',
+        item.startedAt || item.completedAt
+          ? `Período: ${item.startedAt ?? 'não informado'} a ${item.completedAt ?? 'em andamento'}`
+          : '',
+        item.status ? `Situação: ${item.status}` : '',
+        item.evidenceReference ? `Documento comprobatório: ${item.evidenceReference}` : '',
+        item.notes ? `Observações: ${item.notes}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n'),
     ),
     'Trajetória',
     ...data.activities.map((item) => item.title),

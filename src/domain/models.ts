@@ -27,7 +27,21 @@ export const rscRequestSchema = z
   })
   .strict();
 export const educationSchema = z
-  .object({ id: text, title: text, institution: text, completedAt: z.iso.date().optional() })
+  .object({
+    id: text,
+    /** Campos adicionais são opcionais para manter arquivos 2.0/2.1 anteriores válidos. */
+    type: z.string().optional(),
+    title: text,
+    institution: text,
+    area: z.string().optional(),
+    startedAt: z.iso.date().optional(),
+    completedAt: z.iso.date().optional(),
+    status: z.string().optional(),
+    evidenceReference: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.iso.datetime().optional(),
+    updatedAt: z.iso.datetime().optional(),
+  })
   .strict();
 export const evidenceSchema = z
   .object({ id: text, title: text, fileName: text.optional(), description: z.string().optional() })

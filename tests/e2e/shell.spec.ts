@@ -32,8 +32,10 @@ test('todas as seções funcionam por URL, reload e navegação', async ({ page 
     await expect(page.getByText('Carregando projeto…')).toHaveCount(0);
   }
   await page.goto(`${url}/education`);
-  await page.getByLabel('Curso ou titulação').fill('Especialização');
-  await page.getByLabel('Instituição', { exact: true }).fill('Instituição de teste');
+  await page.getByLabel(/^Tipo/).fill('Pós-graduação');
+  await page.getByLabel(/^Situação/).fill('Concluído');
+  await page.getByLabel(/^Curso ou título/).fill('Especialização');
+  await page.getByLabel(/^Instituição/).fill('Instituição de teste');
   await page.getByRole('button', { name: 'Adicionar formação' }).click();
   await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
   await page.getByLabel('Descrição da atividade').fill('Atividade de ensino');
@@ -129,6 +131,63 @@ test('dados do docente validam, salvam e alimentam visão geral e memorial', asy
   await expect(page.getByRole('article')).toContainText('CPF: 52998224725');
   await expect(page.getByRole('article')).toContainText('SIAPE: 1234567');
   await expect(page.getByRole('article')).toContainText('RSC pretendido: RSC II');
+});
+
+test('formações oferecem CRUD cronológico, responsivo e acessível', async ({ page }) => {
+  await start(page);
+  await page.getByRole('link', { name: 'Formação', exact: true }).click();
+  const waitForSave = async () => {
+    await expect(page.getByText('Salvando…', { exact: true })).toBeVisible();
+    await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
+  };
+
+  await page.getByRole('button', { name: 'Adicionar formação' }).click();
+  const type = page.getByLabel(/^Tipo/);
+  await expect(page.getByText('Tipo é obrigatório.')).toBeVisible();
+  await expect(type).toHaveAttribute('aria-describedby', 'education-type-error');
+
+  const fill = async (title: string, completion: string) => {
+    await page.getByLabel(/^Tipo/).fill('Curso');
+    await page.getByLabel(/^Situação/).fill('Concluído');
+    await page.getByLabel(/^Curso ou título/).fill(title);
+    await page.getByLabel(/^Instituição/).fill('Instituto Federal');
+    await page.getByLabel(/^Área/).fill('Educação');
+    await page.getByLabel(/^Data inicial/).fill('2019-01-10');
+    await page.getByLabel(/^Data de conclusão/).fill(completion);
+    await page.getByLabel(/^Referência do documento/).fill(`Diploma de ${title}`);
+    await page.getByLabel(/^Observações/).fill('Registro conferido pelo docente.');
+    await page.getByRole('button', { name: 'Adicionar formação' }).click();
+    await waitForSave();
+  };
+
+  await fill('Formação antiga', '2020-01-10');
+  await page.getByRole('button', { name: 'Adicionar formação' }).click();
+  await fill('Formação recente', '2024-05-20');
+  const cards = page.locator('ol article');
+  await expect(cards.nth(0)).toContainText('Formação recente');
+  await expect(cards.nth(1)).toContainText('Formação antiga');
+
+  await page.getByRole('button', { name: 'Editar formação Formação antiga' }).click();
+  await page.getByLabel(/^Curso ou título/).fill('Formação antiga revisada');
+  await page.getByRole('button', { name: 'Salvar alterações' }).click();
+  await waitForSave();
+  await page.getByRole('button', { name: 'Duplicar formação Formação recente' }).click();
+  await waitForSave();
+  await expect(page.getByRole('heading', { name: 'Formação recente' })).toHaveCount(2);
+  await page.getByRole('button', { name: 'Excluir formação Formação antiga revisada' }).click();
+  await expect(page.getByRole('alertdialog', { name: 'Excluir formação?' })).toBeVisible();
+  await page.getByRole('button', { name: 'Confirmar exclusão' }).click();
+  await waitForSave();
+  await expect(page.getByRole('heading', { name: 'Formação antiga revisada' })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Formação recente' })).toHaveCount(2);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: '/tmp/rscflow-education-mobile.png', fullPage: true });
 });
 
 test('endereços inexistentes e projetos ausentes oferecem recuperação', async ({ page }) => {

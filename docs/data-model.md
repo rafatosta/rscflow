@@ -37,4 +37,6 @@ O navegador pode remover IndexedDB ao limpar dados ou encerrar sessões privadas
 
 Os campos pessoais e funcionais adicionais de `teacher` são opcionais no contrato serializado para manter compatibilidade com projetos 2.0/2.1 existentes. CPF e telefone são gravados com dígitos; datas são strings ISO. `request.effectiveDate` guarda a data de vigência. Nenhum desses valores é duplicado em estado específico da interface.
 
+Os campos estendidos de `education` também são opcionais no contrato para preservar arquivos anteriores. Novos registros incluem `createdAt` e `updatedAt`; edição mantém a criação e renova a atualização, e duplicação recebe novo ID e novos timestamps. A referência de documento é texto portátil e não incorpora arquivo binário.
+
 Projetos 1.0 e 2.0 não são migrados automaticamente. Duplicação de 2.1 segue as mesmas regras de identidade de 2.0. Exportação/importação e persistência aceitam os três formatos. Null não é uma versão normativa validada e não é atualizado silenciosamente quando o catálogo mudar. Para dados 2.1 completos com catálogo validado, o caso de uso adapta apenas a entrada do cálculo ao contrato 2.0, sem alterar o arquivo persistido.

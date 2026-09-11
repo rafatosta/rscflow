@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- CRUD de formação, aperfeiçoamento e titulação com ordenação cronológica, edição, duplicação e exclusão confirmada.
+- Metadados de tipo, área, período, situação, documento comprobatório, observações e timestamps no registro de formação.
+- Testes de validação, acessibilidade, responsividade, persistência e transporte JSON das formações.
+
 - Formulário de dados pessoais e funcionais do docente com React Hook Form, validação Zod, erros acessíveis e autosave.
 - Campos de CPF, SIAPE, cargo, lotação, contato, RT/RSC atual, escolaridade, ingresso e vigência disponíveis ao memorial.
 - Testes de validação, persistência, recarga, edição posterior, completude e serialização do perfil.

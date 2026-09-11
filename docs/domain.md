@@ -19,3 +19,11 @@ Para preservar arquivos 2.0 já exportados, `Teacher.registration` continua acei
 O domínio portátil permite dados incompletos durante a elaboração. A validação da seção exige nome, CPF válido, SIAPE, campus e RSC pretendido para marcar a identificação como completa. Cargo, e-mail, telefone, RT/RSC atual, escolaridade, data de ingresso e data de vigência são opcionais. Essa distinção mede preenchimento da aplicação e não acrescenta exigências à normativa.
 
 Quando um rascunho importado não contém solicitação, a tela mantém o RSC pretendido sem seleção. Nenhum nível é presumido.
+
+## Formação, aperfeiçoamento e titulação
+
+`Education` identifica cada registro por ID e pode armazenar tipo, curso ou título, instituição, área, data inicial, data de conclusão, situação, referência textual ao documento comprobatório, observações e timestamps de criação e atualização. Datas civis usam `YYYY-MM-DD`; timestamps usam ISO 8601 com fuso.
+
+Tipo, curso ou título, instituição e situação são obrigatórios nos novos cadastros da interface. As demais informações são opcionais, e a conclusão, quando presente com a data inicial, não pode ser anterior a ela. Tipo e situação são textos declarados pelo usuário: não representam classificação ou validação normativa.
+
+Os campos acrescentados permanecem opcionais no schema portátil para aceitar registros de versões anteriores que continham somente ID, título, instituição e eventual conclusão. Editar um registro antigo acrescenta os campos exigidos pela tela e inicializa seus timestamps explicitamente.

@@ -31,3 +31,7 @@ Os testes unitários cobrem leitura, JSON malformado, raiz inválida, campos obr
 ## Dados do docente
 
 `tests/unit/teacher-profile.test.ts` cobre obrigatoriedade, CPF, e-mail, telefone, datas, opcionais, normalização, compatibilidade com matrícula legada, completude e round-trip JSON. `tests/integration/teacher-profile.test.tsx` verifica associação acessível dos erros, autosave, reload, edição posterior e atualização da visão geral. Os testes E2E existentes exercitam o perfil dentro da navegação real e confirmam persistência após recarga.
+
+## Formação, aperfeiçoamento e titulação
+
+`tests/unit/education.test.ts` cobre schema, intervalo de datas, timestamps, edição, duplicação, ordenação estável, compatibilidade e round-trip JSON. `tests/integration/education.test.tsx` cobre erros acessíveis e o ciclo persistido de criação, recarga, edição, duplicação e exclusão confirmada. O E2E verifica ordem cronológica, CRUD, reload, layout móvel, axe e transporte dos campos estendidos por exportação e importação JSON.

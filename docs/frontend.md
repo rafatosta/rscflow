@@ -7,7 +7,7 @@ O shell usa React Router com rotas de histórico do navegador. A aplicação é 
 | `/`                       | Lista, criação, continuar, duplicação, exclusão confirmada, importação e exportação    |
 | `/project/:id`            | Visão geral, progresso aproximado e regulamento vinculado                              |
 | `/project/:id/profile`    | Título, identificação do docente e RSC pretendido                                      |
-| `/project/:id/education`  | Cadastro e remoção de formações                                                        |
+| `/project/:id/education`  | CRUD cronológico de formação, aperfeiçoamento e titulação                              |
 | `/project/:id/activities` | Registro/remoção de atividades e cadastro de referências de comprovantes               |
 | `/project/:id/criteria`   | Vínculos existentes e seleção de critérios quando o dataset vinculado estiver validado |
 | `/project/:id/scoring`    | Resultado do motor ou motivos reais de indisponibilidade                               |
@@ -34,6 +34,12 @@ O autosave e a sessão de edição são compartilhados entre seções. React Rou
 A rota de perfil usa React Hook Form com resolver Zod. Labels permanecem visíveis e os erros são ligados aos campos por `aria-describedby` e `aria-invalid`. CPF e telefone aceitam pontuação durante a edição e são persistidos somente com dígitos; não há máscara que reposicione o cursor. Datas usam controles nativos acessíveis com valor ISO.
 
 Cada alteração com estrutura de rascunho válida alimenta o mesmo autosave do projeto. Erros de completude permanecem visíveis sem criar um segundo estado de domínio. Depois da recarga, o formulário é reconstruído exclusivamente a partir do projeto persistido. Os mesmos campos alimentam a montagem do memorial e futuras saídas em PDF.
+
+## Formação, aperfeiçoamento e titulação
+
+A rota de formação usa cards responsivos em ordem cronológica decrescente, considerando primeiro a conclusão e, na ausência dela, a data inicial. Registros sem datas ficam depois dos datados. A ordenação não altera silenciosamente dados importados; operações de criação, edição e duplicação salvam a coleção já ordenada.
+
+O formulário usa React Hook Form e Zod, com labels visíveis, datas nativas e erros associados por `aria-describedby`. Criar, editar, duplicar e excluir atualizam o projeto pelo autosave compartilhado. A exclusão exige confirmação em AlertDialog. O estado do formulário aberto serve apenas à edição corrente; a lista, a prévia e as exportações derivam do projeto persistido.
 
 ## Publicação estática
 
