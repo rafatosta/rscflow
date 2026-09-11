@@ -6,6 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Matriz transversal de acessibilidade e responsividade em todas as rotas, cobrindo mobile, tablet e desktop com axe-core e detecção de overflow horizontal.
+- Testes de teclado para link de salto, foco após navegação, abertura de formulários e restauração de foco em diálogos.
+
 - Revisão final de identificação, RSC, formação, trajetória, enquadramentos, documentação, pontuação, memorial e conclusão.
 - Achados classificados como ERROR, WARNING e INFO, com bloqueio do PDF somente para erros estruturais.
 - Tela final com PDF, JSON, importação local, último autosave e nomes de arquivo legíveis.
@@ -64,6 +67,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 - Testes de leitura, rejeição estrutural, seleção concorrente e fluxo E2E com acessibilidade.
 
 ### Changed
+
+- Foco visível global, alvos de toque ampliados, autosave atômico e semântica de ocupação da área principal.
+- Abertura de formulários com foco no primeiro campo e retorno ao acionador ao cancelar exclusões.
 
 - Prevalência da resolução normativa nas divergências com a planilha, conforme decisão do mantenedor; registrados os valores de RSC I/a.3 e g.1 e a ambiguidade interna de RSC II/d.5.
 

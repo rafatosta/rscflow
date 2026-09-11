@@ -94,6 +94,7 @@ it('cria, persiste, recarrega, edita, duplica e exclui com confirmação', async
   fireEvent.click(
     screen.getByRole('button', { name: 'Editar formação Especialização em Educação' }),
   );
+  await waitFor(() => expect(screen.getByLabelText(/^Tipo/)).toHaveFocus());
   fireEvent.change(screen.getByLabelText(/^Curso ou título/), {
     target: { value: 'Especialização revisada' },
   });
@@ -106,12 +107,15 @@ it('cria, persiste, recarrega, edita, duplica e exclui com confirmação', async
     expect((await repository.load(record.localId))?.project.userData.education).toHaveLength(2),
   );
 
-  fireEvent.click(
-    screen.getAllByRole('button', { name: 'Excluir formação Especialização revisada' })[0],
-  );
+  const deleteButton = screen.getAllByRole('button', {
+    name: 'Excluir formação Especialização revisada',
+  })[0];
+  deleteButton.focus();
+  fireEvent.click(deleteButton);
   expect(screen.getByRole('alertdialog', { name: 'Excluir formação?' })).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
   expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  await waitFor(() => expect(deleteButton).toHaveFocus());
   expect(screen.getAllByRole('heading', { name: 'Especialização revisada' })).toHaveLength(2);
   fireEvent.click(
     screen.getAllByRole('button', { name: 'Excluir formação Especialização revisada' })[0],

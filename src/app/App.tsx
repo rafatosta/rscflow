@@ -22,6 +22,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
   const [deleting, setDeleting] = useState<LocalProject>();
   const attempted = useRef('');
   const heading = useRef<HTMLHeadingElement>(null);
+  const previousPath = useRef(location.pathname);
   const flushing = useRef(false);
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
@@ -59,7 +60,9 @@ export function App({ repository }: { repository?: ProjectRepository }) {
   useEffect(() => {
     attempted.current = '';
     setMenuOpen(false);
-    heading.current?.focus();
+    const pathChanged = previousPath.current !== location.pathname;
+    previousPath.current = location.pathname;
+    if (pathChanged) heading.current?.focus();
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
@@ -149,6 +152,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
               <div
                 role="status"
                 aria-live="polite"
+                aria-atomic="true"
                 className="order-last w-full text-sm text-cyan-200 sm:order-none sm:w-auto"
               >
                 {work.invalid
@@ -165,11 +169,16 @@ export function App({ repository }: { repository?: ProjectRepository }) {
             </>
           )}
         </header>
-        <main id="main-content" className="mx-auto max-w-6xl px-4 py-7 sm:px-8">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          aria-busy={work.busy || work.saveState.status === 'saving'}
+          className="mx-auto max-w-6xl px-4 py-7 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-cyan-300 sm:px-8"
+        >
           <h1
             tabIndex={-1}
             ref={heading}
-            className="mb-6 text-3xl font-semibold tracking-tight outline-none"
+            className="mb-6 text-3xl font-semibold tracking-tight focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300"
           >
             {title}
           </h1>

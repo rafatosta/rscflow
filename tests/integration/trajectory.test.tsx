@@ -128,6 +128,7 @@ it('persiste CRUD de atividades e evidências, vínculos e edição posterior', 
   });
 
   fireEvent.click(screen.getByRole('button', { name: 'Editar atividade Coordenação de projeto' }));
+  await waitFor(() => expect(screen.getByLabelText(/^Título da atividade/)).toHaveFocus());
   fireEvent.change(screen.getByLabelText(/^Título da atividade/), {
     target: { value: 'Coordenação revisada' },
   });
@@ -140,6 +141,7 @@ it('persiste CRUD de atividades e evidências, vínculos e edição posterior', 
   expect(screen.getAllByRole('heading', { name: 'Coordenação revisada' })).toHaveLength(2);
 
   fireEvent.click(screen.getByRole('button', { name: 'Editar evidência Portaria de coordenação' }));
+  await waitFor(() => expect(screen.getByLabelText(/^Tipo de evidência/)).toHaveFocus());
   fireEvent.change(screen.getByLabelText(/^Título da evidência/), {
     target: { value: 'Portaria revisada' },
   });

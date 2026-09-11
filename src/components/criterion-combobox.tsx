@@ -183,7 +183,9 @@ export function CriterionCombobox({
               </div>
             ))
           ) : (
-            <p className="p-3 text-sm text-slate-300">Nenhum critério encontrado.</p>
+            <div role="option" aria-disabled="true" className="p-3 text-sm text-slate-300">
+              Nenhum critério encontrado.
+            </div>
           )}
         </div>
       )}

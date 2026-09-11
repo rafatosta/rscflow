@@ -12,7 +12,7 @@ O shell usa React Router com rotas de histórico do navegador. A aplicação é 
 | `/project/:id/criteria`   | Exploração somente leitura do catálogo normativo por nível, diretriz e critério     |
 | `/project/:id/scoring`    | Resultado do motor ou motivos reais de indisponibilidade                            |
 | `/project/:id/memorial`   | Editor por seções e narrativas locais das atividades                                |
-| `/project/:id/preview`    | Prévia A4 paginada, navegação e geração local do PDF                                 |
+| `/project/:id/preview`    | Prévia A4 paginada, navegação e geração local do PDF                                |
 | `/project/:id/review`     | Checklist final por severidade, com correções e avisos                              |
 | `/project/:id/export`     | PDF final, JSON portátil, último autosave e importação                              |
 
@@ -36,6 +36,25 @@ O parâmetro `id` corresponde ao `localId` da cópia. Acesso direto carrega o pr
 - `memorial/preview.ts`: montagem estruturada independente das regras normativas.
 
 O autosave e a sessão de edição são compartilhados entre seções. React Router bloqueia temporariamente uma mudança de rota enquanto o autosave conclui. Dados inválidos ou falhas mantêm a rota e a edição atuais. Voltar/avançar seguem a mesma proteção.
+
+## Acessibilidade e responsividade
+
+O shell usa landmarks de navegação e conteúdo, link de salto e um único `h1` por rota. O primeiro
+carregamento preserva o link de salto na ordem de tabulação; mudanças posteriores de rota focam o
+título principal para anunciar o novo contexto. O estado do autosave é uma região `status` atômica
+e o `main` expõe `aria-busy` durante gravações e operações locais.
+
+Os estilos globais mantêm indicador de foco visível em links, botões e controles de formulário. O
+Button compartilhado oferece alvos de 44 px nas ações comuns e 40 px nas compactas. Formulários de
+formação, atividades e evidências focam o primeiro campo quando abertos por uma ação. ConfirmDialog
+guarda o elemento ativo e restaura o foco ao cancelar quando o acionador ainda existe. Os primitives
+Radix mantêm contenção de foco, Escape e semântica modal no AlertDialog e no Sheet.
+
+A sidebar fixa é usada a partir de 1024 px; abaixo disso, a navegação é apresentada em Sheet. Grades
+e formulários partem de uma coluna e ganham colunas somente quando há largura disponível. Contêineres
+flexíveis permitem quebra das ações, textos recebem quebra de palavras e a prévia A4 usa escala
+responsiva. A matriz E2E verifica 360 × 800 px, 768 × 1024 px e 1440 × 900 px em todas as rotas do
+projeto, incluindo ausência de overflow horizontal.
 
 ## Dados do docente
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type FieldError, type UseFormRegister } from 'react-hook-form';
 import type { Activity, Evidence } from '@/domain/models';
@@ -190,6 +190,8 @@ export function TrajectorySection({
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [editingEvidence, setEditingEvidence] = useState<Evidence>();
   const [deletingEvidence, setDeletingEvidence] = useState<Evidence>();
+  const focusActivityForm = useRef(false);
+  const focusEvidenceForm = useRef(false);
   const schema = useMemo(() => activityFormSchema(criterionRequired), [criterionRequired]);
   const filtered = filterActivities(activities, search, category);
   const activityForm = useForm<ActivityFormValues>({
@@ -210,6 +212,16 @@ export function TrajectorySection({
   useEffect(() => {
     evidenceForm.reset(evidenceFormValues(editingEvidence));
   }, [editingEvidence, evidenceForm]);
+  useEffect(() => {
+    if (!activityOpen || !focusActivityForm.current) return;
+    focusActivityForm.current = false;
+    document.getElementById('activity-title')?.focus();
+  }, [activityOpen, editingActivity]);
+  useEffect(() => {
+    if (!evidenceOpen || !focusEvidenceForm.current) return;
+    focusEvidenceForm.current = false;
+    document.getElementById('evidence-type')?.focus();
+  }, [evidenceOpen, editingEvidence]);
 
   const closeActivity = () => {
     setEditingActivity(undefined);
@@ -257,6 +269,7 @@ export function TrajectorySection({
             <Button
               disabled={disabled}
               onClick={() => {
+                focusActivityForm.current = true;
                 setEditingActivity(undefined);
                 activityForm.reset(emptyActivityForm);
                 setActivityOpen(true);
@@ -383,6 +396,7 @@ export function TrajectorySection({
                       disabled={disabled}
                       aria-label={`Editar atividade ${activity.title}`}
                       onClick={() => {
+                        focusActivityForm.current = true;
                         setEditingActivity(activity);
                         setActivityOpen(true);
                       }}
@@ -614,6 +628,7 @@ export function TrajectorySection({
               variant="outline"
               disabled={disabled}
               onClick={() => {
+                focusEvidenceForm.current = true;
                 setEditingEvidence(undefined);
                 evidenceForm.reset(emptyEvidenceForm);
                 setEvidenceOpen(true);
@@ -645,6 +660,7 @@ export function TrajectorySection({
                   disabled={disabled}
                   aria-label={`Editar evidência ${evidence.title}`}
                   onClick={() => {
+                    focusEvidenceForm.current = true;
                     setEditingEvidence(evidence);
                     setEvidenceOpen(true);
                   }}

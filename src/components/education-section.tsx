@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type FieldError, type UseFormRegister } from 'react-hook-form';
 import type { Education } from '@/domain/models';
@@ -76,6 +76,7 @@ export function EducationSection({ education, disabled, onSave }: Props) {
   const [formOpen, setFormOpen] = useState(education.length === 0);
   const [editing, setEditing] = useState<Education>();
   const [deleting, setDeleting] = useState<Education>();
+  const focusOpenedForm = useRef(false);
   const ordered = sortEducationChronologically(education);
   const {
     register,
@@ -89,6 +90,11 @@ export function EducationSection({ education, disabled, onSave }: Props) {
   });
 
   useEffect(() => reset(educationFormValues(editing)), [editing, reset]);
+  useEffect(() => {
+    if (!formOpen || !focusOpenedForm.current) return;
+    focusOpenedForm.current = false;
+    document.getElementById('education-type')?.focus();
+  }, [formOpen, editing]);
 
   const closeForm = () => {
     setEditing(undefined);
@@ -117,6 +123,7 @@ export function EducationSection({ education, disabled, onSave }: Props) {
             <Button
               disabled={disabled}
               onClick={() => {
+                focusOpenedForm.current = true;
                 setEditing(undefined);
                 reset(emptyEducationForm);
                 setFormOpen(true);
@@ -184,6 +191,7 @@ export function EducationSection({ education, disabled, onSave }: Props) {
                     disabled={disabled}
                     aria-label={`Editar formação ${item.title}`}
                     onClick={() => {
+                      focusOpenedForm.current = true;
                       setEditing(item);
                       setFormOpen(true);
                     }}

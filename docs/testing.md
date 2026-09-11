@@ -4,6 +4,20 @@ Use Vitest and Testing Library for unit and integration tests. `tests/setup.ts` 
 
 Run `npm run test:run` for the non-watch suite and `npm run test:e2e` after the application can be served. Normative rules require focused tests based on source-backed fixtures.
 
+## Acessibilidade e responsividade
+
+`tests/e2e/accessibility.spec.ts` percorre visão geral, dados do docente, formação, trajetória,
+critérios, pontuação, memorial, prévia, revisão e exportação em 360 × 800 px, 768 × 1024 px e
+1440 × 900 px. Em cada combinação, axe-core não pode encontrar impacto crítico ou sério e a largura
+do documento não pode ultrapassar a viewport. O mesmo arquivo testa por teclado o link de salto e o
+foco no título após uma mudança de rota.
+
+Os testes de integração de formação e trajetória verificam que ações de adicionar e editar levam o
+foco ao primeiro campo. Formação também cobre o retorno do foco ao acionador quando o AlertDialog é
+cancelado. `tests/e2e/shell.spec.ts` continua responsável pela contenção de foco, Escape e retorno ao
+botão do Sheet móvel. As demais suítes mantêm verificações axe nos estados vazios, válidos, inválidos
+e nos fluxos funcionais específicos.
+
 ## Validador local de projetos
 
 Os testes unitários cobrem leitura, JSON malformado, raiz inválida, campos obrigatórios e versão incompatível. A integração verifica metadados declarados, mensagens acessíveis, nova seleção, falha de leitura e leituras concluídas fora de ordem. O E2E Chromium usa arquivos em memória para verificar sucesso, rejeição e axe nos estados inicial, válido e inválido. As fixtures são sintéticas e não representam dados normativos validados.

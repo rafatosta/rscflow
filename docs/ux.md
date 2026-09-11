@@ -8,7 +8,9 @@ A criação pede somente RSC pretendido e regulamento/dataset. Título inicial �
 
 Em desktop (a partir de 1024 px), a sidebar fixa apresenta as seções. Em telas menores, o botão de menu abre um Sheet modal com foco contido, fechamento por Escape e retorno ao acionador. O cabeçalho mantém exportação e estado do autosave acessíveis; em telas estreitas, o estado ocupa uma segunda linha. Formulários e cartões se reorganizam sem exigir rolagem horizontal.
 
-Há link para pular ao conteúdo, título de página atualizado, foco no título após navegação e indicação `aria-current` da seção ativa. Estados de salvamento usam região viva. Inputs têm rótulos e estados vazios explicam a próxima ação disponível.
+Há link para pular ao conteúdo como primeiro controle da ordem de tabulação. Na abertura inicial ele permanece disponível; depois de uma mudança de rota, o foco segue para o título principal, que acompanha o título da página. A seção ativa usa `aria-current`. Estados de salvamento usam região viva atômica e a área principal anuncia quando está ocupada. Inputs têm rótulos e estados vazios explicam a próxima ação disponível.
+
+Todos os controles interativos apresentam foco visível. Ações principais têm pelo menos 44 px de altura e ações compactas, 40 px. Formulários abertos por “Adicionar” ou “Editar” levam o foco ao primeiro campo. Dialogs e o Sheet contêm o foco enquanto abertos; ao cancelar uma exclusão ou fechar o menu, o foco retorna ao acionador. Textos, ícones e símbolos acompanham estados e severidades para que o significado não dependa somente da cor.
 
 Na seção Dados do docente, nome completo, CPF, SIAPE, campus de lotação e RSC pretendido aparecem como obrigatórios para concluir a etapa. Os demais campos mostram explicitamente “opcional”. Mensagens de CPF, e-mail, telefone e datas aparecem junto ao campo e são anunciáveis por tecnologia assistiva. A digitação não é interrompida por máscaras automáticas.
 
@@ -36,6 +38,11 @@ Exportar apresenta o horário do último autosave, o estado resumido da revisão
 PDF e JSON. O PDF fica indisponível enquanto houver erro; o JSON continua acessível para backup do
 projeto válido. A mesma tela permite validar e importar outra cópia JSON como novo projeto local,
 sem substituir a cópia aberta.
+
+Os fluxos principais são verificados em 360 × 800 px, 768 × 1024 px e 1440 × 900 px. Sidebar,
+cartões, grades, formulários, ações e prévia refluem nesses tamanhos sem criar rolagem horizontal na
+página. Conteúdo textual longo pode quebrar dentro do próprio cartão e a prévia A4 reduz sua escala
+visual sem alterar o documento produzido.
 
 ## Limites transparentes
 
