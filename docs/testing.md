@@ -27,3 +27,7 @@ Os testes unitários cobrem leitura, JSON malformado, raiz inválida, campos obr
 `tests/unit/project-shell.test.ts` verifica rotas, endereços desconhecidos, criação mínima, contrato 2.1, portabilidade, preservação dos contratos anteriores, progresso editorial e montagem da prévia. Os testes de integração da sessão agora montam o shell em MemoryRouter e verificam URL direta, autosave, erros e bloqueio de navegação com JSON inválido.
 
 `tests/e2e/shell.spec.ts` cobre todas as URLs, recarga, navegação pelo histórico, estados vazios/ausentes, formulários reais, prévia, menu móvel com foco contido e Escape, ausência de overflow e axe. `tests/e2e/local-projects.spec.ts` cobre criação por nível/dataset, autosave, duplicação, cancelamento/confirmacão de exclusão e transporte de 2.1 entre contextos isolados. O legado mantém round-trip e edição sem conversão.
+
+## Dados do docente
+
+`tests/unit/teacher-profile.test.ts` cobre obrigatoriedade, CPF, e-mail, telefone, datas, opcionais, normalização, compatibilidade com matrícula legada, completude e round-trip JSON. `tests/integration/teacher-profile.test.tsx` verifica associação acessível dos erros, autosave, reload, edição posterior e atualização da visão geral. Os testes E2E existentes exercitam o perfil dentro da navegação real e confirmam persistência após recarga.

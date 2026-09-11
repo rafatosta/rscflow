@@ -35,4 +35,6 @@ O navegador pode remover IndexedDB ao limpar dados ou encerrar sessões privadas
 
 `schemaVersion: 2.1` mantém o envelope e os dados tipados, permitindo `regulation.version: null`, `teacher.name: ""` e `activities[].criterionId: ""` enquanto não informados. Não atribui nome, critério ou versão normativa fictícios. A escolha de nível de uma atividade continua explícita. Outras validações, inclusive IDs e referências de comprovantes, são preservadas.
 
+Os campos pessoais e funcionais adicionais de `teacher` são opcionais no contrato serializado para manter compatibilidade com projetos 2.0/2.1 existentes. CPF e telefone são gravados com dígitos; datas são strings ISO. `request.effectiveDate` guarda a data de vigência. Nenhum desses valores é duplicado em estado específico da interface.
+
 Projetos 1.0 e 2.0 não são migrados automaticamente. Duplicação de 2.1 segue as mesmas regras de identidade de 2.0. Exportação/importação e persistência aceitam os três formatos. Null não é uma versão normativa validada e não é atualizado silenciosamente quando o catálogo mudar. Para dados 2.1 completos com catálogo validado, o caso de uso adapta apenas a entrada do cálculo ao contrato 2.0, sem alterar o arquivo persistido.

@@ -4,10 +4,27 @@ import { rscLevelSchema } from './regulation';
 const text = z.string().trim().min(1);
 const quantity = z.number().finite().nonnegative();
 export const teacherSchema = z
-  .object({ name: text, registration: text.optional(), campus: text.optional() })
+  .object({
+    name: text,
+    /** Campo legado do formato 2.0; novas edições usam `siape`. */
+    registration: z.string().optional(),
+    cpf: z.string().optional(),
+    siape: z.string().optional(),
+    role: z.string().optional(),
+    campus: z.string().optional(),
+    email: z.string().optional(),
+    phone: z.string().optional(),
+    currentRsc: z.string().optional(),
+    schooling: z.string().optional(),
+    admissionDate: z.iso.date().optional(),
+  })
   .strict();
 export const rscRequestSchema = z
-  .object({ level: rscLevelSchema, requestedAt: z.iso.date().optional() })
+  .object({
+    level: rscLevelSchema,
+    requestedAt: z.iso.date().optional(),
+    effectiveDate: z.iso.date().optional(),
+  })
   .strict();
 export const educationSchema = z
   .object({ id: text, title: text, institution: text, completedAt: z.iso.date().optional() })

@@ -29,6 +29,12 @@ O parâmetro `id` corresponde ao `localId` da cópia. Acesso direto carrega o pr
 
 O autosave e a sessão de edição são compartilhados entre seções. React Router bloqueia temporariamente uma mudança de rota enquanto o autosave conclui. Dados inválidos ou falhas mantêm a rota e a edição atuais. Voltar/avançar seguem a mesma proteção.
 
+## Dados do docente
+
+A rota de perfil usa React Hook Form com resolver Zod. Labels permanecem visíveis e os erros são ligados aos campos por `aria-describedby` e `aria-invalid`. CPF e telefone aceitam pontuação durante a edição e são persistidos somente com dígitos; não há máscara que reposicione o cursor. Datas usam controles nativos acessíveis com valor ISO.
+
+Cada alteração com estrutura de rascunho válida alimenta o mesmo autosave do projeto. Erros de completude permanecem visíveis sem criar um segundo estado de domínio. Depois da recarga, o formulário é reconstruído exclusivamente a partir do projeto persistido. Os mesmos campos alimentam a montagem do memorial e futuras saídas em PDF.
+
 ## Publicação estática
 
 O servidor de arquivos deve encaminhar URLs desconhecidas para `index.html` (fallback de SPA) para permitir recarga direta de `/project/...`. Vite já faz isso em desenvolvimento. Isso não requer backend de dados. Os arquivos exportados são baixados por Blob; não há chamadas remotas para projetos.

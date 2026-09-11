@@ -83,6 +83,54 @@ test('menu móvel tem foco contido, fecha por Escape e não causa overflow', asy
   await page.screenshot({ path: '/tmp/rscflow-shell-mobile.png', fullPage: true });
 });
 
+test('dados do docente validam, salvam e alimentam visão geral e memorial', async ({ page }) => {
+  await start(page);
+  await page.getByRole('link', { name: 'Dados do docente', exact: true }).click();
+
+  const name = page.getByLabel(/^Nome completo/);
+  await name.fill('A');
+  await name.clear();
+  await expect(page.getByText('Nome completo é obrigatório.')).toBeVisible();
+  await page.getByLabel(/^CPF/).fill('111.111.111-11');
+  await expect(page.getByText('Informe um CPF válido com 11 dígitos.')).toBeVisible();
+
+  await page.getByLabel(/^Título do projeto/).fill('Memorial de Maria');
+  await name.fill('Maria da Silva');
+  await page.getByLabel(/^CPF/).fill('529.982.247-25');
+  await page.getByLabel(/^SIAPE/).fill('1234567');
+  await page.getByLabel(/^Cargo/).fill('Professora EBTT');
+  await page.getByLabel(/^Campus de lotação/).fill('Salvador');
+  await page.getByLabel(/^E-mail/).fill('maria@example.edu.br');
+  await page.getByLabel(/^Telefone/).fill('(71) 99999-8888');
+  await page.getByLabel(/^RT\/RSC atual/).fill('RSC I');
+  await page.getByLabel(/^Escolaridade/).fill('Mestrado');
+  await page.getByLabel(/^Data de ingresso/).fill('2020-02-03');
+  await page.getByLabel(/^Data de vigência/).fill('2026-04-07');
+  await expect(page.getByText('Salvando…', { exact: true })).toBeVisible();
+  await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByLabel(/^Data de vigência/).blur();
+  await page
+    .getByRole('heading', { name: 'Dados do docente', exact: true, level: 1 })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/rscflow-teacher-profile.png' });
+
+  await page.reload();
+  await expect(page.getByLabel(/^Nome completo/)).toHaveValue('Maria da Silva');
+  await expect(page.getByLabel(/^CPF/)).toHaveValue('52998224725');
+  await expect(page.getByLabel(/^Telefone/)).toHaveValue('71999998888');
+  await page.getByRole('link', { name: 'Visão geral', exact: true }).click();
+  await expect(
+    page.getByRole('progressbar', { name: 'Progresso de preenchimento' }),
+  ).toHaveAttribute('value', '20');
+  await expect(page.getByText(/Identificação do docente/)).toContainText('✓');
+  await page.getByRole('link', { name: 'Prévia', exact: true }).click();
+  await expect(page.getByRole('article')).toContainText('Maria da Silva');
+  await expect(page.getByRole('article')).toContainText('CPF: 52998224725');
+  await expect(page.getByRole('article')).toContainText('SIAPE: 1234567');
+  await expect(page.getByRole('article')).toContainText('RSC pretendido: RSC II');
+});
+
 test('endereços inexistentes e projetos ausentes oferecem recuperação', async ({ page }) => {
   await page.goto('/nao-existe');
   await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();

@@ -14,10 +14,10 @@ test('cria rascunho, salva, recarrega, duplica, exclui e transporta JSON', async
   const projectUrl = page.url();
   await page.getByRole('link', { name: 'Dados do docente', exact: true }).click();
   await page.getByLabel('Título do projeto').fill('Memorial editado');
-  await page.getByLabel('Nome do docente').fill('Docente de teste');
+  await page.getByLabel(/^Nome completo/).fill('Docente de teste');
   await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel('Nome do docente')).toHaveValue('Docente de teste');
+  await expect(page.getByLabel(/^Nome completo/)).toHaveValue('Docente de teste');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   await page.getByRole('link', { name: 'Exportar', exact: true }).click();
@@ -57,13 +57,11 @@ test('cria rascunho, salva, recarrega, duplica, exclui e transporta JSON', async
   try {
     const other = await otherContext.newPage();
     await other.goto('/');
-    await other
-      .getByLabel('Arquivo de projeto JSON')
-      .setInputFiles({
-        name: 'projeto.json',
-        mimeType: 'application/json',
-        buffer: Buffer.from(json),
-      });
+    await other.getByLabel('Arquivo de projeto JSON').setInputFiles({
+      name: 'projeto.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(json),
+    });
     await other.getByRole('button', { name: 'Importar como novo projeto' }).click();
     await expect(other).toHaveURL(/\/project\/[^/]+$/);
     await other.getByRole('link', { name: 'Exportar', exact: true }).click();
@@ -86,13 +84,11 @@ test('importa legado e mantém edição sem conversão implícita', async ({ pag
     regulation: { id: 'teste', version: 'antiga' },
     userData: { arbitrary: ['preservado', { value: 2 }] },
   };
-  await page
-    .getByLabel('Arquivo de projeto JSON')
-    .setInputFiles({
-      name: 'legado.json',
-      mimeType: 'application/json',
-      buffer: Buffer.from(JSON.stringify(legacy)),
-    });
+  await page.getByLabel('Arquivo de projeto JSON').setInputFiles({
+    name: 'legado.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(legacy)),
+  });
   await page.getByRole('button', { name: 'Importar como novo projeto' }).click();
   const editor = page.getByLabel('Dados editáveis do projeto (JSON)');
   await expect(editor).toBeVisible();

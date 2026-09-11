@@ -10,6 +10,8 @@ Em desktop (a partir de 1024 px), a sidebar fixa apresenta as seções. Em telas
 
 Há link para pular ao conteúdo, título de página atualizado, foco no título após navegação e indicação `aria-current` da seção ativa. Estados de salvamento usam região viva. Inputs têm rótulos e estados vazios explicam a próxima ação disponível.
 
+Na seção Dados do docente, nome completo, CPF, SIAPE, campus de lotação e RSC pretendido aparecem como obrigatórios para concluir a etapa. Os demais campos mostram explicitamente “opcional”. Mensagens de CPF, e-mail, telefone e datas aparecem junto ao campo e são anunciáveis por tecnologia assistiva. A digitação não é interrompida por máscaras automáticas.
+
 ## Limites transparentes
 
 O progresso é uma aproximação editorial: cinco grupos com o mesmo peso (identificação, formação, trajetória, enquadramento e texto). Não representa pontuação, elegibilidade ou aprovação. Revisão apenas ajuda a localizar campos ainda não preenchidos.

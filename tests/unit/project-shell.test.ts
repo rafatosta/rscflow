@@ -78,7 +78,12 @@ describe('rotas e rascunhos do shell', () => {
   it('progresso mede preenchimento, não pontuação', () => {
     const draft = createDraft('rsc-i', datasets[0].metadata.regulation.id);
     expect(completion(draft).percent).toBe(0);
-    draft.userData.teacher.name = 'Docente';
+    draft.userData.teacher = {
+      name: 'Docente',
+      cpf: '52998224725',
+      siape: '1234567',
+      campus: 'Salvador',
+    };
     expect(completion(draft).percent).toBe(20);
     draft.userData.education.push({ id: 'e', title: 'Curso', institution: 'Instituição' });
     expect(completion(draft).percent).toBe(40);

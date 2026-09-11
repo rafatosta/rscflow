@@ -31,7 +31,7 @@ function mount(path: string) {
 it('recupera por URL, edita, salva e reabre o projeto', async () => {
   const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
   const rendered = mount(projectPath(record.localId, 'profile'));
-  fireEvent.change(await screen.findByLabelText('Nome do docente'), {
+  fireEvent.change(await screen.findByLabelText(/^Nome completo/), {
     target: { value: 'Nome salvo' },
   });
   expect(screen.getByText('Salvando…')).toBeInTheDocument();
@@ -40,14 +40,14 @@ it('recupera por URL, edita, salva e reabre o projeto', async () => {
   expect(saved?.project.userData.teacher).toEqual({ name: 'Nome salvo' });
   rendered.unmount();
   mount(projectPath(record.localId, 'profile'));
-  expect(await screen.findByLabelText('Nome do docente')).toHaveValue('Nome salvo');
+  expect(await screen.findByLabelText(/^Nome completo/)).toHaveValue('Nome salvo');
 });
 
 it('mantém rascunho quando há erro ao salvar e recupera após nova tentativa', async () => {
   const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
   vi.spyOn(repository, 'update').mockRejectedValueOnce(new Error('quota'));
   mount(projectPath(record.localId, 'profile'));
-  const editor = await screen.findByLabelText('Nome do docente');
+  const editor = await screen.findByLabelText(/^Nome completo/);
   fireEvent.change(editor, { target: { value: 'Não perdido' } });
   expect(await screen.findByText('Erro ao salvar')).toBeInTheDocument();
   expect(editor).toHaveValue('Não perdido');
@@ -87,7 +87,7 @@ it('apresenta falha do IndexedDB sem alegar salvamento', async () => {
 it('conclui autosave antes de mudar de seção', async () => {
   const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
   const { router } = mount(projectPath(record.localId, 'profile'));
-  fireEvent.change(await screen.findByLabelText('Nome do docente'), {
+  fireEvent.change(await screen.findByLabelText(/^Nome completo/), {
     target: { value: 'Salvo antes de navegar' },
   });
   fireEvent.click(screen.getByRole('link', { name: 'Formação' }));

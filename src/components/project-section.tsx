@@ -5,12 +5,12 @@ import type { TypedProjectExport } from '@/domain/project';
 import {
   completion,
   levelLabel,
-  levels,
   linkedDataset,
   projectScoring,
 } from '@/features/project-shell/project-view';
 import { projectPath, type Section } from '@/features/project-shell/routes';
 import { buildMemorialPreview } from '@/memorial/preview';
+import { TeacherProfileForm } from './teacher-profile-form';
 import { Button } from './ui/button';
 
 type Props = {
@@ -121,82 +121,11 @@ export function ProjectSection(props: Props) {
 
   if (section === 'profile')
     return (
-      <section className="panel">
-        <h2 className="mb-4 text-xl font-semibold">Identificação</h2>
-        <form
-          className="space-y-4"
-          onSubmit={(event) => event.preventDefault()}
-          onChange={(event) => {
-            const form = values(event);
-            update({
-              title: String(form.title),
-              teacher: {
-                name: String(form.name),
-                ...(form.registration ? { registration: String(form.registration) } : {}),
-                ...(form.campus ? { campus: String(form.campus) } : {}),
-              },
-              request: {
-                ...data.request,
-                level: String(form.level) as NonNullable<typeof data.request>['level'],
-              },
-            });
-          }}
-        >
-          <label className="block">
-            Título do projeto
-            <input
-              name="title"
-              className="field"
-              defaultValue={data.title}
-              disabled={busy}
-              required
-            />
-          </label>
-          <label className="block">
-            Nome do docente
-            <input name="name" className="field" defaultValue={data.teacher.name} disabled={busy} />
-          </label>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label>
-              Matrícula
-              <input
-                name="registration"
-                className="field"
-                defaultValue={data.teacher.registration}
-                disabled={busy}
-              />
-            </label>
-            <label>
-              Campus
-              <input
-                name="campus"
-                className="field"
-                defaultValue={data.teacher.campus}
-                disabled={busy}
-              />
-            </label>
-          </div>
-          <label className="block">
-            RSC pretendido
-            <select
-              name="level"
-              className="field"
-              defaultValue={data.request?.level ?? ''}
-              disabled={busy}
-              required
-            >
-              <option value="" disabled>
-                Selecione
-              </option>
-              {levels.map((level) => (
-                <option key={level} value={level}>
-                  {levelLabel(level)}
-                </option>
-              ))}
-            </select>
-          </label>
-        </form>
-      </section>
+      <TeacherProfileForm
+        project={project}
+        disabled={busy}
+        onSave={(userData) => edit(JSON.stringify(userData))}
+      />
     );
 
   if (section === 'education')

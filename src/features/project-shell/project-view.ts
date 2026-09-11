@@ -2,6 +2,7 @@ import { draftProjectExportSchema, type ProjectExport } from '@/domain/project';
 import { loadIfbaRegulation } from '@/data/regulations/load';
 import { rscLevelSchema, type RscLevel } from '@/domain/regulation';
 import { calculateProjectScore } from '@/rules/scoring';
+import { teacherProfileIsComplete } from '@/features/teacher-profile/profile';
 import packageMetadata from '../../../package.json';
 
 export const levels = rscLevelSchema.options;
@@ -36,7 +37,7 @@ export function completion(project: ProjectExport) {
     {
       label: 'Identificação do docente',
       section: 'profile',
-      complete: Boolean(data.teacher.name.trim()),
+      complete: teacherProfileIsComplete(project),
     },
     { label: 'Formação registrada', section: 'education', complete: data.education.length > 0 },
     { label: 'Trajetória registrada', section: 'activities', complete: data.activities.length > 0 },

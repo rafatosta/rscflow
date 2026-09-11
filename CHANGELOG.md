@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Formulário de dados pessoais e funcionais do docente com React Hook Form, validação Zod, erros acessíveis e autosave.
+- Campos de CPF, SIAPE, cargo, lotação, contato, RT/RSC atual, escolaridade, ingresso e vigência disponíveis ao memorial.
+- Testes de validação, persistência, recarga, edição posterior, completude e serialização do perfil.
+
 - Shell responsivo com sidebar, Sheet Radix, cabeçalho de autosave e rotas por seção do projeto.
 - Gestão inicial com cartões, progresso editorial, criação por RSC/dataset e exclusão confirmada.
 - Formulários por seção, prévia textual, revisão e visualização do estado real do motor normativo.
