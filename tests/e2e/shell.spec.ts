@@ -51,7 +51,9 @@ test('todas as seções funcionam por URL, reload e navegação', async ({ page 
   await expect(page.getByRole('article')).toContainText('Minha trajetória docente.');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.getByRole('link', { name: 'Pontuação', exact: true }).click();
-  await expect(page.getByText('Cálculo indisponível', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Resultado quantitativo' }).getByRole('status'),
+  ).toContainText('Cálculo parcial');
   await page.goBack();
   await expect(page).toHaveURL(`${url}/preview`);
   await page.screenshot({ path: '/tmp/rscflow-shell-desktop.png', fullPage: true });
@@ -282,6 +284,34 @@ test('critérios mostram o catálogo pendente sem presumir opções normativas',
   await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
   await expect(page.getByRole('combobox', { name: /Critério RSC/ })).toBeDisabled();
   await expect(page.getByText(/A seleção exige um catálogo vinculado e validado/)).toBeVisible();
+});
+
+test('dashboard resume a pontuação e mantém o estado parcial acessível e responsivo', async ({
+  page,
+}) => {
+  await start(page);
+  const summary = page.getByRole('region', { name: 'Resumo da pontuação' });
+  await expect(summary.getByRole('heading', { name: 'Resumo da pontuação' })).toBeVisible();
+  await expect(summary.getByRole('status')).toContainText('Cálculo parcial');
+  await expect(summary.getByRole('heading', { name: 'Pendências' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Pontuação', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Resultado quantitativo' })).toBeVisible();
+  await expect(page.getByText('Mínimo total: 60')).toBeVisible();
+  await expect(page.getByText('Mínimo no nível pretendido: 36')).toBeVisible();
+  for (const level of ['RSC I', 'RSC II', 'RSC III'])
+    await expect(
+      page.getByRole('heading', { name: level, exact: true }).locator('..'),
+    ).toContainText('— / 100');
+  await expect(page.getByText(/Pontuações ausentes não são tratadas como zero/)).toBeVisible();
+  await expect(page.getByText(/RSC aprovado/i)).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: '/tmp/rscflow-scoring-mobile.png', fullPage: true });
 });
 
 test('endereços inexistentes e projetos ausentes oferecem recuperação', async ({ page }) => {

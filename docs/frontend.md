@@ -25,6 +25,7 @@ O parâmetro `id` corresponde ao `localId` da cópia. Acesso direto carrega o pr
 - `components/project-section.tsx`: apresentação e formulários das seções.
 - `components/criteria-explorer.tsx`: abas, busca e hierarquia somente leitura do catálogo vinculado.
 - `components/criterion-combobox.tsx`: pesquisa e seleção acessível de referência normativa na atividade.
+- `components/scoring-dashboard.tsx`: resumo e detalhamento responsivo do resultado produzido pelo motor.
 - `components/ui/`: primitives genéricos Button, Sheet (Radix Dialog) e ConfirmDialog (Radix AlertDialog).
 - `features/project-shell/`: interpretação de rotas, criação de rascunhos, projeção do progresso e ligação ao motor existente.
 - `memorial/preview.ts`: montagem textual independente das regras normativas.
@@ -56,6 +57,14 @@ A mesma página gerencia metadados de evidências. Exclusões usam AlertDialog; 
 A rota de critérios abre no nível pretendido pelo projeto e oferece abas RSC I, RSC II e RSC III com navegação por setas, Home e End. A busca ignora diferenças de caixa e acentuação e filtra o nível ativo por código, descrição, unidade ou texto da diretriz. Os resultados preservam a hierarquia nível–diretriz–critério e exibem fator, unidade, quantidade máxima, peso, teto da diretriz e proveniência lidos do objeto normativo carregado.
 
 A tela não edita dados nem executa pontuação. O componente recebe o dataset como entrada, por isso uma alteração de fator ou unidade no JSON aparece sem mudança na implementação. Dataset ausente, pendente ou sem critérios mantém seu estado explícito e não produz opções presumidas no formulário de atividade.
+
+## Dashboard de pontuação
+
+A visão geral inclui um resumo do resultado e suas pendências. A rota de pontuação apresenta os três níveis, total geral, mínimos total e do nível pretendido e o estado textual dos requisitos quantitativos. Cada diretriz usa um elemento expansível com título, pontos, máximo, barra de progresso, quantidade de critérios e experiências utilizados e detalhes das quantidades informada e considerada.
+
+O componente recebe exclusivamente `CalculationResult`. Títulos, tetos, limites, contagens e indicador de teto atingido integram a saída do motor; o JSX não recalcula pontuação nem contém constantes normativas. Experiências acima dos limites continuam armazenadas e disponíveis ao memorial.
+
+Quando catálogo ou política normativa estão pendentes, o dashboard usa “Cálculo parcial”, lista os motivos e omite os valores ainda incalculáveis com um travessão. Limites de uma política já validada podem ser exibidos, mas a ausência de catálogo nunca é convertida em pontuação zero.
 
 ## Publicação estática
 

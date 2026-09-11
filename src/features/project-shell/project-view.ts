@@ -80,15 +80,5 @@ export function projectScoring(project: ProjectExport) {
     };
   // 2.1 não migra o arquivo; adapta somente a entrada do cálculo, quando completa.
   const input = project.schemaVersion === '2.1' ? { ...project, schemaVersion: '2.0' } : project;
-  if (dataset.metadata.status !== 'validated')
-    return {
-      status: 'unavailable' as const,
-      issues: [
-        {
-          code: 'pending-dataset' as const,
-          message: 'O catálogo normativo vinculado ainda está pendente de validação.',
-        },
-      ],
-    };
   return calculateProjectScore(input, dataset);
 }

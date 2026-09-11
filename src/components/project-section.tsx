@@ -2,16 +2,12 @@ import { Link } from 'react-router-dom';
 import type { FormEvent } from 'react';
 import type { LocalProject } from '@/domain/local-project';
 import type { TypedProjectExport } from '@/domain/project';
-import {
-  completion,
-  levelLabel,
-  linkedDataset,
-  projectScoring,
-} from '@/features/project-shell/project-view';
+import { completion, linkedDataset, projectScoring } from '@/features/project-shell/project-view';
 import { projectPath, type Section } from '@/features/project-shell/routes';
 import { buildMemorialPreview } from '@/memorial/preview';
 import { CriteriaExplorer } from './criteria-explorer';
 import { EducationSection } from './education-section';
+import { ScoringDashboard } from './scoring-dashboard';
 import { TeacherProfileForm } from './teacher-profile-form';
 import { TrajectorySection } from './trajectory-section';
 import { Button } from './ui/button';
@@ -108,6 +104,7 @@ export function ProjectSection(props: Props) {
             ))}
           </ul>
         </section>
+        <ScoringDashboard result={scoring} compact />
         <section className="panel">
           <h2 className="text-xl font-semibold">Regulamento vinculado</h2>
           <p className="mt-3 break-words">
@@ -155,41 +152,7 @@ export function ProjectSection(props: Props) {
   if (section === 'criteria')
     return <CriteriaExplorer dataset={dataset} initialLevel={data.request?.level} />;
 
-  if (section === 'scoring')
-    return (
-      <section className="panel space-y-4">
-        <h2 className="text-xl font-semibold">Resultado quantitativo</h2>
-        {scoring.status === 'unavailable' ? (
-          <>
-            <p className="text-amber-200">Cálculo indisponível</p>
-            <ul className="list-inside list-disc">
-              {scoring.issues.map((issue, index) => (
-                <li key={index}>{issue.message}</li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <>
-            <p>
-              {scoring.status === 'quantitative-requirements-met'
-                ? 'Requisitos quantitativos atingidos'
-                : 'Requisitos quantitativos ainda não atingidos'}
-            </p>
-            <ul>
-              {scoring.levels.map((level) => (
-                <li key={level.level}>
-                  {levelLabel(level.level)}: {level.score}
-                </li>
-              ))}
-            </ul>
-            <p>Total: {scoring.total}</p>
-          </>
-        )}
-        <p className="text-sm text-slate-300">
-          O resultado quantitativo não representa concessão de RSC.
-        </p>
-      </section>
-    );
+  if (section === 'scoring') return <ScoringDashboard result={scoring} />;
 
   if (section === 'memorial')
     return (

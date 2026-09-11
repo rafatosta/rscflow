@@ -12,7 +12,9 @@ Os testes unitários cobrem leitura, JSON malformado, raiz inválida, campos obr
 
 `tests/unit/scoring.test.ts` usa catálogo sintético para verificar fator/peso, limite compartilhado do critério, teto por diretriz e nível, soma, limites inclusivos 60/36, aritmética decimal, arredondamento somente final, escolha de nível, duplicidade de ID, versões incompatíveis, dados inválidos/pendentes, ausência de política, entradas vazias, imutabilidade e extremos numéricos. Alterações de parâmetros do dataset são testadas sem mudar o algoritmo.
 
-`tests/regulation/scoring.test.ts` fixa parâmetros conferidos nos arts. 12, 15 e 17 e recortes dos três níveis com proveniência em `tests/regulation/fixtures/resolution-excerpts.json`. Os resultados esperados são independentes da implementação. Esses recortes não certificam todo o catálogo: também há regressão que exige indisponibilidade do dataset de produção pendente. O E2E existente continua cobrindo importação e acessibilidade; não há interface de pontuação nesta etapa.
+`tests/regulation/scoring.test.ts` fixa parâmetros conferidos nos arts. 12, 15 e 17 e recortes dos três níveis com proveniência em `tests/regulation/fixtures/resolution-excerpts.json`. Os resultados esperados são independentes da implementação. Esses recortes não certificam todo o catálogo: também há regressão que exige indisponibilidade do dataset de produção pendente.
+
+`tests/integration/scoring-dashboard.test.tsx` alimenta a interface somente com resultados reais do motor sobre fixtures sintéticas. Cobre os três níveis, duas diretrizes no mesmo nível, teto, itens utilizados, total, limites inclusivos 60/36, requisitos atingidos e não atingidos e estado parcial sem zero presumido. O E2E verifica o resumo inicial, a tela de pontuação com catálogo oficial pendente, textos que não dependem apenas de cor, layout móvel sem overflow e axe-core.
 
 ## Persistência, autosave e arquivos
 

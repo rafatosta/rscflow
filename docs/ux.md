@@ -20,10 +20,12 @@ Atividades mostram quantidade, período, local, função, textos, competências,
 
 Critérios organiza o catálogo em abas RSC I, RSC II e RSC III, abertas inicialmente no nível pretendido. Setas laterais, Home e End movem o foco e ativam as abas. A busca tolera caixa e acentuação, para que termos como “comissão”, “coordenação”, “curso”, “palestra”, “artigo”, “projeto”, “estágio” e “TCC” encontrem as descrições disponíveis sem memorização de códigos. Cada resultado permanece sob sua diretriz e expõe os valores e a proveniência do JSON. A página é somente leitura.
 
+Pontuação apresenta o resultado em cartões que passam de três colunas para uma coluna em telas estreitas. Os estados usam texto e símbolos além de cor: “Requisitos quantitativos atingidos”, “Requisitos quantitativos ainda não atingidos” ou “Cálculo parcial”. As diretrizes permanecem recolhidas até a pessoa abrir os detalhes; ao atingir o teto, a mensagem “Pontuação máxima da diretriz atingida.” explica por que experiências adicionais não aumentam os pontos. A visão geral repete um resumo compacto e lista pendências com acesso à seção completa pela navegação.
+
 ## Limites transparentes
 
 O progresso é uma aproximação editorial: cinco grupos com o mesmo peso (identificação, formação, trajetória, enquadramento e texto). Não representa pontuação, elegibilidade ou aprovação. Revisão apenas ajuda a localizar campos ainda não preenchidos.
 
-Critérios e pontuação mostram o estado real do dataset vinculado. O catálogo pendente não gera opções normativas fictícias nem pontuação zero apresentada como resultado. A prévia é textual, não um PDF oficial; a exportação disponível é JSON. Referências de comprovantes contêm metadados, sem anexos binários.
+Critérios e pontuação mostram o estado real do dataset vinculado. O catálogo pendente não gera opções normativas fictícias nem pontuação zero apresentada como resultado. “Cálculo parcial” descreve a indisponibilidade dos dados necessários e não apresenta um subtotal como definitivo. Nenhuma mensagem usa “RSC aprovado”; o dashboard se limita aos requisitos quantitativos. A prévia é textual, não um PDF oficial; a exportação disponível é JSON. Referências de comprovantes contêm metadados, sem anexos binários.
 
 A edição avançada JSON permite preservar e alterar todos os campos dos contratos existentes. Arquivos 1.0 não são reinterpretados em formulários tipados. A continuidade em outro navegador exige exportar/importar a cópia, pois os dados são locais.

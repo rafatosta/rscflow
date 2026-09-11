@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Dashboard de pontuação com resultados por nível, total, requisitos 60/36 e detalhamento expansível por diretriz.
+- Resumo quantitativo e pendências na visão geral, com estado parcial explícito para dados normativos pendentes.
+- Indicadores textuais de teto, itens utilizados e experiências preservadas no memorial, com testes responsivos e de acessibilidade.
+
 - Exploração somente leitura dos critérios por abas RSC, hierarquia normativa e busca textual tolerante a acentos.
 - Combobox acessível para vincular atividades a critérios validados, com contexto normativo obtido diretamente do dataset.
 - Estados explícitos para catálogo pendente, ausente, vazio ou referência inválida, sem valores ou cálculos presumidos.

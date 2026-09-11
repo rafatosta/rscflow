@@ -12,6 +12,7 @@ import type {
   CriterionScore,
   DirectiveScore,
   LevelScore,
+  ScoringPolicySummary,
 } from '@/domain/scoring';
 import { Decimal } from './decimal';
 
@@ -22,9 +23,14 @@ const weighted = (quantity: Decimal, criterion: Criterion) =>
     .min(number(criterion.maxQuantity))
     .multiply(number(criterion.factor))
     .multiply(number(criterion.weight));
-const unavailable = (code: CalculationIssue['code'], message: string): CalculationResult => ({
+const unavailable = (
+  code: CalculationIssue['code'],
+  message: string,
+  policy?: ScoringPolicySummary,
+): CalculationResult => ({
   status: 'unavailable',
   issues: [{ code, message }],
+  ...(policy ? { policy } : {}),
 });
 
 /** Avaliação isolada: não inclui o teto compartilhado da diretriz. */
@@ -79,22 +85,37 @@ export function calculateProjectScore(
   projectInput: unknown,
   datasetInput: unknown,
 ): CalculationResult {
+  const datasetResult = regulationSchema.safeParse(datasetInput);
+  if (!datasetResult.success)
+    return unavailable('invalid-dataset', 'Dataset estruturalmente inválido.');
+  const dataset = datasetResult.data;
+  const policy = dataset.metadata.scoring;
+  const policyAvailable = Boolean(
+    policy && policy.provenance.status === 'validated' && policy.provenance.validatedBy,
+  );
+  const policySummary: ScoringPolicySummary | undefined = policyAvailable
+    ? {
+        maximumLevelScore: policy!.maximumLevelScore,
+        minimumTotal: policy!.minimumTotal,
+        minimumRequestedLevel: policy!.minimumRequestedLevel,
+      }
+    : undefined;
+  if (dataset.metadata.status !== 'validated')
+    return unavailable(
+      'pending-dataset',
+      'Dataset normativo pendente de validação.',
+      policySummary,
+    );
+  if (!policy || policy.provenance.status !== 'validated' || !policy.provenance.validatedBy)
+    return unavailable('pending-policy', 'Política de cálculo pendente de validação.');
   const projectResult = currentProjectExportSchema.safeParse(projectInput);
   if (!projectResult.success)
     return unavailable(
       'invalid-project',
       'Projeto tipado inválido; projetos legados exigem conversão explícita.',
+      policySummary,
     );
-  const datasetResult = regulationSchema.safeParse(datasetInput);
-  if (!datasetResult.success)
-    return unavailable('invalid-dataset', 'Dataset estruturalmente inválido.');
-  const dataset = datasetResult.data;
   const project = projectResult.data;
-  if (dataset.metadata.status !== 'validated')
-    return unavailable('pending-dataset', 'Dataset normativo pendente de validação.');
-  const policy = dataset.metadata.scoring;
-  if (!policy || policy.provenance.status !== 'validated' || !policy.provenance.validatedBy)
-    return unavailable('pending-policy', 'Política de cálculo pendente de validação.');
   if (
     project.regulation.id !== dataset.metadata.regulation.id ||
     project.regulation.version !== dataset.metadata.version
@@ -105,6 +126,7 @@ export function calculateProjectScore(
     );
   const request = project.userData.request;
   if (!request) return unavailable('missing-request', 'Selecione o nível pretendido.');
+  const completePolicySummary = { ...policySummary!, requestedLevel: request.level };
   const issues: CalculationIssue[] = [];
   for (const activity of project.userData.activities) {
     const level = dataset.levels.find((item) => item.section === activity.selectedLevel);
@@ -146,6 +168,9 @@ export function calculateProjectScore(
           criterionId: criterion.id,
           directiveId: criterion.directiveId,
           level: level.section,
+          code: criterion.code,
+          description: criterion.description,
+          unit: criterion.unit,
           submittedQuantity: submitted.toNumber(),
           countedQuantity: counted.toNumber(),
           score: score.toNumber(),
@@ -153,6 +178,9 @@ export function calculateProjectScore(
       }
       const exactDirectives: Decimal[] = [];
       for (const directive of level.directives) {
+        const directiveCriteria = criteria.filter(
+          (criterion) => criterion.directiveId === directive.id,
+        );
         const uncapped = sum(
           level.criteria
             .filter((criterion) => criterion.directiveId === directive.id)
@@ -164,8 +192,19 @@ export function calculateProjectScore(
         directives.push({
           directiveId: directive.id,
           level: level.section,
+          title: directive.title,
+          maxScore: directive.maxScore,
           uncappedScore: uncapped.toNumber(),
           score: score.toNumber(),
+          itemsUsed: directiveCriteria.filter((criterion) => criterion.submittedQuantity > 0)
+            .length,
+          experiencesUsed: activities.filter(
+            (activity) =>
+              activity.quantity > 0 &&
+              activity.level === level.section &&
+              directiveCriteria.some((criterion) => criterion.criterionId === activity.criterionId),
+          ).length,
+          maximumReached: directive.maxScore > 0 && uncapped.atLeast(number(directive.maxScore)),
         });
       }
       const uncapped = sum(exactDirectives);
@@ -175,6 +214,7 @@ export function calculateProjectScore(
         level: level.section,
         uncappedScore: uncapped.toNumber(),
         score: score.toNumber(),
+        maximumScore: policy.maximumLevelScore,
       });
     }
     const rawTotal = sum([...exactLevels.values()]);
@@ -189,6 +229,7 @@ export function calculateProjectScore(
           ? 'quantitative-requirements-met'
           : 'quantitative-requirements-not-met',
       regulation: { ...project.regulation },
+      policy: completePolicySummary,
       activities,
       criteria,
       directives,

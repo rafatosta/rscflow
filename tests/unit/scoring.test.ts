@@ -15,6 +15,25 @@ describe('motor de pontuação', () => {
     expect(result.levels.map((level) => level.score)).toEqual([36, 14, 10]);
     expect(result.total).toBe(60);
     expect(result.status).toBe('quantitative-requirements-met');
+    expect(result.policy).toEqual({
+      maximumLevelScore: 100,
+      minimumTotal: 60,
+      minimumRequestedLevel: 36,
+      requestedLevel: 'rsc-i',
+    });
+    expect(result.levels[0].maximumScore).toBe(100);
+    expect(result.directives[0]).toMatchObject({
+      title: 'Diretriz sintética',
+      maxScore: 100,
+      itemsUsed: 1,
+      experiencesUsed: 1,
+      maximumReached: false,
+    });
+    expect(result.criteria[0]).toMatchObject({
+      code: 'a.1',
+      description: 'Critério sintético',
+      unit: 'unidade',
+    });
   });
   it.each([
     [35, 15, 10, false, true],
@@ -123,6 +142,12 @@ describe('motor de pontuação', () => {
     expect(result.total).toBe(0);
     expect(result.status).toBe('quantitative-requirements-not-met');
   });
+  it('não contabiliza atividade com quantidade zero como item utilizado', () => {
+    const { dataset, project } = scoringFixture();
+    project.userData.activities[0].quantity = 0;
+    const result = successful(calculateProjectScore(project, dataset));
+    expect(result.directives[0]).toMatchObject({ itemsUsed: 0, experiencesUsed: 0 });
+  });
   it('não altera entrada e é independente da ordem das atividades', () => {
     const { dataset, project } = scoringFixture();
     const before = JSON.stringify({ dataset, project });
@@ -192,6 +217,9 @@ describe('motor de pontuação', () => {
   it('bloqueia dataset pendente sem oferecer total enganoso', () => {
     const result = calculateProjectScore(scoringFixture().project, loadIfbaRegulation());
     expect(result).toMatchObject({ status: 'unavailable', issues: [{ code: 'pending-dataset' }] });
+    expect(result).toMatchObject({
+      policy: { maximumLevelScore: 100, minimumTotal: 60, minimumRequestedLevel: 36 },
+    });
     expect(result).not.toHaveProperty('total');
   });
   it('bloqueia política ausente ou pendente', () => {

@@ -15,6 +15,8 @@ O campo opcional `activities[].selectedLevel` amplia o contrato 2.0 sem migrar a
 
 `metadata.scoring` é opcional para leitura de datasets anteriores, mas obrigatório e validado para cálculo. Contém mínimos total/no nível pretendido, teto por nível, escopo de limite de quantidade, modo/escopo/precisão de arredondamento e proveniência. Valores e limites podem ser editados em JSON. Modos ou escopos de algoritmo desconhecidos são rejeitados, sem interpretação automática.
 
+`CalculationResult` é derivado e não é persistido. Em resultados disponíveis, carrega a política resumida, totais, níveis, diretrizes e critérios com os títulos, máximos, unidades e contagens necessários à interface. O estado indisponível pode carregar somente o resumo de uma política validada para explicar os limites enquanto o catálogo permanece pendente; não contém total ou subtotais presumidos.
+
 ## Persistência local e portabilidade
 
 O banco IndexedDB `rscflow`, gerenciado por Dexie, tem versão estrutural 1. `projects` armazena `{ localId, revision, createdAt, updatedAt, project }`; `preferences` guarda o projeto ativo. Esta versão de banco não é a versão do envelope nem a versão normativa.
