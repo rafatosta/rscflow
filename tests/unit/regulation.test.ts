@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadIfbaRegulation, parseRegulation } from '@/data/regulations/load';
+import { loadIfbaRegulation, loadRegulations, parseRegulation } from '@/data/regulations/load';
 import { regulationLevelSchema } from '@/domain/regulation';
 
 // Dados exclusivamente sintéticos, sem significado normativo.
@@ -30,6 +30,9 @@ describe('datasets normativos', () => {
     expect(data.levels.map((item) => item.section)).toEqual(['rsc-i', 'rsc-ii', 'rsc-iii']);
     expect(data.metadata.version).toBeNull();
     expect(data.levels.every((item) => item.status === 'pending-official-validation')).toBe(true);
+  });
+  it('distribui somente o catálogo oficial configurado na aplicação', () => {
+    expect(loadRegulations()).toEqual([loadIfbaRegulation()]);
   });
   it('aceita edição de valores sem alterar lógica', () => {
     const data = level();

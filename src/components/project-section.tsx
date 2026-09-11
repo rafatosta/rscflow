@@ -175,8 +175,7 @@ export function ProjectSection(props: Props) {
 
   if (section === 'preview') return <PdfPreview record={record} />;
 
-  if (section === 'review')
-    return <FinalReview record={record} scoring={scoring} />;
+  if (section === 'review') return <FinalReview record={record} scoring={scoring} />;
 
   if (section === 'export')
     return (

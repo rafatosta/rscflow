@@ -233,13 +233,7 @@ export function reviewProject(
   );
   findings.push(
     userData.memorial?.conclusion.trim()
-      ? finding(
-          'conclusion',
-          'Conclusão',
-          'info',
-          'A conclusão está preenchida.',
-          'memorial',
-        )
+      ? finding('conclusion', 'Conclusão', 'info', 'A conclusão está preenchida.', 'memorial')
       : finding(
           'conclusion',
           'Conclusão',

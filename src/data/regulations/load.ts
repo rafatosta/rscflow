@@ -11,3 +11,8 @@ export function parseRegulation(value: unknown) {
 export function loadIfbaRegulation() {
   return parseRegulation({ metadata, levels: [first, second, third] });
 }
+
+/** Catálogos distribuídos pela aplicação, sem fontes injetadas pelo ambiente de testes. */
+export function loadRegulations() {
+  return [loadIfbaRegulation()];
+}

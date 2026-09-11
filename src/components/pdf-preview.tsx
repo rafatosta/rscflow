@@ -37,8 +37,7 @@ function PreviewPage({ page }: { page: MemorialPdfLayout['pages'][number] }) {
                   : `${(contentWidth / A4_PAGE.width) * 100}%`,
               fontFamily: 'Georgia, "Times New Roman", serif',
               fontSize: `${(line.fontSize / A4_PAGE.width) * 100}cqw`,
-              fontWeight:
-                line.style === 'heading' || line.style === 'cover-title' ? 700 : 400,
+              fontWeight: line.style === 'heading' || line.style === 'cover-title' ? 700 : 400,
               lineHeight: 1,
               textAlign: line.align,
             }}

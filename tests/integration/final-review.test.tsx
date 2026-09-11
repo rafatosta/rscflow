@@ -75,7 +75,9 @@ it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos',
     </MemoryRouter>,
   );
 
-  expect(screen.getByText('Há avisos para conferir, mas eles não impedem a geração do PDF.')).toBeVisible();
+  expect(
+    screen.getByText('Há avisos para conferir, mas eles não impedem a geração do PDF.'),
+  ).toBeVisible();
   expect(screen.getByText('memorial-rsc-joana-conceicao.pdf')).toBeVisible();
   expect(screen.getByText('rscflow-memorial-rsc-i.json')).toBeVisible();
   expect(screen.getByText(/11\/09\/2026/)).toBeVisible();

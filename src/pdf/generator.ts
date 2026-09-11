@@ -36,7 +36,10 @@ export async function generateMemorialPdf(project: TypedProjectExport): Promise<
         y: A4_PAGE.height - line.y - line.fontSize,
         size: line.fontSize,
         font: fontFor(line, regular, bold),
-        color: line.style === 'header' || line.style === 'footer' ? rgb(0.32, 0.36, 0.42) : rgb(0.08, 0.1, 0.14),
+        color:
+          line.style === 'header' || line.style === 'footer'
+            ? rgb(0.32, 0.36, 0.42)
+            : rgb(0.08, 0.1, 0.14),
       });
     }
   }

@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './support/fixtures';
 
 async function start(page: import('@playwright/test').Page) {
   await page.goto('/');

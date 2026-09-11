@@ -4,6 +4,26 @@ Use Vitest and Testing Library for unit and integration tests. `tests/setup.ts` 
 
 Run `npm run test:run` for the non-watch suite and `npm run test:e2e` after the application can be served. Normative rules require focused tests based on source-backed fixtures.
 
+## Jornada completa e proteção contra regressões
+
+`tests/e2e/full-journey.spec.ts` percorre em uma única sessão a criação do projeto, identificação do
+docente, formação, atividade, busca e escolha de critério, evidência, autosave, recarga, cálculo,
+memorial, revisão, exportação e reimportação JSON e geração do PDF. O cenário também fixa as
+regressões de quantidade acima do limite, teto compartilhado da diretriz, atividade sem evidência e
+preservação do texto manual.
+
+O servidor Playwright usa o modo Vite `e2e`. Nesse modo, o carregador de datasets recebe, por alias,
+o catálogo sintético de `tests/fixtures/criteria-regulation.json` além do catálogo IFBA real. A
+fixture declara fonte e validação de teste e não integra o bundle de produção. Os testes que cobrem
+catálogo pendente continuam selecionando o dataset IFBA e garantem que nenhuma pontuação seja
+presumida.
+
+Todos os arquivos Playwright usam a fixture compartilhada em `tests/e2e/support/fixtures.ts`. Erros
+de página e mensagens `console.error` ou `console.warning` inesperadas falham o cenário. JSON
+inválido, projeto vazio, catálogo pendente e navegação móvel permanecem cobertos nos E2E específicos;
+a falha simulada do IndexedDB é coberta em `tests/integration/local-projects.test.tsx`, onde o
+repositório pode ser substituído deterministicamente sem alterar o navegador real.
+
 ## Acessibilidade e responsividade
 
 `tests/e2e/accessibility.spec.ts` percorre visão geral, dados do docente, formação, trajetória,

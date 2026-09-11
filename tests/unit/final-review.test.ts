@@ -44,12 +44,9 @@ describe('revisão final', () => {
     );
     expect(review.blocksPdf).toBe(true);
     expect(review.counts.error).toBe(4);
-    expect(review.findings.filter((item) => item.severity === 'error').map((item) => item.area)).toEqual([
-      'identification',
-      'request',
-      'memorial',
-      'conclusion',
-    ]);
+    expect(
+      review.findings.filter((item) => item.severity === 'error').map((item) => item.area),
+    ).toEqual(['identification', 'request', 'memorial', 'conclusion']);
   });
 
   it('mantém avisos não bloqueantes e identifica registros sem comprovante', () => {

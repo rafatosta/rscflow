@@ -33,7 +33,11 @@ export function App({ repository }: { repository?: ProjectRepository }) {
   blockerRef.current = blocker;
 
   useEffect(() => {
-    if (blocker.state !== 'blocked' || flushing.current) return;
+    if (blocker.state !== 'blocked') {
+      flushing.current = false;
+      return;
+    }
+    if (flushing.current) return;
     flushing.current = true;
     void work
       .flush()
@@ -44,8 +48,9 @@ export function App({ repository }: { repository?: ProjectRepository }) {
           else current.reset();
         }
       })
-      .finally(() => {
-        flushing.current = false;
+      .catch(() => {
+        const current = blockerRef.current;
+        if (current.state === 'blocked') current.reset();
       });
   }, [blocker, work]);
 
@@ -111,6 +116,10 @@ export function App({ repository }: { repository?: ProjectRepository }) {
     <div className="min-h-screen bg-slate-950 text-slate-50">
       <a
         href="#main-content"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById('main-content')?.focus();
+        }}
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded focus:bg-cyan-300 focus:p-3 focus:text-slate-950"
       >
         Ir para o conteúdo

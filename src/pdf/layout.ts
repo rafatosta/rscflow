@@ -88,7 +88,15 @@ function addLine(
   align: PdfTextLine['align'] = 'left',
   x = A4_PAGE.marginLeft,
 ) {
-  page.lines.push({ text, x, y, width: font.widthOfTextAtSize(text, fontSize), fontSize, style, align });
+  page.lines.push({
+    text,
+    x,
+    y,
+    width: font.widthOfTextAtSize(text, fontSize),
+    fontSize,
+    style,
+    align,
+  });
 }
 
 function addPage(
@@ -109,11 +117,7 @@ function addPage(
   return { page, cursor: y + 13 };
 }
 
-function layoutCover(
-  section: MemorialDocumentSection,
-  pages: PdfPageLayout[],
-  fonts: PdfFonts,
-) {
+function layoutCover(section: MemorialDocumentSection, pages: PdfPageLayout[], fonts: PdfFonts) {
   let page: PdfPageLayout = { number: 1, sectionId: 'cover', lines: [] };
   pages.push(page);
   let y = 205;
@@ -144,11 +148,7 @@ function layoutCover(
   }
 }
 
-function layoutSection(
-  section: MemorialDocumentSection,
-  pages: PdfPageLayout[],
-  fonts: PdfFonts,
-) {
+function layoutSection(section: MemorialDocumentSection, pages: PdfPageLayout[], fonts: PdfFonts) {
   let { page, cursor } = addPage(pages, section, fonts);
   for (const paragraph of section.paragraphs) {
     const lines = wrapPdfText(paragraph, CONTENT_WIDTH, fonts.regular, BODY_SIZE);
@@ -196,15 +196,7 @@ export function paginateMemorial(
     for (const [index, titleLine] of titleLines.entries()) {
       addLine(summaryPage, titleLine, summaryY, fonts.regular, BODY_SIZE, 'body');
       if (index === titleLines.length - 1)
-        addLine(
-          summaryPage,
-          String(number),
-          summaryY,
-          fonts.regular,
-          BODY_SIZE,
-          'body',
-          'right',
-        );
+        addLine(summaryPage, String(number), summaryY, fonts.regular, BODY_SIZE, 'body', 'right');
       summaryY += 24;
     }
   }

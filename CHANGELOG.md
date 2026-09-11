@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Jornada E2E completa da criação ao round-trip JSON e PDF, com catálogo sintético isolado do bundle de produção.
+- Regressões de quantidade limitada, teto de diretriz, atividade sem evidência, texto manual, autosave e recuperação após recarga.
+- Fixture Playwright que falha diante de erros de página e avisos ou erros inesperados do console.
+
 - Matriz transversal de acessibilidade e responsividade em todas as rotas, cobrindo mobile, tablet e desktop com axe-core e detecção de overflow horizontal.
 - Testes de teclado para link de salto, foco após navegação, abertura de formulários e restauração de foco em diálogos.
 
@@ -67,6 +71,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 - Testes de leitura, rejeição estrutural, seleção concorrente e fluxo E2E com acessibilidade.
 
 ### Changed
+
+- Execução E2E em modo Vite dedicado e formatação integral dos arquivos que impediam o job de qualidade.
+- Link de salto sem mutação do histórico, eliminando aviso do bloqueador do React Router.
 
 - Foco visível global, alvos de toque ampliados, autosave atômico e semântica de ocupação da área principal.
 - Abertura de formulários com foco no primeiro campo e retorno ao acionador ao cancelar exclusões.

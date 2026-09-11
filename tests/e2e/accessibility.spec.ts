@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './support/fixtures';
 
 const viewports = [
   { name: 'mobile', width: 360, height: 800 },
@@ -64,7 +64,7 @@ test('skip link e mudança de rota mantêm uma ordem de foco previsível', async
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { level: 1, name: 'Dados do docente' })).toBeFocused();
 
-  await page.goto('/');
+  await page.getByRole('link', { name: 'Meus projetos', exact: true }).click();
   const deleteProject = page.getByRole('button', { name: 'Excluir', exact: true }).first();
   await deleteProject.focus();
   await page.keyboard.press('Enter');

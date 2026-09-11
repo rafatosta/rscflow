@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './support/fixtures';
 import { PDFDocument } from 'pdf-lib';
 
 test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({ page }) => {
@@ -10,9 +10,7 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   await expect(page.getByRole('heading', { name: 'Correções necessárias' })).toBeVisible();
   await page.getByRole('link', { name: 'Exportar', exact: true }).click();
   await expect(page.getByRole('main').getByRole('button', { name: 'Gerar PDF' })).toBeDisabled();
-  await expect(
-    page.getByRole('main').getByRole('button', { name: 'Exportar JSON' }),
-  ).toBeEnabled();
+  await expect(page.getByRole('main').getByRole('button', { name: 'Exportar JSON' })).toBeEnabled();
   await page.getByRole('link', { name: 'Dados do docente', exact: true }).click();
   await page.getByLabel(/^Nome completo/).fill('Lívia Conceição');
   await page.getByLabel(/^Título do projeto/).fill('Memorial de competências docentes');
@@ -25,14 +23,20 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   await page
     .getByLabel(/Apresentação introdutória/)
     .fill('Educação, ciência e extensão no IFBA. '.repeat(220));
-  await page.getByLabel('Texto da conclusão', { exact: true }).fill('Síntese da trajetória acadêmica.');
+  await page
+    .getByLabel('Texto da conclusão', { exact: true })
+    .fill('Síntese da trajetória acadêmica.');
   await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Revisão', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Documento pronto para exportação' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Documento pronto para exportação' }),
+  ).toBeVisible();
   await expect(page.getByText(/Nenhuma formação foi registrada/)).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.getByRole('link', { name: 'Ir para exportação' }).click();
-  await expect(page.getByText('Há avisos para conferir, mas eles não impedem a geração do PDF.')).toBeVisible();
+  await expect(
+    page.getByText('Há avisos para conferir, mas eles não impedem a geração do PDF.'),
+  ).toBeVisible();
   await expect(page.getByText('memorial-rsc-livia-conceicao.pdf')).toBeVisible();
   await expect(page.getByText('rscflow-memorial-de-competencias-docentes.json')).toBeVisible();
   await expect(page.getByLabel('Arquivo de projeto JSON')).toBeVisible();

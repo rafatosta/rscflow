@@ -5,7 +5,19 @@
     "version": "fixture-1",
     "status": "validated",
     "source": { "resolution": "fixture", "officialScoringSpreadsheet": "fixture" },
-    "notice": "Dataset sintético exclusivo para testes de interface."
+    "notice": "Dataset sintético exclusivo para testes de interface.",
+    "scoring": {
+      "minimumTotal": 20,
+      "minimumRequestedLevel": 20,
+      "maximumLevelScore": 100,
+      "quantityLimitScope": "criterion",
+      "rounding": { "mode": "half-up", "scope": "total", "decimalPlaces": 2 },
+      "provenance": {
+        "status": "validated",
+        "sourceReference": "Fixture sintética exclusiva do Playwright",
+        "validatedBy": "suíte E2E"
+      }
+    }
   },
   "levels": [
     {

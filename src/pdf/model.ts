@@ -9,7 +9,8 @@ export const A4_PAGE = {
   contentBottom: 786,
 } as const;
 
-export type PdfTextStyle = 'body' | 'heading' | 'cover-title' | 'cover-detail' | 'header' | 'footer';
+export type PdfTextStyle =
+  'body' | 'heading' | 'cover-title' | 'cover-detail' | 'header' | 'footer';
 
 export type PdfTextLine = {
   text: string;

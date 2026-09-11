@@ -1,5 +1,5 @@
 import { draftProjectExportSchema, type ProjectExport } from '@/domain/project';
-import { loadIfbaRegulation } from '@/data/regulations/load';
+import { loadRegulations } from '@/data/regulations/load';
 import { rscLevelSchema, type RscLevel } from '@/domain/regulation';
 import { calculateProjectScore } from '@/rules/scoring';
 import { teacherProfileIsComplete } from '@/features/teacher-profile/profile';
@@ -7,7 +7,7 @@ import packageMetadata from '../../../package.json';
 
 export const levels = rscLevelSchema.options;
 export const levelLabel = (level: RscLevel) => level.toUpperCase().replace('RSC-', 'RSC ');
-export const datasets = [loadIfbaRegulation()];
+export const datasets = loadRegulations();
 export function createDraft(level: RscLevel, datasetId: string) {
   const dataset = datasets.find((item) => item.metadata.regulation.id === datasetId);
   if (!dataset) throw new Error('Dataset não encontrado.');
