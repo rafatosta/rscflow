@@ -22,3 +22,19 @@ Before changing code, every agent must read this file and the relevant documenta
 - `src/data/regulations/`: versioned source data. Pending data must remain explicitly unvalidated.
 
 If this contract conflicts with a maintainer instruction, follow the maintainer instruction and document the decision.
+
+## Required reading by change
+
+- Architecture or dependencies: `docs/architecture.md` and `docs/development-workflow.md`.
+- Domain, import, export, or persistence: `docs/domain.md` and `docs/data-model.md`.
+- Rules or normative data: `docs/rsc-regulation.md` and the cited official source in `docs/ifba/`.
+- Interface behavior: `docs/frontend.md` and `docs/ux.md`.
+- Tests or fixtures: `docs/testing.md`.
+- Commit preparation: `docs/commit-convention.md` and `CHANGELOG.md`.
+
+## Current normative snapshot
+
+The scoring policy is source-validated, but the production RSC I, II, and III catalogs remain
+`pending-official-validation`, empty, and without a normative version. Production scoring must stay
+unavailable until the complete catalog is validated. Synthetic fixtures are test-only and the E2E
+catalog is injected only in Vite `e2e` mode.

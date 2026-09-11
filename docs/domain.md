@@ -1,6 +1,36 @@
 # Domínio
 
-`src/domain/models.ts` define RscProject, Teacher, RscRequest, Education, Activity, Evidence, Memorial e ScoringResult, com schemas Zod. Projetos contêm identificação, título, docente, requerimento opcional (null), formações, atividades, comprovantes e memorial opcional (null). Arrays vazios representam elaboração inicial. Datas são ISO YYYY-MM-DD. IDs são únicos por coleção; atividades referenciam comprovantes existentes sem duplicação.
+`src/domain/models.ts` define `RscProject`, `Teacher`, `RscRequest`, `Education`, `Activity`,
+`Evidence`, `Memorial` e `ScoringResult`, com schemas Zod. Projetos contêm identificação, título,
+docente, requerimento opcional (`null`), formações, atividades, comprovantes e memorial opcional
+(`null`). Arrays vazios representam elaboração inicial. Datas são ISO `YYYY-MM-DD`. IDs são únicos
+por coleção; atividades referenciam comprovantes existentes sem duplicação.
+
+## Mapa de modelos e relações
+
+| Modelo/contrato     | Relação e responsabilidade                                                                   |
+| ------------------- | -------------------------------------------------------------------------------------------- |
+| `RscProject`        | raiz editável; agrega docente, solicitação, formações, atividades, evidências e memorial     |
+| `Teacher`           | dados pessoais, funcionais e de contato de um projeto                                        |
+| `RscRequest`        | nível pretendido e eventual data de vigência                                                 |
+| `Education`         | registros independentes de formação vinculados ao projeto                                    |
+| `Activity`          | experiência que declara um critério, um nível e IDs de zero ou mais evidências               |
+| `Evidence`          | metadado documental global do projeto; pode ser referenciado por várias atividades           |
+| `Memorial`          | textos editoriais por seção; narrativas de atividade continuam armazenadas em `Activity`     |
+| `Regulation`        | raiz do dataset; agrega metadados e exatamente os níveis RSC I, II e III                     |
+| `RscLevel`          | agrega diretrizes e critérios do nível                                                       |
+| `Directive`         | define título, teto, proveniência e eventual peso descritivo                                 |
+| `Criterion`         | pertence a uma diretriz por `directiveId` e contém parâmetros normativos e proveniência      |
+| `CalculationResult` | saída derivada e auditável por atividade, critério, diretriz e nível; pode ser indisponível  |
+| `ProjectExport`     | união discriminada dos envelopes portáteis 1.0, 2.0 e 2.1                                    |
+| `LocalProject`      | envolve o envelope com `localId`, revisão e timestamps exclusivos do IndexedDB               |
+| `ProjectRepository` | contrato de CRUD, duplicação, revisão otimista e preferência do projeto ativo                |
+| `SaveState`         | estado público da gravação: salvando, salvo ou erro; pendência/conflito ficam no coordenador |
+
+`criterionId` liga a atividade a um `Criterion`; `selectedLevel` registra o nível escolhido e
+precisa ser compatível com o critério para o cálculo. `evidenceIds` liga atividades à coleção
+`evidence`; excluir a evidência remove essas referências. A referência `regulation` do envelope
+liga o projeto ao ID e à versão do dataset, mas a mera importação não certifica esse vínculo.
 
 `src/domain/regulation.ts` define Regulation, RscLevel, Directive e Criterion. Estes contratos são estruturais, não estabelecem elegibilidade, pontuação ou requisitos documentais. ScoringResult representa um resultado associado a versão normativa, sem executar cálculo. A referência de critério da atividade é resolvida pelo motor contra o dataset; a importação não certifica sua existência.
 

@@ -23,6 +23,21 @@ Os recortes de regressão registram os valores da resolução. As fontes origina
 
 O máximo de quantidade é compartilhado por todas as atividades do mesmo critério. A pontuação individual é informativa, anterior à consolidação; somá-la diretamente pode exceder os limites compartilhados. O peso da diretriz é descritivo e não é multiplicado novamente.
 
+## Níveis, diretrizes e múltiplos enquadramentos
+
+O dataset possui exatamente os níveis RSC I, RSC II e RSC III. Cada nível agrupa diretrizes e cada
+critério aponta para uma dessas diretrizes. O motor consolida as quantidades por critério, aplica o
+limite do item, soma os critérios até o teto da diretriz, soma as diretrizes até 100 pontos no nível
+e então soma os três níveis. Os mínimos quantitativos são 60 pontos no total e 36 pontos, sem
+arredondamento intermediário, no nível pretendido.
+
+Uma atividade aceita um único `criterionId` e um único `selectedLevel`, em cumprimento à escolha
+explícita do art. 16. O projeto pode ter várias atividades e elas podem declarar critérios distintos
+ou o mesmo critério; nesse segundo caso, suas quantidades compartilham o limite do item. A aplicação
+não reconhece automaticamente que cadastros diferentes descrevem a mesma ocorrência. Cabe ao
+docente não duplicar uma ocorrência para obter múltiplos enquadramentos; nenhuma deduplicação ou
+classificação é inferida por título, período, categoria ou evidência compartilhada.
+
 ## Catálogo e validação
 
 Os três arquivos de níveis continuam com status `pending-official-validation` e arrays vazios: não foi concluída a transcrição e validação integral dos anexos. A conferência da política de cálculo não torna o catálogo validado. A versão normativa permanece null. O motor retorna `unavailable`, sem total, para esse dataset.
@@ -42,3 +57,23 @@ Os testes de exploração usam uma fixture sintética, declarada como tal e vali
 `calculateProjectScore` exige envelope tipado 2.0, versão normativa correspondente, requerimento, catálogo e política validados. Um critério inválido, referência inexistente ou escolha incompatível torna o cálculo indisponível. Não há total parcial apresentado como definitivo.
 
 Os únicos resultados quantitativos são `quantitative-requirements-met`, `quantitative-requirements-not-met` e `unavailable`. Eles não concedem RSC nem verificam requisitos qualitativos, prazos, autenticidade dos comprovantes ou pareceres da comissão.
+
+## Procedimento para corrigir o JSON normativo
+
+1. Localize o dispositivo e o anexo na resolução oficial em `docs/ifba/`; use a planilha apenas como
+   apoio de transcrição.
+2. Compare resolução, planilha e JSON. Se houver divergência externa, aplique a resolução e registre
+   aqui o item, os dois valores, arquivo, página e célula quando houver. Se a resolução for
+   internamente ambígua, mantenha a linha pendente e solicite decisão do mantenedor.
+3. Edite somente `metadata.json`, `rsc-i.json`, `rsc-ii.json` ou `rsc-iii.json`, conforme o dado. Não
+   crie condição por código de item em `src/rules/` nem copie o valor para componentes.
+4. Atualize `provenance`, `status`, responsável, fontes e versão. Um nível só pode ser
+   marcado `validated` depois da conferência integral; a política validada isoladamente não valida o
+   catálogo.
+5. Acrescente regressão em `tests/regulation/` com valor esperado independente da implementação e
+   execute também schemas, motor, integração e E2E aplicáveis.
+6. Atualize esta documentação e `CHANGELOG.md`. Registre mudanças incompatíveis de contrato em
+   `docs/data-model.md`; uma simples correção de valor dentro do schema não exige alterar a lógica.
+
+Nunca substitua ausência por zero, promova fixture sintética a dado oficial ou atualize
+silenciosamente a versão normativa de projetos existentes.

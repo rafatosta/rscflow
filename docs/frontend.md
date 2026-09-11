@@ -37,6 +37,19 @@ O parâmetro `id` corresponde ao `localId` da cópia. Acesso direto carrega o pr
 
 O autosave e a sessão de edição são compartilhados entre seções. React Router bloqueia temporariamente uma mudança de rota enquanto o autosave conclui. Dados inválidos ou falhas mantêm a rota e a edição atuais. Voltar/avançar seguem a mesma proteção.
 
+## Padrões de interação e feedback
+
+Formulários usam React Hook Form e Zod, rótulos persistentes, erros ligados por
+`aria-describedby` e confirmação apenas em ações destrutivas. Listas exibem estado vazio com uma
+próxima ação real. Operações longas ou locais usam texto de estado; severidade e resultado nunca
+dependem somente de cor. Diálogos, Sheet, abas e combobox seguem seus padrões de teclado Radix ou
+ARIA e devolvem o foco ao contexto de origem.
+
+O feedback de persistência distingue “Alterações pendentes”, “Salvando”, “Salvo localmente”, erro e
+conflito. Uma falha mantém o rascunho em memória e oferece nova tentativa ou exportação; um conflito
+permite exportar o rascunho e reabrir a versão salva. Importação, exportação e geração de PDF só
+afirmam sucesso depois da validação ou criação real do artefato.
+
 ## Acessibilidade e responsividade
 
 O shell usa landmarks de navegação e conteúdo, link de salto e um único `h1` por rota. O primeiro

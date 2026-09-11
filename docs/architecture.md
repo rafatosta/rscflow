@@ -6,7 +6,7 @@ The application is layered to keep legal/normative decisions auditable and indep
 - `components`: reusable presentation; `components/ui` hosts shadcn-compatible primitives.
 - `domain`: versioned business-neutral contracts and schemas.
 - `rules`: funções puras de cálculo, consolidação e arredondamento, condicionadas à validação do dataset.
-- `data/regulations`: validated, versioned regulation datasets.
+- `data/regulations`: datasets normativos versionados, com status de validação explícito.
 - `storage`: local persistence adapters.
 - `features`: use-case orchestration.
 - `memorial`: geração local de narrativas e montagem estruturada do documento.
@@ -14,6 +14,47 @@ The application is layered to keep legal/normative decisions auditable and indep
 - `utils`: framework-agnostic helpers.
 
 React components may present outcomes but must never contain normative criteria or scoring logic.
+
+## Dependências entre camadas
+
+| Camada             | Pode depender de                                                                  | Não pode depender de                                      |
+| ------------------ | --------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `domain`           | bibliotecas de schema e tipos neutros                                             | UI, casos de uso, datasets, regras, persistência, PDF     |
+| `data/regulations` | `domain`                                                                          | UI, persistência e estado da aplicação                    |
+| `rules`            | `domain` e dados recebidos por argumento                                          | React, casos de uso, IndexedDB, memorial e PDF            |
+| `storage`          | `domain`                                                                          | React, regras, datasets, memorial e PDF                   |
+| `memorial`         | `domain`                                                                          | React, regras, datasets, IndexedDB e PDF                  |
+| `pdf`              | `domain` e representação semântica do memorial                                    | regras, datasets, IndexedDB e componentes                 |
+| `features`         | domínio e adaptadores necessários ao caso de uso                                  | valores normativos copiados ou acesso remoto              |
+| `components`/`app` | features, contratos e resultados prontos; composição dos adaptadores na fronteira | JSON normativo direto e implementação de regra de cálculo |
+
+`tests/unit/architecture.test.ts` protege as fronteiras críticas e reprova acesso direto da
+apresentação ao motor ou aos JSONs. Também reprova primitivas de rede e marcadores de implementação
+incompleta em `src/`. Dependências que atravessam uma camada entram por contratos e argumentos
+explícitos; não há registrador global de regra normativa.
+
+## Fluxo de dados
+
+```mermaid
+flowchart LR
+  J[JSON normativo versionado] --> L[Carregador e schemas de domínio]
+  L --> F[Casos de uso]
+  P[Projeto portátil] <--> S[Repositório Dexie / IndexedDB]
+  S <--> F
+  F --> R[Motor puro de regras]
+  L --> R
+  R --> U[Shell e componentes React]
+  F --> U
+  P --> M[Montagem determinística do memorial]
+  M --> U
+  M --> A[Layout A4 compartilhado]
+  A --> U
+  A --> D[PDF local por Blob]
+```
+
+O projeto editável é a fonte persistida. A pontuação é sempre derivada do projeto e do dataset
+carregado e não volta ao IndexedDB como verdade normativa. Memorial e PDF consomem dados do projeto;
+não consultam nem recalculam regras. A interface coordena essas saídas, sem conhecer fórmulas.
 
 ## Contratos e carregamento
 

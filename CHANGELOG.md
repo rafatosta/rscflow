@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Documentação consolidada de arquitetura, domínio, schemas, regulação, interface, UX, testes e fluxo de manutenção.
+- Matriz automatizada de dependências entre camadas e regressões contra rede, acesso normativo direto pela apresentação e implementações incompletas.
+- Procedimento auditável para corrigir JSON normativo conforme a precedência da resolução e registrar divergências.
+
 - Jornada E2E completa da criação ao round-trip JSON e PDF, com catálogo sintético isolado do bundle de produção.
 - Regressões de quantidade limitada, teto de diretriz, atividade sem evidência, texto manual, autosave e recuperação após recarga.
 - Fixture Playwright que falha diante de erros de página e avisos ou erros inesperados do console.
@@ -71,6 +75,8 @@ This project follows Keep a Changelog and Semantic Versioning.
 - Testes de leitura, rejeição estrutural, seleção concorrente e fluxo E2E com acessibilidade.
 
 ### Changed
+
+- README e guia de contribuição alinhados ao estado real do catálogo pendente, aos formatos 1.0/2.0/2.1 e ao fluxo local sem backend.
 
 - Execução E2E em modo Vite dedicado e formatação integral dos arquivos que impediam o job de qualidade.
 - Link de salto sem mutação do histórico, eliminando aviso do bloqueador do React Router.

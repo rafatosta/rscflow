@@ -4,6 +4,41 @@ Use Vitest and Testing Library for unit and integration tests. `tests/setup.ts` 
 
 Run `npm run test:run` for the non-watch suite and `npm run test:e2e` after the application can be served. Normative rules require focused tests based on source-backed fixtures.
 
+## Matriz e comandos
+
+| Escopo                | Ferramenta                             | Responsabilidade principal                                       |
+| --------------------- | -------------------------------------- | ---------------------------------------------------------------- |
+| unitário              | Vitest                                 | schemas, funções puras, regras, layout e casos de uso            |
+| regulatório           | Vitest + recortes com proveniência     | parâmetros da resolução e indisponibilidade do catálogo pendente |
+| integração            | Testing Library + jsdom/fake-indexeddb | componentes, formulários, autosave e persistência                |
+| E2E                   | Playwright/Chromium                    | rotas, IndexedDB real, downloads e jornada completa              |
+| acessibilidade/layout | axe-core + Playwright                  | violações sérias/críticas, teclado e overflow                    |
+| arquitetura           | Vitest                                 | fronteiras entre camadas, ausência de rede e implementação vazia |
+
+```bash
+npm run format:check
+npm run lint
+npm run typecheck
+npm run test:run
+npm run build
+npm run test:e2e
+git diff --check
+```
+
+`tests/unit/architecture.test.ts` examina os imports de `src/`: domínio, regras, persistência,
+memorial e PDF não podem depender de apresentação ou assumir responsabilidades entre si;
+componentes e `app` não acessam o motor nem os JSONs normativos diretamente. A mesma regressão
+impede desvios do motor por código de critério, primitivas de rede e marcadores `TODO`, `FIXME` ou
+“Not implemented” no código-fonte.
+
+## Política de fixtures
+
+Fixtures sintéticas devem se identificar como teste e nunca podem ser copiadas para o catálogo de
+produção. Recortes regulatórios citam a resolução e fixam o resultado esperado fora do algoritmo,
+mas não certificam o catálogo completo. Arquivos portáteis cobrem cada versão suportada e devem usar
+IDs isolados. O E2E injeta seu catálogo somente pelo alias do modo Vite `e2e`; uma build comum precisa
+permanecer livre desse conteúdo.
+
 ## Jornada completa e proteção contra regressões
 
 `tests/e2e/full-journey.spec.ts` percorre em uma única sessão a criação do projeto, identificação do

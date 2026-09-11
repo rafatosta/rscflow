@@ -4,6 +4,22 @@ A tela inicial prioriza criar ou continuar um memorial. Cada cartão mostra tít
 
 A criação pede somente RSC pretendido e regulamento/dataset. Título inicial é um rótulo de interface editável. Nome do docente e enquadramento podem estar ausentes em rascunhos 2.1. O catálogo pendente é identificado como tal e sua versão normativa permanece null.
 
+## Mapa da jornada
+
+O fluxo principal segue Início → Visão geral → Dados do docente → Formação → Trajetória → Critérios
+→ Pontuação → Memorial → Prévia → Revisão → Exportar. A sidebar ou o Sheet permite acesso direto a
+qualquer etapa; não há desbloqueio artificial por sequência. Cada correção da revisão volta à rota
+responsável, e o autosave compartilhado protege a troca de seção. O mapa completo de URLs está em
+`docs/frontend.md`.
+
+## Feedback e autosave
+
+Edições válidas entram em uma fila serial após 500 ms sem digitação. O cabeçalho anuncia o estado em
+uma região viva; navegação e operações sobre projetos aguardam uma gravação pendente. Erros de
+validação ficam no campo e não substituem a última cópia válida. Erros do IndexedDB preservam o
+rascunho e oferecem recuperação explícita. O usuário deve aguardar “Salvo localmente” antes de
+fechar a página e usar a exportação JSON para backup e transporte.
+
 ## Organização e responsividade
 
 Em desktop (a partir de 1024 px), a sidebar fixa apresenta as seções. Em telas menores, o botão de menu abre um Sheet modal com foco contido, fechamento por Escape e retorno ao acionador. O cabeçalho mantém exportação e estado do autosave acessíveis; em telas estreitas, o estado ocupa uma segunda linha. Formulários e cartões se reorganizam sem exigir rolagem horizontal.

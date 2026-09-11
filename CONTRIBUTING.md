@@ -1,7 +1,24 @@
-# Contributing
+# Como contribuir
 
-Read [AGENTS.md](AGENTS.md) and the relevant files in `docs/` before changing the project.
+Leia [AGENTS.md](AGENTS.md) e a documentação pertinente em [docs/](docs/) antes de alterar o
+projeto. O fluxo detalhado está em [docs/development-workflow.md](docs/development-workflow.md).
 
-Use small, focused changes with a corresponding test for every behavioral change. Run the complete quality suite before requesting review. Commit messages follow Conventional Commits with descriptions and bodies in Portuguese: `type(escopo): descrição`. Keep standard type tokens such as `feat`, `fix`, `docs`, and `test`.
+1. Confirme o estado da árvore de trabalho e identifique as camadas afetadas.
+2. Para regras ou dados normativos, confira as fontes e a proveniência antes de implementar.
+3. Faça uma alteração coesa na camada responsável, sem copiar regras para React.
+4. Acrescente teste para toda mudança de comportamento e atualize a documentação e o changelog.
+5. Execute a bateria completa de qualidade e relate qualquer verificação não executada.
 
-Normative-data changes require validated source references. When sources disagree, do not choose an interpretation; report the inconsistency for a human decision.
+Dados normativos seguem a prioridade: instrução atual do mantenedor, resolução oficial, planilha
+oficial, JSON validado, documentação e código. A resolução prevalece quando divergir da planilha ou
+do JSON; registre a diferença e as fontes. Se a própria resolução for ambígua, não escolha uma
+interpretação: mantenha o dado pendente e solicite decisão do mantenedor.
+
+Não adicione backend, transmissão de dados pessoais, regra por código específico de item, valor
+normativo em componente, funcionalidade fictícia, `TODO`, `FIXME` ou stub. Dados ausentes não valem
+zero. Uma mudança de valor normativo deve ser feita no JSON versionado e acompanhada por
+proveniência e regressão baseada na fonte.
+
+Commits seguem Conventional Commits, com descrição e corpo em português e tipos padronizados:
+`type(escopo): descrição`. Mantenha mudanças pequenas e focadas. Agentes não criam commits sem
+autorização explícita do mantenedor.

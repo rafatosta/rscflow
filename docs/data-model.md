@@ -1,9 +1,27 @@
 # Modelo de dados
 
-O envelope preserva `schemaVersion`, `applicationVersion`, `regulation: { id, version }` e `userData`.
+O envelope preserva `schemaVersion`, `applicationVersion`, `regulation: { id, version }` e `userData`:
+
+```json
+{
+  "schemaVersion": "2.1",
+  "applicationVersion": "0.1.0",
+  "regulation": { "id": "ifba-189-2026", "version": null },
+  "userData": { "id": "...", "title": "...", "teacher": { "name": "" } }
+}
+```
+
+O exemplo mostra somente a forma do envelope; `userData` completo segue os schemas Zod em
+`src/domain/`. `null` registra ausência explícita de versão normativa e não equivale a validação.
 
 - `2.0`: contrato tipado anterior, com `userData` validado por `rscProjectSchema`. Campos desconhecidos nos modelos tipados são rejeitados para evitar perda silenciosa de dados.
 - `1.0`: compatibilidade de leitura por `legacyProjectExportSchema`, preservando integralmente o registro opaco. Não há conversão automática, pois o significado dos campos antigos é desconhecido. Consumidores devem discriminar `schemaVersion` antes de acessar o domínio tipado.
+
+| Versão | Leitura | Novos projetos | Migração automática | Observação                                        |
+| ------ | ------- | -------------- | ------------------- | ------------------------------------------------- |
+| `1.0`  | sim     | não            | não                 | conteúdo legado opaco, preservado em round-trip   |
+| `2.0`  | sim     | não            | não                 | domínio tipado e referência normativa obrigatória |
+| `2.1`  | sim     | sim            | não                 | rascunho tipado com ausências iniciais explícitas |
 
 `projectExportSchema` aceita 1.0, 2.0 e 2.1. `currentProjectExportSchema` preserva o contrato 2.0; `draftProjectExportSchema` define o novo rascunho 2.1. Campos adicionais do envelope e da referência normativa continuam ignorados. A versão normativa declarada não é certificada pela importação. A verificação do arquivo ocorre em memória, sem envio ou limite de tamanho. O botão de importação grava uma nova cópia local após validação; falhas são apresentadas em português.
 
@@ -25,7 +43,12 @@ O banco IndexedDB `rscflow`, gerenciado por Dexie, tem versão estrutural 1. `pr
 
 Atualização e exclusão conferem a revisão dentro de transação: uma aba desatualizada não sobrescreve nem recria dados excluídos. A seleção ativa sobrevive à recarga e é removida junto com o projeto excluído. Datas e revisões locais não são exportadas.
 
-Exportação inclui o envelope completo, preservando schemaVersion, applicationVersion, regulation.id/version e todos os dados editáveis. Importação suporta 1.0 e 2.0, sem migração implícita, e rejeita versões desconhecidas. Valores não representáveis em JSON (como undefined, números não finitos e objetos Date em dados legados programáticos) são rejeitados em vez de perdidos silenciosamente. Evidências contêm os metadados definidos no domínio; não há anexação de arquivos binários nesta etapa.
+Exportação inclui o envelope completo, preservando schemaVersion, applicationVersion,
+regulation.id/version e todos os dados editáveis. Importação suporta 1.0, 2.0 e 2.1, sem migração
+implícita, e rejeita versões desconhecidas. Valores não representáveis em JSON (como undefined,
+números não finitos e objetos Date em dados legados programáticos) são rejeitados em vez de perdidos
+silenciosamente. Evidências contêm os metadados definidos no domínio; não há anexação de arquivos
+binários nesta etapa.
 
 Novos projetos são criados escolhendo RSC e dataset. A referência vem do dataset e sua versão permanece null quando pendente. O shell oferece formulários por seção e edição avançada integral de userData em JSON, com validação antes de gravar. JSON inválido permanece na tela e não substitui a última versão válida.
 

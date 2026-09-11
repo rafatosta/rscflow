@@ -1,35 +1,81 @@
 # RSCFlow
 
-RSCFlow is a web application scaffold for organizing work related to RSC processes. This repository deliberately contains no inferred scoring or eligibility rules.
+RSCFlow é uma aplicação web local para organizar o Memorial Descritivo do Reconhecimento de Saberes
+e Competências (RSC) docente do IFBA. Ela reúne dados do docente, formação, trajetória, evidências,
+enquadramentos, pontuação quantitativa, memorial, revisão e exportações JSON/PDF. Não há backend,
+autenticação, telemetria ou envio dos dados pessoais para serviços externos.
 
-## Start
+## Estado normativo
 
-Requires Node.js 22+ and npm 10+.
+A política de cálculo da Resolução CONSUP/IFBA nº 189/2026 foi conferida e está representada em
+JSON. O catálogo completo de diretrizes e critérios de RSC I, II e III ainda está com status
+`pending-official-validation`, arrays vazios e versão normativa `null`. Por isso, o dataset de
+produção retorna cálculo indisponível e a interface não cria critérios nem pontuações fictícias.
+
+Em divergências, vale a seguinte ordem: instrução atual do mantenedor, resolução oficial, planilha
+oficial, JSON normativo validado, documentação e código. A resolução prevalece sobre a planilha e o
+JSON; a divergência e suas fontes devem ser registradas. Ambiguidades internas da resolução não são
+resolvidas por inferência. Consulte [Dados e motor normativos](docs/rsc-regulation.md).
+
+## Executar localmente
+
+Requisitos: Node.js 22 ou superior e npm 10 ou superior.
 
 ```bash
 npm ci
 npm run dev
 ```
 
-## Quality checks
+O navegador armazena projetos no IndexedDB. Limpar os dados do site ou usar uma sessão privada pode
+removê-los; exporte o JSON como cópia portátil. O PDF e o JSON são montados e baixados no próprio
+navegador.
+
+## Funcionalidades
+
+- múltiplos projetos locais, duplicação, importação, exportação e autosave com conflitos explícitos;
+- perfil docente, formação, trajetória profissional e referências de evidências;
+- exploração de catálogo e escolha explícita de nível e critério, quando o dataset estiver validado;
+- motor determinístico com limites de item, diretriz e nível e requisitos quantitativos 60/36;
+- memorial determinístico com edição autoral preservada;
+- prévia A4, PDF local, checklist final e correções por seção;
+- rotas responsivas, navegação por teclado e verificações automatizadas com axe-core.
+
+Os envelopes portáteis `1.0`, `2.0` e `2.1` são aceitos. Não há migração silenciosa: o formato
+legado permanece opaco e o rascunho 2.1 preserva ausências explícitas. Validação estrutural de um
+arquivo não certifica sua referência normativa nem sua pontuação.
+
+## Arquitetura e manutenção
+
+Antes de alterar código, leia [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) e a
+documentação pertinente:
+
+- [arquitetura e dependências](docs/architecture.md);
+- [domínio e relações](docs/domain.md);
+- [schemas, versões e persistência](docs/data-model.md);
+- [regulamento, divergências e correção de datasets](docs/rsc-regulation.md);
+- [frontend e rotas](docs/frontend.md) e [experiência de uso](docs/ux.md);
+- [matriz de testes](docs/testing.md) e [fluxo de desenvolvimento](docs/development-workflow.md);
+- [convenção de commits](docs/commit-convention.md).
+
+Os valores normativos pertencem exclusivamente aos JSONs em
+`src/data/regulations/ifba-189-2026/`. Componentes React apenas apresentam dados e resultados. Uma
+correção de fator, unidade, limite, peso, descrição ou teto deve alterar o JSON e sua evidência de
+proveniência, sem criar uma exceção no algoritmo ou na interface.
+
+## Qualidade
+
+Execute a mesma sequência do CI antes de solicitar revisão:
 
 ```bash
+npm ci
+npm run format:check
 npm run lint
 npm run typecheck
 npm run test:run
 npm run build
 npm run test:e2e
-npm run format:check
+git diff --check
 ```
 
-## Architecture
-
-Read [the architecture](docs/architecture.md), [the normative-data policy](docs/rsc-regulation.md), and [the agent contract](AGENTS.md) before implementing functionality.
-
-The regulation files under `src/data/regulations/ifba-189-2026/` are safe, empty, versioned envelopes. They will be populated only from the official resolution and official scoring spreadsheet validated by a human maintainer.
-
-## Verificar um projeto
-
-Execute `npm run dev` e selecione um arquivo JSON na tela inicial. A aplicação informa se a estrutura do envelope é válida e apresenta os metadados declarados. Erros de leitura, JSON inválido e incompatibilidade de esquema aparecem em português.
-
-A verificação é local, sem salvar ou enviar o arquivo. Validade estrutural não certifica a referência normativa nem calcula pontuação. Consulte o contrato em [docs/data-model.md](docs/data-model.md).
+Fixtures normativas dos testes são sintéticas ou recortes identificados. O modo Vite `e2e` injeta
+um catálogo sintético apenas na suíte Playwright; ele não integra o bundle de produção.
