@@ -6,6 +6,11 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Revisão final de identificação, RSC, formação, trajetória, enquadramentos, documentação, pontuação, memorial e conclusão.
+- Achados classificados como ERROR, WARNING e INFO, com bloqueio do PDF somente para erros estruturais.
+- Tela final com PDF, JSON, importação local, último autosave e nomes de arquivo legíveis.
+- Testes de bloqueios, avisos permissivos, round-trip JSON e PDF gerado após a revisão.
+
 - Pré-visualização A4 paginada com capa, sumário numerado, seções, margens e navegação entre páginas.
 - Geração integralmente local do PDF no navegador, com download adequado ao fluxo de anexação no SEI.
 - Paginação compartilhada entre tela e arquivo, incluindo textos longos, acentos, cabeçalhos e rodapés.

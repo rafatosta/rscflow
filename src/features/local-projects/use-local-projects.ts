@@ -29,6 +29,7 @@ export function useLocalProjects(repository: ProjectRepository) {
               setProjects((records) =>
                 records.map((item) => (item.localId === saved.localId ? saved : item)),
               );
+              setActive((record) => (record?.localId === saved.localId ? saved : record));
             }
           })
         : undefined;

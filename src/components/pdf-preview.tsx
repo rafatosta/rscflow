@@ -3,7 +3,9 @@ import { ChevronLeft, ChevronRight, Download, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
 import type { TypedProjectExport } from '@/domain/project';
+import { reviewProject } from '@/features/final-review/review';
 import { projectPath } from '@/features/project-shell/routes';
+import { projectScoring } from '@/features/project-shell/project-view';
 import { buildMemorialDocument } from '@/memorial/preview';
 import { A4_PAGE, type MemorialPdfLayout } from '@/pdf/model';
 import { Button } from './ui/button';
@@ -51,6 +53,7 @@ function PreviewPage({ page }: { page: MemorialPdfLayout['pages'][number] }) {
 
 export function PdfPreview({ record }: { record: LocalProject }) {
   const project = record.project as TypedProjectExport;
+  const review = reviewProject(project, projectScoring(project));
   const [layout, setLayout] = useState<MemorialPdfLayout>();
   const [pageIndex, setPageIndex] = useState(0);
   const [generating, setGenerating] = useState(false);
@@ -106,11 +109,22 @@ export function PdfPreview({ record }: { record: LocalProject }) {
               Voltar para edição
             </Link>
           </Button>
-          <Button onClick={() => void generate()} disabled={!layout || generating}>
+          <Button
+            onClick={() => void generate()}
+            disabled={!layout || generating || review.blocksPdf}
+          >
             <Download className="mr-2" size={17} aria-hidden="true" />
             {generating ? 'Gerando PDF…' : 'Gerar PDF'}
           </Button>
         </div>
+        {review.blocksPdf && (
+          <p className="rounded border border-rose-500 p-3 text-rose-200">
+            Corrija os itens ERROR antes de gerar o PDF final.{' '}
+            <Link className="text-cyan-300 underline" to={projectPath(record.localId, 'review')}>
+              Abrir revisão
+            </Link>
+          </p>
+        )}
         {error && (
           <p role="alert" className="text-rose-200">
             {error}

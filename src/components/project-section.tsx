@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
-import type { TypedProjectExport } from '@/domain/project';
+import type { ProjectExport, TypedProjectExport } from '@/domain/project';
 import { completion, linkedDataset, projectScoring } from '@/features/project-shell/project-view';
 import { projectPath, type Section } from '@/features/project-shell/routes';
 import { CriteriaExplorer } from './criteria-explorer';
 import { EducationSection } from './education-section';
+import { FinalExport } from './final-export';
+import { FinalReview } from './final-review';
 import { MemorialSection } from './memorial-section';
 import { PdfPreview } from './pdf-preview';
 import { ScoringDashboard } from './scoring-dashboard';
@@ -20,6 +22,7 @@ type Props = {
   busy: boolean;
   edit: (text: string) => void;
   onExport: () => void;
+  onImport: (project: ProjectExport) => void;
 };
 function JsonEditor({
   draft,
@@ -173,49 +176,29 @@ export function ProjectSection(props: Props) {
   if (section === 'preview') return <PdfPreview record={record} />;
 
   if (section === 'review')
+    return <FinalReview record={record} scoring={scoring} />;
+
+  if (section === 'export')
     return (
-      <section className="panel space-y-4">
-        <h2 className="text-xl font-semibold">Revisão do preenchimento</h2>
-        <p className="text-slate-300">
-          Esta lista ajuda a organizar o memorial e não substitui a análise normativa.
-        </p>
-        <ul className="space-y-3">
-          {progress.items.map((item) => (
-            <li key={item.section}>
-              <Link
-                className="text-cyan-300 underline"
-                to={projectPath(record.localId, item.section)}
-              >
-                {item.complete ? 'Preenchido' : 'A revisar'}: {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <p>Comprovantes registrados: {data.evidence.length}</p>
-        <p className="text-amber-200">
-          {scoring.status === 'unavailable'
-            ? 'A avaliação quantitativa permanece indisponível.'
-            : 'Consulte o resultado quantitativo em Pontuação.'}
-        </p>
-      </section>
+      <>
+        <FinalExport
+          record={record}
+          scoring={scoring}
+          busy={busy}
+          invalid={props.invalid}
+          onExportJson={onExport}
+          onImport={props.onImport}
+        />
+        <section className="panel mt-6">
+          <details>
+            <summary className="cursor-pointer font-medium">Edição avançada dos dados JSON</summary>
+            <div className="mt-4">
+              <JsonEditor {...props} />
+            </div>
+          </details>
+        </section>
+      </>
     );
 
-  return (
-    <section className="panel space-y-5">
-      <h2 className="text-xl font-semibold">Cópia portátil do projeto</h2>
-      <p>
-        O JSON inclui todos os dados editáveis e a referência normativa vinculada. Importe-o em
-        outro navegador para continuar o trabalho.
-      </p>
-      <Button onClick={onExport} disabled={Boolean(props.invalid)}>
-        Exportar JSON
-      </Button>
-      <details>
-        <summary className="cursor-pointer font-medium">Edição avançada dos dados JSON</summary>
-        <div className="mt-4">
-          <JsonEditor {...props} />
-        </div>
-      </details>
-    </section>
-  );
+  return null;
 }

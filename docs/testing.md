@@ -54,3 +54,11 @@ PDF. O teste de integração cobre carregamento, navegação, retorno ao editor 
 `tests/e2e/pdf.spec.ts` usa o navegador real para montar conteúdo extenso, conferir as duas primeiras
 páginas, executar o download e reabrir o arquivo com `pdf-lib`, incluindo nome, assinatura, tamanho
 e quantidade de páginas. As regressões de layout usam coordenadas e margens, sem snapshots de pixels.
+
+## Revisão e exportação final
+
+`tests/unit/final-review.test.ts` cobre as nove áreas, severidades, bloqueios estruturais, avisos de
+enquadramento e a mensagem documental. Os testes de integração verificam os resumos acessíveis,
+links de correção, bloqueio exclusivo do PDF, warnings permissivos, nomes sugeridos, último autosave
+atualizado e comandos de exportação. O E2E percorre o estado bloqueado, corrige identificação e
+conclusão, revisa avisos, exporta e reabre o JSON e gera o PDF depois da revisão.

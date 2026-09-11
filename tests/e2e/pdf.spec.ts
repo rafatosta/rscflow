@@ -6,9 +6,19 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   await page.goto('/');
   await page.getByLabel('RSC pretendido').selectOption('rsc-iii');
   await page.getByRole('button', { name: 'Criar projeto', exact: true }).click();
+  await page.getByRole('link', { name: 'Revisão', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Correções necessárias' })).toBeVisible();
+  await page.getByRole('link', { name: 'Exportar', exact: true }).click();
+  await expect(page.getByRole('main').getByRole('button', { name: 'Gerar PDF' })).toBeDisabled();
+  await expect(
+    page.getByRole('main').getByRole('button', { name: 'Exportar JSON' }),
+  ).toBeEnabled();
   await page.getByRole('link', { name: 'Dados do docente', exact: true }).click();
   await page.getByLabel(/^Nome completo/).fill('Lívia Conceição');
   await page.getByLabel(/^Título do projeto/).fill('Memorial de competências docentes');
+  await page.getByLabel(/^CPF/).fill('529.982.247-25');
+  await page.getByLabel(/^SIAPE/).fill('1234567');
+  await page.getByLabel(/^Campus de lotação/).fill('Salvador');
   await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
 
   await page.getByRole('link', { name: 'Memorial', exact: true }).click();
@@ -17,7 +27,35 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
     .fill('Educação, ciência e extensão no IFBA. '.repeat(220));
   await page.getByLabel('Texto da conclusão', { exact: true }).fill('Síntese da trajetória acadêmica.');
   await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Ver prévia do memorial' }).click();
+  await page.getByRole('link', { name: 'Revisão', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Documento pronto para exportação' })).toBeVisible();
+  await expect(page.getByText(/Nenhuma formação foi registrada/)).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByRole('link', { name: 'Ir para exportação' }).click();
+  await expect(page.getByText('Há avisos para conferir, mas eles não impedem a geração do PDF.')).toBeVisible();
+  await expect(page.getByText('memorial-rsc-livia-conceicao.pdf')).toBeVisible();
+  await expect(page.getByText('rscflow-memorial-de-competencias-docentes.json')).toBeVisible();
+  await expect(page.getByLabel('Arquivo de projeto JSON')).toBeVisible();
+  const jsonDownloadPromise = page.waitForEvent('download');
+  await page.getByRole('main').getByRole('button', { name: 'Exportar JSON' }).click();
+  const jsonDownload = await jsonDownloadPromise;
+  expect(jsonDownload.suggestedFilename()).toBe('rscflow-memorial-de-competencias-docentes.json');
+  const jsonStream = await jsonDownload.createReadStream();
+  const jsonChunks: Buffer[] = [];
+  for await (const chunk of jsonStream) jsonChunks.push(Buffer.from(chunk));
+  expect(JSON.parse(Buffer.concat(jsonChunks).toString())).toMatchObject({
+    userData: {
+      teacher: { name: 'Lívia Conceição', cpf: '52998224725' },
+      memorial: { conclusion: 'Síntese da trajetória acadêmica.' },
+    },
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.getByRole('link', { name: 'Prévia', exact: true }).click();
 
   const article = page.getByRole('article', { name: 'Página 1' });
   await expect(article).toContainText('Lívia Conceição');

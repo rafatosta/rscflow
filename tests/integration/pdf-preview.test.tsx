@@ -18,7 +18,17 @@ afterEach(() => {
 
 it('navega pela prévia A4, volta ao editor e inicia o download local', async () => {
   const project = createDraft('rsc-i', datasets[0].metadata.regulation.id);
-  project.userData.teacher.name = 'Ana Vitória';
+  project.userData.teacher = {
+    name: 'Ana Vitória',
+    cpf: '52998224725',
+    siape: '1234567',
+    campus: 'Salvador',
+  };
+  project.userData.memorial = {
+    title: 'Memorial de Ana Vitória',
+    introduction: '',
+    conclusion: 'Síntese final.',
+  };
   const record: LocalProject = {
     localId: 'local-1',
     revision: 1,

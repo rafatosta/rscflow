@@ -13,8 +13,8 @@ O shell usa React Router com rotas de histórico do navegador. A aplicação é 
 | `/project/:id/scoring`    | Resultado do motor ou motivos reais de indisponibilidade                            |
 | `/project/:id/memorial`   | Editor por seções e narrativas locais das atividades                                |
 | `/project/:id/preview`    | Prévia A4 paginada, navegação e geração local do PDF                                 |
-| `/project/:id/review`     | Checklist de preenchimento com links às seções                                      |
-| `/project/:id/export`     | Download JSON e edição avançada integral dos dados                                  |
+| `/project/:id/review`     | Checklist final por severidade, com correções e avisos                              |
+| `/project/:id/export`     | PDF final, JSON portátil, último autosave e importação                              |
 
 O parâmetro `id` corresponde ao `localId` da cópia. Acesso direto carrega o projeto correto mesmo se outro estiver selecionado. Endereços inválidos e projetos ausentes mostram recuperação para a tela inicial. Formatos legados mantêm editor JSON e exportação sem conversão silenciosa.
 
@@ -28,6 +28,8 @@ O parâmetro `id` corresponde ao `localId` da cópia. Acesso direto carrega o pr
 - `components/scoring-dashboard.tsx`: resumo e detalhamento responsivo do resultado produzido pelo motor.
 - `components/memorial-section.tsx`: editor de seções e controle das narrativas geradas e manuais.
 - `components/pdf-preview.tsx`: navegação pela representação A4 e acionamento do download local.
+- `components/final-review.tsx`: resumo e achados ERROR, WARNING e INFO por área revisada.
+- `components/final-export.tsx`: ações finais, nomes sugeridos, autosave e importação local.
 - `components/ui/`: primitives genéricos Button, Sheet (Radix Dialog) e ConfirmDialog (Radix AlertDialog).
 - `features/project-shell/`: interpretação de rotas, criação de rascunhos, projeção do progresso e ligação ao motor existente.
 - `memorial/generator.ts`: geração determinística, ordenação e estado dos textos das atividades.
@@ -86,6 +88,20 @@ das margens e com indicação de continuação.
 O botão “Gerar PDF” executa a montagem em memória e baixa um `application/pdf` com nome derivado do
 docente. O arquivo contém capa, sumário, cabeçalhos, rodapés e numeração. Todo o processamento ocorre
 no navegador e nenhum dado do memorial sai do dispositivo.
+
+## Revisão e exportação final
+
+A revisão deriva do projeto atual e da saída já calculada pelo motor. Ela cobre identificação, RSC
+pretendido, formação, trajetória, enquadramentos, documentação indicada, pontuação, memorial e
+conclusão. Cada achado mostra uma severidade textual e um link para a seção correspondente. ERROR
+indica ausência que torna o memorial final incompleto; WARNING pede conferência e permite continuar;
+INFO confirma o conteúdo encontrado. Pontuação pendente ou requisitos quantitativos ainda não
+atingidos são avisos e nunca são reinterpretados como aprovação ou reprovação.
+
+A tela de exportação bloqueia o PDF apenas enquanto houver ERROR. O JSON permanece disponível como
+cópia portátil de qualquer projeto estruturalmente válido. A tela mostra o horário do último
+autosave, nomes de arquivo derivados do docente e do título, acesso ao checklist e importação de
+outra cópia como projeto local separado. A edição avançada do JSON continua disponível.
 
 ## Publicação estática
 

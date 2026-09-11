@@ -2,6 +2,7 @@ import type { ProjectRepository } from '@/domain/local-project';
 import { currentProjectExportSchema, type ProjectExport } from '@/domain/project';
 import { portableProject } from '@/domain/portable-project';
 import { validateProjectFile } from '@/features/project-import/validate-project-file';
+import { readableFileStem } from '@/utils/file-name';
 import packageMetadata from '../../../package.json';
 
 export function createProject(
@@ -30,6 +31,11 @@ export function exportProject(project: ProjectExport): string {
   return JSON.stringify(portableProject(project), null, 2);
 }
 
+export function projectJsonFilename(project: ProjectExport): string {
+  const title = project.schemaVersion === '1.0' ? 'projeto-legado' : project.userData.title;
+  return `rscflow-${readableFileStem(title, 'projeto')}.json`;
+}
+
 export async function importProject(file: Pick<File, 'text'>, repository: ProjectRepository) {
   const result = await validateProjectFile(file);
   if (!result.success) return result;
@@ -42,7 +48,7 @@ export function downloadProject(project: ProjectExport): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = 'rscflow-projeto.json';
+  anchor.download = projectJsonFilename(project);
   document.body.append(anchor);
   anchor.click();
   anchor.remove();

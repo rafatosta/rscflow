@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
 import type { TypedProjectExport } from '@/domain/project';
 import { buildMemorialDocument } from '@/memorial/preview';
+import { memorialPdfFilename } from './file-name';
 import { paginateMemorial } from './layout';
 import { A4_PAGE, type PdfTextLine } from './model';
 
@@ -40,17 +41,6 @@ export async function generateMemorialPdf(project: TypedProjectExport): Promise<
     }
   }
   return document.save({ useObjectStreams: false });
-}
-
-export function memorialPdfFilename(project: TypedProjectExport): string {
-  const base = (project.userData.teacher.name || project.userData.title || 'memorial')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 70);
-  return `memorial-rsc-${base || 'docente'}.pdf`;
 }
 
 export async function downloadMemorialPdf(project: TypedProjectExport): Promise<void> {

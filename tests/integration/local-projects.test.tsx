@@ -98,3 +98,19 @@ it('conclui autosave antes de mudar de seção', async () => {
     name: 'Salvo antes de navegar',
   });
 });
+
+it('atualiza a data do último autosave exibida após a gravação', async () => {
+  const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
+  const update = repository.update.bind(repository);
+  vi.spyOn(repository, 'update').mockImplementation(async (...args) => ({
+    ...(await update(...args)),
+    updatedAt: '2030-01-02T15:30:00.000Z',
+  }));
+  mount(projectPath(record.localId, 'profile'));
+  fireEvent.change(await screen.findByLabelText(/^Nome completo/), {
+    target: { value: 'Autosave atualizado' },
+  });
+  await screen.findByText('Salvo localmente');
+  fireEvent.click(screen.getByRole('link', { name: 'Exportar' }));
+  expect(await screen.findByText(/02\/01\/2030/)).toBeVisible();
+});

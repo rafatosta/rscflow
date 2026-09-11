@@ -1,10 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { validateProjectFile } from '@/features/project-import/validate-project-file';
+import { projectJsonFilename } from '@/features/local-projects/project-files';
 import { projectFixture } from '../fixtures/project';
 
 const file = (value: unknown) => ({ text: async () => JSON.stringify(value) });
 
 describe('validação estrutural de arquivo', () => {
+  it('sugere nome JSON legível sem perder a extensão', () => {
+    expect(
+      projectJsonFilename({
+        ...projectFixture,
+        schemaVersion: '2.1',
+        regulation: { ...projectFixture.regulation, version: null },
+        userData: {
+          id: 'p',
+          title: 'Memorial de Lívia Conceição',
+          teacher: { name: '' },
+          request: { level: 'rsc-i' },
+          education: [],
+          activities: [],
+          evidence: [],
+          memorial: null,
+        },
+      }),
+    ).toBe('rscflow-memorial-de-livia-conceicao.json');
+    expect(projectJsonFilename({ ...projectFixture, schemaVersion: '1.0' })).toBe(
+      'rscflow-projeto-legado.json',
+    );
+  });
   it('aceita referência desconhecida e preserva os dados opacos', async () => {
     expect(await validateProjectFile(file(projectFixture))).toEqual({
       success: true,

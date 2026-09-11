@@ -2,7 +2,8 @@ import { PDFDocument } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import { createDraft, datasets } from '@/features/project-shell/project-view';
 import { buildMemorialDocument } from '@/memorial/preview';
-import { generateMemorialPdf, memorialPdfFilename } from '@/pdf/generator';
+import { memorialPdfFilename } from '@/pdf/file-name';
+import { generateMemorialPdf } from '@/pdf/generator';
 import { createMemorialPdfLayout } from '@/pdf/layout';
 import { A4_PAGE } from '@/pdf/model';
 

@@ -26,10 +26,21 @@ Memorial apresenta um editor por seções, com a apresentação introdutória id
 
 Depois de uma edição manual, mudanças na atividade ou em suas evidências mostram um alerta sem substituir o texto. “Manter texto atual” conserva a escrita autoral; “Regenerar texto” confirma a substituição pela nova base. A prévia mostra capa, identificação, sumário e todas as seções, inclusive estados vazios claros, sem rotular a introdução como exigência normativa.
 
+Revisão organiza o checklist final nas categorias ERROR, WARNING e INFO, sempre com texto e ícone,
+sem depender apenas de cor. Identificação essencial, RSC pretendido, memorial iniciado e conclusão
+podem gerar erros que bloqueiam o PDF. Ausência de formação, trajetória, enquadramento, referência
+documental ou pontuação disponível gera aviso e permite prosseguir. Cada item leva diretamente à
+seção em que pode ser conferido.
+
+Exportar apresenta o horário do último autosave, o estado resumido da revisão e nomes legíveis para
+PDF e JSON. O PDF fica indisponível enquanto houver erro; o JSON continua acessível para backup do
+projeto válido. A mesma tela permite validar e importar outra cópia JSON como novo projeto local,
+sem substituir a cópia aberta.
+
 ## Limites transparentes
 
-O progresso é uma aproximação editorial: cinco grupos com o mesmo peso (identificação, formação, trajetória, enquadramento e texto). Não representa pontuação, elegibilidade ou aprovação. Revisão apenas ajuda a localizar campos ainda não preenchidos.
+O progresso é uma aproximação editorial: cinco grupos com o mesmo peso (identificação, formação, trajetória, enquadramento e texto). Não representa pontuação, elegibilidade ou aprovação. A revisão informa completude e riscos documentais, sem substituir a análise do processo.
 
-Critérios e pontuação mostram o estado real do dataset vinculado. O catálogo pendente não gera opções normativas fictícias nem pontuação zero apresentada como resultado. “Cálculo parcial” descreve a indisponibilidade dos dados necessários e não apresenta um subtotal como definitivo. Nenhuma mensagem usa “RSC aprovado”; o dashboard se limita aos requisitos quantitativos. A prévia é textual, não um PDF oficial; a exportação disponível é JSON. Referências de comprovantes contêm metadados, sem anexos binários.
+Critérios e pontuação mostram o estado real do dataset vinculado. O catálogo pendente não gera opções normativas fictícias nem pontuação zero apresentada como resultado. “Cálculo parcial” descreve a indisponibilidade dos dados necessários e não apresenta um subtotal como definitivo. Nenhuma mensagem usa “RSC aprovado”; o dashboard se limita aos requisitos quantitativos. A prévia A4 representa o PDF produzido localmente, sem convertê-lo em documento oficial ou assinado. Referências de comprovantes contêm metadados, sem anexos binários.
 
 A edição avançada JSON permite preservar e alterar todos os campos dos contratos existentes. Arquivos 1.0 não são reinterpretados em formulários tipados. A continuidade em outro navegador exige exportar/importar a cópia, pois os dados são locais.

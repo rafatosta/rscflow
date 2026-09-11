@@ -250,6 +250,11 @@ export function App({ repository }: { repository?: ProjectRepository }) {
               busy={work.busy}
               edit={work.edit}
               onExport={work.export}
+              onImport={(project) => {
+                void work.create(project).then((record) => {
+                  if (record) void navigate(projectPath(record.localId));
+                });
+              }}
             />
           ) : (
             <div className="panel">
