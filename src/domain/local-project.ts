@@ -6,6 +6,7 @@ export type LocalProject = {
   createdAt: string;
   updatedAt: string;
   project: ProjectExport;
+  lastBackup?: { createdAt: string; fingerprint: string };
 };
 export type SaveState =
   { status: 'saving' } | { status: 'saved' } | { status: 'error'; message: string };
@@ -19,4 +20,5 @@ export interface ProjectRepository {
   delete(localId: string, revision: number): Promise<void>;
   select(localId: string | null): Promise<void>;
   selected(): Promise<LocalProject | undefined>;
+  recordBackup?(localId: string, backup: NonNullable<LocalProject['lastBackup']>): Promise<void>;
 }

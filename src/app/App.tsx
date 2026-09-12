@@ -1,10 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useBlocker, useLocation, useNavigate } from 'react-router-dom';
 import { FileText, FolderOpen, Menu } from 'lucide-react';
 import type { LocalProject, ProjectRepository } from '@/domain/local-project';
 import { DexieProjectRepository } from '@/storage/project-repository';
 import { useLocalProjects } from '@/features/local-projects/use-local-projects';
-import { parseRoute, projectPath, sections } from '@/features/project-shell/routes';
+import {
+  parseRoute,
+  projectPath,
+  sections,
+  primarySections,
+} from '@/features/project-shell/routes';
 import { projectTitle } from '@/features/project-shell/project-view';
 import { ProjectHome } from '@/components/project-home';
 import { ProjectSection } from '@/components/project-section';
@@ -94,18 +99,30 @@ export function App({ repository }: { repository?: ProjectRepository }) {
       </NavLink>
       {route.kind === 'project' && (
         <>
-          <p className="px-3 pb-2 pt-6 text-xs uppercase tracking-wider text-slate-400">Memorial</p>
-          {sections.map(([path, label]) => (
-            <NavLink
-              key={path}
-              end
-              to={projectPath(route.id, path)}
-              className={({ isActive }) =>
-                `nav-link ${isActive ? 'bg-slate-800 text-cyan-200' : ''}`
-              }
-            >
-              {label}
-            </NavLink>
+          <p className="px-3 pb-2 pt-6 text-xs uppercase tracking-wider text-slate-400">
+            Processo de RSC
+          </p>
+          {[
+            ...sections.filter(([path]) => primarySections.includes(path)),
+            ...sections.filter(([path]) => !primarySections.includes(path)),
+          ].map(([path, label]) => (
+            <Fragment key={path}>
+              {path === 'education' && (
+                <p className="px-3 pb-2 pt-6 text-xs uppercase tracking-wider text-slate-400">
+                  Consultas e compatibilidade
+                </p>
+              )}
+              <NavLink
+                key={path}
+                end
+                to={projectPath(route.id, path)}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? 'bg-slate-800 text-cyan-200' : ''}`
+                }
+              >
+                {label}
+              </NavLink>
+            </Fragment>
           ))}
         </>
       )}
@@ -131,7 +148,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
         </div>
         {navigation}
         <p className="mt-10 px-3 text-xs leading-5 text-slate-400">
-          Memorial docente · armazenamento local
+          Processo de RSC · ferramenta não oficial
         </p>
       </aside>
       <div className="min-w-0 lg:pl-64">

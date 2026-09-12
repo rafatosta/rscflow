@@ -112,3 +112,17 @@ com ordem e textos preservados; nenhuma regra normativa foi acrescentada em Reac
 Os comandos de criação/edição e migração local ficam em features/criterion-entries.
 StoredFile é somente contrato de metadados nesta etapa; FileResolver e persistência de bytes não
 foram introduzidos. A versão do banco e os projetos antigos permanecem compatíveis.
+
+## UX por nível e acompanhamento de backup
+
+As rotas RSC compõem busca de critérios e resultados do motor com o formulário de lançamentos;
+o componente não calcula pontos. O cadastro usa os casos de uso de trajetória e, em envelopes
+3.0, a ponte aplica os resultados às ocorrências sem persistir outra coleção Activity.
+ChronologicalView é uma projeção somente leitura. O gerenciamento de evidências reutiliza o
+componente existente em modo exclusivo de comprovantes, preservando remoção de vínculos.
+
+`features/local-projects/backup-status.ts` calcula uma impressão SHA-256 do envelope normalizado.
+`LocalProject.lastBackup` contém somente data e hash locais. O repositório grava esses metadados
+em transação, preserva edições concorrentes e ignora conclusões de backups anteriores à marca
+mais recente. Não há novo índice nem mudança estrutural do banco v1. Exportação de JSON continua
+independente da gravação dessa marca: falha de armazenamento não desfaz o download já iniciado.

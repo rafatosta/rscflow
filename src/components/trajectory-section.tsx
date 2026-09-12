@@ -28,6 +28,7 @@ import { ConfirmDialog } from './ui/confirm-dialog';
 import { CriterionCombobox } from './criterion-combobox';
 
 type Props = {
+  evidenceOnly?: boolean;
   activities: Activity[];
   evidences: Evidence[];
   dataset?: Regulation;
@@ -177,6 +178,7 @@ function dateLabel(value?: string): string {
 export function TrajectorySection({
   activities,
   evidences,
+  evidenceOnly = false,
   dataset,
   criterionRequired,
   disabled,
@@ -257,364 +259,380 @@ export function TrajectorySection({
   let previousYear = '';
   return (
     <div className="space-y-6">
-      <section className="panel space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold">Trajetória profissional</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
-              Organize atividades e referências documentais sem anexar arquivos.
-            </p>
-          </div>
-          {!activityOpen && (
-            <Button
-              disabled={disabled}
-              onClick={() => {
-                focusActivityForm.current = true;
-                setEditingActivity(undefined);
-                activityForm.reset(emptyActivityForm);
-                setActivityOpen(true);
-              }}
-            >
-              Adicionar atividade
-            </Button>
-          )}
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label htmlFor="activity-search">
-            Buscar atividades
-            <input
-              id="activity-search"
-              className="field"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </label>
-          <label htmlFor="activity-category-filter">
-            Filtrar por categoria
-            <select
-              id="activity-category-filter"
-              className="field"
-              value={category}
-              onChange={(event) =>
-                setCategory(event.target.value as '' | (typeof activityCategories)[number])
-              }
-            >
-              <option value="">Todas as categorias</option>
-              {activityCategories.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {!activities.length && (
-          <div className="rounded border border-dashed border-slate-600 p-5 text-slate-300">
-            <p className="font-medium text-slate-100">Nenhuma atividade registrada.</p>
-            <p className="mt-2">Use o formulário amplo abaixo para iniciar sua trajetória.</p>
-          </div>
-        )}
-        {activities.length > 0 && !filtered.length && (
-          <p role="status" className="rounded border border-slate-600 p-4 text-slate-300">
-            Nenhuma atividade corresponde à busca e ao filtro atuais.
-          </p>
-        )}
-        <ol className="space-y-4" aria-label="Atividades">
-          {filtered.map((activity) => {
-            const year = activityYear(activity);
-            const showYear = year !== previousYear;
-            previousYear = year;
-            const linkedEvidence = activity.evidenceIds
-              .map((id) => evidences.find((evidence) => evidence.id === id))
-              .filter((evidence): evidence is Evidence => Boolean(evidence));
-            return (
-              <li key={activity.id}>
-                {showYear && <h3 className="mb-3 text-lg font-semibold text-cyan-200">{year}</h3>}
-                <article className="rounded-lg border border-slate-600 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm text-cyan-200">
-                        {activity.category ?? 'Categoria não informada'}
-                      </p>
-                      <h4 className="break-words text-lg font-semibold">{activity.title}</h4>
-                      {(activity.institution || activity.department) && (
-                        <p className="break-words text-slate-300">
-                          {[activity.institution, activity.department].filter(Boolean).join(' · ')}
-                        </p>
-                      )}
-                    </div>
-                    <span className="rounded-full border border-slate-600 px-3 py-1 text-sm">
-                      Quantidade: {activity.quantity}
-                    </span>
-                  </div>
-                  <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-                    {(activity.startDate || activity.endDate) && (
-                      <div>
-                        <dt className="text-slate-400">Período</dt>
-                        <dd>
-                          {dateLabel(activity.startDate) || 'Início não informado'} –{' '}
-                          {dateLabel(activity.endDate) || 'Em andamento'}
-                        </dd>
-                      </div>
-                    )}
-                    {activity.role && (
-                      <div>
-                        <dt className="text-slate-400">Papel ou função</dt>
-                        <dd>{activity.role}</dd>
-                      </div>
-                    )}
-                    {activity.description && (
-                      <div className="sm:col-span-2">
-                        <dt className="text-slate-400">Descrição</dt>
-                        <dd className="whitespace-pre-wrap break-words">{activity.description}</dd>
-                      </div>
-                    )}
-                    {activity.results && (
-                      <div className="sm:col-span-2">
-                        <dt className="text-slate-400">Resultados</dt>
-                        <dd className="whitespace-pre-wrap break-words">{activity.results}</dd>
-                      </div>
-                    )}
-                    {activity.competencies?.length ? (
-                      <div className="sm:col-span-2">
-                        <dt className="text-slate-400">Competências</dt>
-                        <dd>{activity.competencies.join(' · ')}</dd>
-                      </div>
-                    ) : null}
-                    <div>
-                      <dt className="text-slate-400">Referência de critério</dt>
-                      <dd>{activity.criterionId || 'Não definida'}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-slate-400">Evidências</dt>
-                      <dd>{linkedEvidence.map((item) => item.title).join(' · ') || 'Nenhuma'}</dd>
-                    </div>
-                  </dl>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={disabled}
-                      aria-label={`Editar atividade ${activity.title}`}
-                      onClick={() => {
-                        focusActivityForm.current = true;
-                        setEditingActivity(activity);
-                        setActivityOpen(true);
-                      }}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={disabled}
-                      aria-label={`Duplicar atividade ${activity.title}`}
-                      onClick={() =>
-                        onSave({
-                          activities: sortActivitiesChronologically([
-                            ...activities,
-                            duplicateActivity(activity),
-                          ]),
-                          evidence: evidences,
-                        })
-                      }
-                    >
-                      Duplicar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={disabled}
-                      aria-label={`Excluir atividade ${activity.title}`}
-                      onClick={() => setDeletingActivity(activity)}
-                    >
-                      Excluir
-                    </Button>
-                  </div>
-                </article>
-              </li>
-            );
-          })}
-        </ol>
-      </section>
-
-      {activityOpen && (
-        <section className="panel">
-          <h2 className="text-xl font-semibold">
-            {editingActivity ? `Editar ${editingActivity.title}` : 'Adicionar atividade'}
-          </h2>
-          <p id="activity-required" className="mt-2 text-sm text-slate-300">
-            Campos com <span aria-hidden="true">*</span> são obrigatórios. A referência de critério
-            não é inferida pela categoria.
-          </p>
-          <form
-            className="mt-5"
-            noValidate
-            aria-describedby="activity-required"
-            onSubmit={activityForm.handleSubmit(saveActivity)}
-          >
-            <fieldset disabled={disabled} className="grid gap-5 sm:grid-cols-2">
-              <legend className="sr-only">Dados da atividade</legend>
-              <div className="sm:col-span-2">
-                <ActivityField
-                  id="title"
-                  label="Título da atividade"
-                  required
-                  register={activityForm.register}
-                  error={activityForm.formState.errors.title}
-                />
+      {!evidenceOnly && (
+        <>
+          <section className="panel space-y-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold">Trajetória profissional</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  Organize atividades e referências documentais sem anexar arquivos.
+                </p>
               </div>
-              <label className="block" htmlFor="activity-category">
-                Categoria{' '}
-                <span className="text-cyan-200">
-                  <span aria-hidden="true">*</span>
-                  <span className="sr-only">(obrigatório)</span>
-                </span>
-                <select
-                  id="activity-category"
-                  className="field"
-                  aria-invalid={Boolean(activityForm.formState.errors.category)}
-                  aria-describedby={
-                    activityForm.formState.errors.category ? 'activity-category-error' : undefined
-                  }
-                  {...activityForm.register('category')}
+              {!activityOpen && (
+                <Button
+                  disabled={disabled}
+                  onClick={() => {
+                    focusActivityForm.current = true;
+                    setEditingActivity(undefined);
+                    activityForm.reset(emptyActivityForm);
+                    setActivityOpen(true);
+                  }}
                 >
-                  <option value="" disabled>
-                    Selecione
-                  </option>
+                  Adicionar atividade
+                </Button>
+              )}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label htmlFor="activity-search">
+                Buscar atividades
+                <input
+                  id="activity-search"
+                  className="field"
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </label>
+              <label htmlFor="activity-category-filter">
+                Filtrar por categoria
+                <select
+                  id="activity-category-filter"
+                  className="field"
+                  value={category}
+                  onChange={(event) =>
+                    setCategory(event.target.value as '' | (typeof activityCategories)[number])
+                  }
+                >
+                  <option value="">Todas as categorias</option>
                   {activityCategories.map((item) => (
                     <option key={item}>{item}</option>
                   ))}
                 </select>
-                {activityForm.formState.errors.category && (
-                  <span id="activity-category-error" className="mt-1 block text-sm text-rose-200">
-                    {activityForm.formState.errors.category.message}
-                  </span>
-                )}
               </label>
-              <ActivityField
-                id="quantity"
-                label="Quantidade declarada"
-                required
-                type="number"
-                register={activityForm.register}
-                error={activityForm.formState.errors.quantity}
-              />
-              <ActivityField
-                id="institution"
-                label="Instituição"
-                register={activityForm.register}
-                error={activityForm.formState.errors.institution}
-              />
-              <ActivityField
-                id="department"
-                label="Setor ou departamento"
-                register={activityForm.register}
-                error={activityForm.formState.errors.department}
-              />
-              <ActivityField
-                id="startDate"
-                label="Data inicial"
-                type="date"
-                register={activityForm.register}
-                error={activityForm.formState.errors.startDate}
-              />
-              <ActivityField
-                id="endDate"
-                label="Data final"
-                type="date"
-                register={activityForm.register}
-                error={activityForm.formState.errors.endDate}
-              />
-              <ActivityField
-                id="role"
-                label="Papel ou função"
-                register={activityForm.register}
-                error={activityForm.formState.errors.role}
-              />
-              <CriterionCombobox
-                dataset={dataset}
-                value={selectedCriterionId}
-                required={criterionRequired}
-                disabled={disabled}
-                error={activityForm.formState.errors.criterionId?.message}
-                onSelect={(criterionId, level) => {
-                  activityForm.setValue('criterionId', criterionId, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                  activityForm.setValue('selectedLevel', level ?? '', {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }}
-              />
-              <div className="sm:col-span-2">
-                <ActivityTextArea
-                  id="description"
-                  label="Descrição"
-                  register={activityForm.register}
-                  error={activityForm.formState.errors.description}
-                />
+            </div>
+            {!activities.length && (
+              <div className="rounded border border-dashed border-slate-600 p-5 text-slate-300">
+                <p className="font-medium text-slate-100">Nenhuma atividade registrada.</p>
+                <p className="mt-2">Use o formulário amplo abaixo para iniciar sua trajetória.</p>
               </div>
-              <div className="sm:col-span-2">
-                <ActivityTextArea
-                  id="results"
-                  label="Resultados"
-                  register={activityForm.register}
-                  error={activityForm.formState.errors.results}
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <ActivityTextArea
-                  id="competencies"
-                  label="Competências"
-                  hint="Informe uma competência por linha."
-                  register={activityForm.register}
-                  error={activityForm.formState.errors.competencies}
-                />
-              </div>
-              <fieldset className="rounded border border-slate-600 p-4 sm:col-span-2">
-                <legend className="px-1 font-medium">Evidências vinculadas</legend>
-                {!evidences.length ? (
-                  <p className="text-sm text-slate-300">
-                    Cadastre uma referência documental nesta página para vinculá-la.
-                  </p>
-                ) : (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {evidences.map((evidence) => (
-                      <label key={evidence.id} className="flex items-start gap-3 rounded p-2">
-                        <input
-                          className="mt-1 size-4 accent-cyan-400"
-                          type="checkbox"
-                          value={evidence.id}
-                          {...activityForm.register('evidenceIds')}
-                        />
-                        <span>
-                          <span className="block">{evidence.title}</span>
-                          <span className="text-sm text-slate-400">
-                            {evidence.type || 'Tipo não informado'}
-                          </span>
+            )}
+            {activities.length > 0 && !filtered.length && (
+              <p role="status" className="rounded border border-slate-600 p-4 text-slate-300">
+                Nenhuma atividade corresponde à busca e ao filtro atuais.
+              </p>
+            )}
+            <ol className="space-y-4" aria-label="Atividades">
+              {filtered.map((activity) => {
+                const year = activityYear(activity);
+                const showYear = year !== previousYear;
+                previousYear = year;
+                const linkedEvidence = activity.evidenceIds
+                  .map((id) => evidences.find((evidence) => evidence.id === id))
+                  .filter((evidence): evidence is Evidence => Boolean(evidence));
+                return (
+                  <li key={activity.id}>
+                    {showYear && (
+                      <h3 className="mb-3 text-lg font-semibold text-cyan-200">{year}</h3>
+                    )}
+                    <article className="rounded-lg border border-slate-600 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm text-cyan-200">
+                            {activity.category ?? 'Categoria não informada'}
+                          </p>
+                          <h4 className="break-words text-lg font-semibold">{activity.title}</h4>
+                          {(activity.institution || activity.department) && (
+                            <p className="break-words text-slate-300">
+                              {[activity.institution, activity.department]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </p>
+                          )}
+                        </div>
+                        <span className="rounded-full border border-slate-600 px-3 py-1 text-sm">
+                          Quantidade: {activity.quantity}
                         </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </fieldset>
-              <div className="flex flex-wrap gap-3 sm:col-span-2">
-                <Button type="submit">
-                  {editingActivity ? 'Salvar atividade' : 'Adicionar atividade'}
-                </Button>
-                {(editingActivity || activities.length > 0) && (
-                  <Button type="button" variant="outline" onClick={closeActivity}>
-                    Cancelar
-                  </Button>
-                )}
-              </div>
-            </fieldset>
-          </form>
-        </section>
-      )}
+                      </div>
+                      <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                        {(activity.startDate || activity.endDate) && (
+                          <div>
+                            <dt className="text-slate-400">Período</dt>
+                            <dd>
+                              {dateLabel(activity.startDate) || 'Início não informado'} –{' '}
+                              {dateLabel(activity.endDate) || 'Em andamento'}
+                            </dd>
+                          </div>
+                        )}
+                        {activity.role && (
+                          <div>
+                            <dt className="text-slate-400">Papel ou função</dt>
+                            <dd>{activity.role}</dd>
+                          </div>
+                        )}
+                        {activity.description && (
+                          <div className="sm:col-span-2">
+                            <dt className="text-slate-400">Descrição</dt>
+                            <dd className="whitespace-pre-wrap break-words">
+                              {activity.description}
+                            </dd>
+                          </div>
+                        )}
+                        {activity.results && (
+                          <div className="sm:col-span-2">
+                            <dt className="text-slate-400">Resultados</dt>
+                            <dd className="whitespace-pre-wrap break-words">{activity.results}</dd>
+                          </div>
+                        )}
+                        {activity.competencies?.length ? (
+                          <div className="sm:col-span-2">
+                            <dt className="text-slate-400">Competências</dt>
+                            <dd>{activity.competencies.join(' · ')}</dd>
+                          </div>
+                        ) : null}
+                        <div>
+                          <dt className="text-slate-400">Referência de critério</dt>
+                          <dd>{activity.criterionId || 'Não definida'}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-400">Evidências</dt>
+                          <dd>
+                            {linkedEvidence.map((item) => item.title).join(' · ') || 'Nenhuma'}
+                          </dd>
+                        </div>
+                      </dl>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={disabled}
+                          aria-label={`Editar atividade ${activity.title}`}
+                          onClick={() => {
+                            focusActivityForm.current = true;
+                            setEditingActivity(activity);
+                            setActivityOpen(true);
+                          }}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={disabled}
+                          aria-label={`Duplicar atividade ${activity.title}`}
+                          onClick={() =>
+                            onSave({
+                              activities: sortActivitiesChronologically([
+                                ...activities,
+                                duplicateActivity(activity),
+                              ]),
+                              evidence: evidences,
+                            })
+                          }
+                        >
+                          Duplicar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={disabled}
+                          aria-label={`Excluir atividade ${activity.title}`}
+                          onClick={() => setDeletingActivity(activity)}
+                        >
+                          Excluir
+                        </Button>
+                      </div>
+                    </article>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
 
+          {activityOpen && (
+            <section className="panel">
+              <h2 className="text-xl font-semibold">
+                {editingActivity ? `Editar ${editingActivity.title}` : 'Adicionar atividade'}
+              </h2>
+              <p id="activity-required" className="mt-2 text-sm text-slate-300">
+                Campos com <span aria-hidden="true">*</span> são obrigatórios. A referência de
+                critério não é inferida pela categoria.
+              </p>
+              <form
+                className="mt-5"
+                noValidate
+                aria-describedby="activity-required"
+                onSubmit={activityForm.handleSubmit(saveActivity)}
+              >
+                <fieldset disabled={disabled} className="grid gap-5 sm:grid-cols-2">
+                  <legend className="sr-only">Dados da atividade</legend>
+                  <div className="sm:col-span-2">
+                    <ActivityField
+                      id="title"
+                      label="Título da atividade"
+                      required
+                      register={activityForm.register}
+                      error={activityForm.formState.errors.title}
+                    />
+                  </div>
+                  <label className="block" htmlFor="activity-category">
+                    Categoria{' '}
+                    <span className="text-cyan-200">
+                      <span aria-hidden="true">*</span>
+                      <span className="sr-only">(obrigatório)</span>
+                    </span>
+                    <select
+                      id="activity-category"
+                      className="field"
+                      aria-invalid={Boolean(activityForm.formState.errors.category)}
+                      aria-describedby={
+                        activityForm.formState.errors.category
+                          ? 'activity-category-error'
+                          : undefined
+                      }
+                      {...activityForm.register('category')}
+                    >
+                      <option value="" disabled>
+                        Selecione
+                      </option>
+                      {activityCategories.map((item) => (
+                        <option key={item}>{item}</option>
+                      ))}
+                    </select>
+                    {activityForm.formState.errors.category && (
+                      <span
+                        id="activity-category-error"
+                        className="mt-1 block text-sm text-rose-200"
+                      >
+                        {activityForm.formState.errors.category.message}
+                      </span>
+                    )}
+                  </label>
+                  <ActivityField
+                    id="quantity"
+                    label="Quantidade declarada"
+                    required
+                    type="number"
+                    register={activityForm.register}
+                    error={activityForm.formState.errors.quantity}
+                  />
+                  <ActivityField
+                    id="institution"
+                    label="Instituição"
+                    register={activityForm.register}
+                    error={activityForm.formState.errors.institution}
+                  />
+                  <ActivityField
+                    id="department"
+                    label="Setor ou departamento"
+                    register={activityForm.register}
+                    error={activityForm.formState.errors.department}
+                  />
+                  <ActivityField
+                    id="startDate"
+                    label="Data inicial"
+                    type="date"
+                    register={activityForm.register}
+                    error={activityForm.formState.errors.startDate}
+                  />
+                  <ActivityField
+                    id="endDate"
+                    label="Data final"
+                    type="date"
+                    register={activityForm.register}
+                    error={activityForm.formState.errors.endDate}
+                  />
+                  <ActivityField
+                    id="role"
+                    label="Papel ou função"
+                    register={activityForm.register}
+                    error={activityForm.formState.errors.role}
+                  />
+                  <CriterionCombobox
+                    dataset={dataset}
+                    value={selectedCriterionId}
+                    required={criterionRequired}
+                    disabled={disabled}
+                    error={activityForm.formState.errors.criterionId?.message}
+                    onSelect={(criterionId, level) => {
+                      activityForm.setValue('criterionId', criterionId, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                      activityForm.setValue('selectedLevel', level ?? '', {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                    }}
+                  />
+                  <div className="sm:col-span-2">
+                    <ActivityTextArea
+                      id="description"
+                      label="Descrição"
+                      register={activityForm.register}
+                      error={activityForm.formState.errors.description}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <ActivityTextArea
+                      id="results"
+                      label="Resultados"
+                      register={activityForm.register}
+                      error={activityForm.formState.errors.results}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <ActivityTextArea
+                      id="competencies"
+                      label="Competências"
+                      hint="Informe uma competência por linha."
+                      register={activityForm.register}
+                      error={activityForm.formState.errors.competencies}
+                    />
+                  </div>
+                  <fieldset className="rounded border border-slate-600 p-4 sm:col-span-2">
+                    <legend className="px-1 font-medium">Evidências vinculadas</legend>
+                    {!evidences.length ? (
+                      <p className="text-sm text-slate-300">
+                        Cadastre uma referência documental nesta página para vinculá-la.
+                      </p>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {evidences.map((evidence) => (
+                          <label key={evidence.id} className="flex items-start gap-3 rounded p-2">
+                            <input
+                              className="mt-1 size-4 accent-cyan-400"
+                              type="checkbox"
+                              value={evidence.id}
+                              {...activityForm.register('evidenceIds')}
+                            />
+                            <span>
+                              <span className="block">{evidence.title}</span>
+                              <span className="text-sm text-slate-400">
+                                {evidence.type || 'Tipo não informado'}
+                              </span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </fieldset>
+                  <div className="flex flex-wrap gap-3 sm:col-span-2">
+                    <Button type="submit">
+                      {editingActivity ? 'Salvar atividade' : 'Adicionar atividade'}
+                    </Button>
+                    {(editingActivity || activities.length > 0) && (
+                      <Button type="button" variant="outline" onClick={closeActivity}>
+                        Cancelar
+                      </Button>
+                    )}
+                  </div>
+                </fieldset>
+              </form>
+            </section>
+          )}
+        </>
+      )}
       <section className="panel space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>

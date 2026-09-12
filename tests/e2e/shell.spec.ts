@@ -24,13 +24,13 @@ test('todas as seções funcionam por URL, reload e navegação', async ({ page 
   for (const [path, label] of [
     ['profile', 'Dados do docente'],
     ['education', 'Formação'],
-    ['activities', 'Trajetória'],
+    ['activities', 'Cadastro anterior'],
     ['criteria', 'Critérios'],
     ['scoring', 'Pontuação'],
     ['memorial', 'Memorial'],
     ['preview', 'Prévia'],
     ['review', 'Revisão'],
-    ['export', 'Exportar'],
+    ['export', 'Gerar documentos'],
   ]) {
     await page.goto(`${url}/${path}`);
     await expect(page.getByRole('heading', { name: label, exact: true, level: 1 })).toBeVisible();
@@ -47,7 +47,7 @@ test('todas as seções funcionam por URL, reload e navegação', async ({ page 
   await page.getByLabel(/^Curso ou título/).fill('Especialização');
   await page.getByLabel(/^Instituição/).fill('Instituição de teste');
   await page.getByRole('button', { name: 'Adicionar formação' }).click();
-  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
   await page.getByLabel(/^Título da atividade/).fill('Atividade de ensino');
   await page.getByLabel(/^Categoria/).selectOption('Ensino');
   await page.getByLabel(/^Quantidade declarada/).fill('3');
@@ -206,7 +206,7 @@ test('formações oferecem CRUD cronológico, responsivo e acessível', async ({
 
 test('trajetória organiza períodos, filtros e evidências sem anexar arquivos', async ({ page }) => {
   await start(page);
-  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
   const waitForSave = async () => {
     await expect(page.getByText('Salvando…', { exact: true })).toBeVisible();
     await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
@@ -285,7 +285,7 @@ test('memorial gera, preserva e regenera narrativas localmente', async ({ page }
     await expect(page.getByText('Salvando…', { exact: true })).toBeVisible();
     await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
   };
-  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
   await page.getByLabel(/^Título da atividade/).fill('Docência no curso técnico');
   await page.getByLabel(/^Categoria/).selectOption('Ensino');
   await page.getByLabel(/^Quantidade declarada/).fill('1');
@@ -302,7 +302,7 @@ test('memorial gera, preserva e regenera narrativas localmente', async ({ page }
   await narrative.fill('Narrativa autoral preservada.');
   await waitForSave();
 
-  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
   await page.getByRole('button', { name: 'Editar atividade Docência no curso técnico' }).click();
   await page.getByLabel(/^Resultados/).fill('Resultado estruturado alterado');
   await page.getByRole('button', { name: 'Salvar atividade' }).click();
@@ -316,7 +316,7 @@ test('memorial gera, preserva e regenera narrativas localmente', async ({ page }
   await page.reload();
   await expect(page.getByLabel('Texto da atividade')).toHaveValue('Narrativa autoral preservada.');
 
-  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
   await page.getByRole('button', { name: 'Editar atividade Docência no curso técnico' }).click();
   await page.getByLabel(/^Resultados/).fill('Resultado final para regeneração');
   await page.getByRole('button', { name: 'Salvar atividade' }).click();
@@ -354,7 +354,7 @@ test('critérios mostram o catálogo pendente sem presumir opções normativas',
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.screenshot({ path: '/tmp/rscflow-criteria-pending.png', fullPage: true });
 
-  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
   await expect(page.getByRole('combobox', { name: /Critério RSC/ })).toBeDisabled();
   await expect(page.getByText(/A seleção exige um catálogo vinculado e validado/)).toBeVisible();
 });

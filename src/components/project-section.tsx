@@ -1,3 +1,6 @@
+import { RscSection } from './rsc-section';
+import { ChronologicalView } from './chronological-view';
+import { ProcessOverview } from './process-overview';
 import {
   activityProjectView,
   applyActivityProjectEdits,
@@ -84,7 +87,7 @@ function ActivityProjectSection(props: Props & { sourceProps?: Props }) {
     return (
       <div className="space-y-6">
         <section className="panel">
-          <h2 className="text-xl font-semibold">Seu memorial, etapa por etapa</h2>
+          <h2 className="text-xl font-semibold">Seu processo de RSC</h2>
           <p className="mt-3 text-slate-300">
             {progress.percent}% de preenchimento aproximado. Este indicador organiza o trabalho; não
             representa pontuação ou elegibilidade.
@@ -97,7 +100,7 @@ function ActivityProjectSection(props: Props & { sourceProps?: Props }) {
           />
           <ul className="grid gap-3 sm:grid-cols-2">
             {progress.items.map((item) => (
-              <li key={item.section}>
+              <li key={item.label}>
                 <Link
                   className="block rounded border border-slate-600 p-3 hover:bg-slate-800"
                   to={projectPath(record.localId, item.section)}
@@ -110,6 +113,7 @@ function ActivityProjectSection(props: Props & { sourceProps?: Props }) {
           </ul>
         </section>
         <ScoringDashboard result={scoring} compact />
+        <ProcessOverview record={props.sourceProps?.record ?? record} />
         <section className="panel">
           <h2 className="text-xl font-semibold">Regulamento vinculado</h2>
           <p className="mt-3 break-words">
@@ -122,6 +126,38 @@ function ActivityProjectSection(props: Props & { sourceProps?: Props }) {
           </p>
         </section>
       </div>
+    );
+
+  if (section === 'rsc-i' || section === 'rsc-ii' || section === 'rsc-iii')
+    return (
+      <RscSection
+        level={section}
+        dataset={dataset}
+        scoring={scoring}
+        activities={data.activities}
+        evidences={data.evidence}
+        disabled={busy}
+        onSave={(activities) => update({ activities })}
+      />
+    );
+  if (section === 'timeline')
+    return (
+      <ChronologicalView
+        activities={data.activities}
+        evidences={data.evidence}
+        localId={record.localId}
+      />
+    );
+  if (section === 'evidence')
+    return (
+      <TrajectorySection
+        evidenceOnly
+        activities={data.activities}
+        evidences={data.evidence}
+        criterionRequired={false}
+        disabled={busy}
+        onSave={(patch) => update(patch)}
+      />
     );
 
   if (section === 'profile')

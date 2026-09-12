@@ -8,7 +8,7 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   await page.getByRole('button', { name: 'Criar projeto', exact: true }).click();
   await page.getByRole('link', { name: 'Revisão', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Correções necessárias' })).toBeVisible();
-  await page.getByRole('link', { name: 'Exportar', exact: true }).click();
+  await page.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
   await expect(page.getByRole('main').getByRole('button', { name: 'Gerar PDF' })).toBeDisabled();
   await expect(page.getByRole('main').getByRole('button', { name: 'Exportar JSON' })).toBeEnabled();
   await page.getByRole('link', { name: 'Dados do docente', exact: true }).click();

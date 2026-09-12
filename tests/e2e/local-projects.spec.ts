@@ -20,7 +20,7 @@ test('cria rascunho, salva, recarrega, duplica, exclui e transporta JSON', async
   await expect(page.getByLabel(/^Nome completo/)).toHaveValue('Docente de teste');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
-  await page.getByRole('link', { name: 'Exportar', exact: true }).click();
+  await page.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
   await page.getByText('Edição avançada dos dados JSON').click();
   const editor = page.getByLabel('Dados editáveis do projeto (JSON)');
   const data = {
@@ -115,19 +115,19 @@ test('cria rascunho, salva, recarrega, duplica, exclui e transporta JSON', async
     });
     await other.getByRole('button', { name: 'Importar como novo projeto' }).click();
     await expect(other).toHaveURL(/\/project\/[^/]+$/);
-    await other.getByRole('link', { name: 'Exportar', exact: true }).click();
+    await other.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
     await other.getByText('Edição avançada dos dados JSON').click();
     const otherEditor = other.getByLabel('Dados editáveis do projeto (JSON)');
     expect(JSON.parse(await otherEditor.inputValue())).toEqual(data);
     await other.getByRole('link', { name: 'Formação', exact: true }).click();
     await expect(other.getByRole('heading', { name: 'Curso transportado' })).toBeVisible();
     await expect(other.getByText('Certificado 42')).toBeVisible();
-    await other.getByRole('link', { name: 'Trajetória', exact: true }).click();
+    await other.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
     await expect(other.getByRole('heading', { name: 'Atividade transportada' })).toBeVisible();
     await expect(other.getByRole('list', { name: 'Atividades' })).toContainText(
       'Portaria transportada',
     );
-    await other.getByRole('link', { name: 'Exportar', exact: true }).click();
+    await other.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
     await other.reload();
     await other.getByText('Edição avançada dos dados JSON').click();
     expect(JSON.parse(await otherEditor.inputValue())).toEqual(data);

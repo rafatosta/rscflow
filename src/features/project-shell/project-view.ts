@@ -18,7 +18,7 @@ export function createDraft(level: RscLevel, datasetId: string) {
     regulation: { id: datasetId, version: dataset.metadata.version },
     userData: {
       id: crypto.randomUUID(),
-      title: `Memorial ${levelLabel(rscLevelSchema.parse(level))}`,
+      title: `Processo ${levelLabel(rscLevelSchema.parse(level))}`,
       teacher: { name: '' },
       request: { level },
       education: [],
@@ -42,10 +42,14 @@ export function completion(project: ProjectExport) {
       complete: teacherProfileIsComplete(view),
     },
     { label: 'Formação registrada', section: 'education', complete: data.education.length > 0 },
-    { label: 'Trajetória registrada', section: 'activities', complete: data.activities.length > 0 },
     {
-      label: 'Atividades com enquadramento',
-      section: 'criteria',
+      label: 'Lançamentos registrados',
+      section: view.userData.request?.level ?? 'rsc-i',
+      complete: data.activities.length > 0,
+    },
+    {
+      label: 'Lançamentos com enquadramento',
+      section: view.userData.request?.level ?? 'rsc-i',
       complete:
         data.activities.length > 0 &&
         data.activities.every((item) => item.criterionId && item.selectedLevel),

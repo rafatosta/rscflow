@@ -46,7 +46,7 @@ test('percorre elaboração, cálculo, revisão e exportações em um projeto co
   await page.getByRole('button', { name: 'Adicionar formação' }).click();
   await waitForAutosave(page);
 
-  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
   await page.getByLabel(/^Título da atividade/).fill('Orientações acima do limite');
   await page.getByLabel(/^Categoria/).selectOption('Ensino');
   await page.getByLabel(/^Quantidade declarada/).fill('99');
@@ -106,7 +106,7 @@ test('percorre elaboração, cálculo, revisão e exportações em um projeto co
   ).toBeVisible();
   await expect(page.getByText(/Orientações acima do limite.*não possui documento/)).toBeVisible();
 
-  await page.getByRole('link', { name: 'Exportar', exact: true }).click();
+  await page.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
   const jsonDownloadPromise = page.waitForEvent('download');
   await page
     .getByRole('article')
@@ -127,7 +127,7 @@ test('percorre elaboração, cálculo, revisão e exportações em um projeto co
   await expect(page).not.toHaveURL(new RegExp(`${projectUrl}(?:/export)?$`));
   await expect(page.getByRole('heading', { name: 'Visão geral', level: 1 })).toBeVisible();
 
-  await page.getByRole('link', { name: 'Exportar', exact: true }).click();
+  await page.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
   const pdfDownloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Gerar PDF' }).click();
   const pdf = await downloadBytes(await pdfDownloadPromise);

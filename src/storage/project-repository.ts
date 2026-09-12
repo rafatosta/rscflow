@@ -102,6 +102,18 @@ export class DexieProjectRepository implements ProjectRepository {
     return active?.localId ? this.load(active.localId) : undefined;
   }
 
+  async recordBackup(
+    localId: string,
+    backup: NonNullable<LocalProject['lastBackup']>,
+  ): Promise<void> {
+    await this.database.transaction('rw', this.database.projects, async () => {
+      const record = await this.database.projects.get(localId);
+      if (!record) throw new ProjectStorageError('Projeto não encontrado.');
+      if (record.lastBackup && record.lastBackup.createdAt > backup.createdAt) return;
+      await this.database.projects.put({ ...record, lastBackup: backup });
+    });
+  }
+
   private async requireRevision(localId: string, revision: number): Promise<LocalProject> {
     const record = await this.database.projects.get(localId);
     if (!record)

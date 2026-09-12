@@ -6,6 +6,11 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Preenchimento por RSC I/II/III, com busca por descrição, diretrizes, limites, pontuação derivada e CRUD de lançamentos.
+- Seção própria de comprovantes e trajetória cronológica derivada, mantendo o cadastro anterior como compatibilidade.
+- Visão geral do processo com pendências, referências documentais e histórico local de backup JSON com detecção de alterações.
+- Testes de cadastro por RSC, compartilhamento de evidências, backup, teclado, responsividade e acessibilidade.
+
 - Domínio 3.0 com lançamentos por critério, ocorrências, evidências compartilhadas e descritores de arquivos.
 - Migração explícita de 2.0/2.1 em nova cópia, sem perda de autoria, quantidades ou referências; legado 1.0 permanece opaco.
 - Ponte compatível para formulários, pontuação e memorial, com importação/exportação e autosave de 3.0 e testes de migração/round-trip.

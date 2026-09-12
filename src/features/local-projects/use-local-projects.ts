@@ -1,3 +1,4 @@
+import { projectFingerprint } from './backup-status';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { LocalProject, ProjectRepository, SaveState } from '@/domain/local-project';
 import { portableProject } from '@/domain/portable-project';
@@ -125,6 +126,26 @@ export function useLocalProjects(repository: ProjectRepository) {
     open(record);
   }
 
+  async function backup(record: LocalProject, project: ProjectExport) {
+    try {
+      downloadProject(project);
+      if (!repository.recordBackup) return;
+      const lastBackup = {
+        createdAt: new Date().toISOString(),
+        fingerprint: await projectFingerprint(project),
+      };
+      await repository.recordBackup(record.localId, lastBackup);
+      setProjects((records) =>
+        records.map((item) => (item.localId === record.localId ? { ...item, lastBackup } : item)),
+      );
+      setActive((current) =>
+        current?.localId === record.localId ? { ...current, lastBackup } : current,
+      );
+    } catch (cause) {
+      setError(storageErrorMessage(cause));
+    }
+  }
+
   return {
     flush: async () => {
       if (invalidRef.current) {
@@ -137,7 +158,7 @@ export function useLocalProjects(repository: ProjectRepository) {
     },
     exportRecord: (record: LocalProject) => {
       try {
-        downloadProject(record.project);
+        void backup(record, record.project);
       } catch (cause) {
         setError(storageErrorMessage(cause));
       }
@@ -200,7 +221,7 @@ export function useLocalProjects(repository: ProjectRepository) {
         return;
       }
       try {
-        downloadProject(latest.current);
+        if (active) void backup(active, latest.current);
       } catch (cause) {
         setError(storageErrorMessage(cause));
       }

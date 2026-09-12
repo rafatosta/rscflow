@@ -1,16 +1,15 @@
 # Experiência de uso
 
-A tela inicial prioriza criar ou continuar um memorial. Cada cartão mostra título, RSC pretendido, última alteração e preenchimento aproximado, além de continuar, duplicar, exportar e excluir. Exclusão exige confirmação em diálogo; cancelar mantém a cópia. Importações sempre criam uma cópia local separada.
+A tela inicial prioriza criar ou continuar um processo de RSC. Cada cartão mostra título, RSC pretendido, última alteração e preenchimento aproximado, além de continuar, duplicar, exportar e excluir. Exclusão exige confirmação em diálogo; cancelar mantém a cópia. Importações sempre criam uma cópia local separada.
 
 A criação pede somente RSC pretendido e regulamento/dataset. Título inicial é um rótulo de interface editável. Nome do docente e enquadramento podem estar ausentes em rascunhos 2.1. O catálogo pendente é identificado como tal e sua versão normativa permanece null.
 
 ## Mapa da jornada
 
-O fluxo principal segue Início → Visão geral → Dados do docente → Formação → Trajetória → Critérios
-→ Pontuação → Memorial → Prévia → Revisão → Exportar. A sidebar ou o Sheet permite acesso direto a
-qualquer etapa; não há desbloqueio artificial por sequência. Cada correção da revisão volta à rota
-responsável, e o autosave compartilhado protege a troca de seção. O mapa completo de URLs está em
-`docs/frontend.md`.
+O fluxo principal segue Início → Visão geral → Dados do docente → RSC I/II/III → Comprovantes
+→ Memorial → Revisão → Gerar documentos. Consultas e compatibilidade reúnem Formação, Trajetória,
+Critérios, Pontuação, Prévia e Cadastro anterior. O autosave protege a troca de seção, sem exigir
+sequência rígida. Consulte o mapa de URLs em `docs/frontend.md`.
 
 ## Feedback e autosave
 
@@ -67,3 +66,25 @@ O progresso é uma aproximação editorial: cinco grupos com o mesmo peso (ident
 Critérios e pontuação mostram o estado real do dataset vinculado. O catálogo pendente não gera opções normativas fictícias nem pontuação zero apresentada como resultado. “Cálculo parcial” descreve a indisponibilidade dos dados necessários e não apresenta um subtotal como definitivo. Nenhuma mensagem usa “RSC aprovado”; o dashboard se limita aos requisitos quantitativos. A prévia A4 representa o PDF produzido localmente, sem convertê-lo em documento oficial ou assinado. Referências de comprovantes contêm metadados, sem anexos binários.
 
 A edição avançada JSON permite preservar e alterar todos os campos dos contratos existentes. Arquivos 1.0 não são reinterpretados em formulários tipados. A continuidade em outro navegador exige exportar/importar a cópia, pois os dados são locais.
+
+## Processo como fluxo principal — etapa 03
+
+O docente escolhe RSC I/II/III, encontra uma descrição por busca textual e cadastra lançamentos
+naquele critério. A lista mostra período, título, quantidade e comprovantes associados. O código
+normativo é informação secundária. Pontuação e teto aparecem por diretriz; a indisponibilidade
+permanece explícita quando não há dados validados. Nenhum anexo é eixo de entrada.
+
+Comprovantes tem seção própria e pode reutilizar uma referência em diversos lançamentos. A
+trajetória é uma consulta cronológica desses mesmos registros. Cadastro anterior é uma entrada
+secundária de compatibilidade, inclusive para registros ainda sem nível ou critério. Textos
+manuais do memorial não são substituídos ao editar lançamentos.
+
+A visão geral apresenta progresso editorial, pontuação dos níveis, requisitos quantitativos,
+comprovantes cadastrados, lançamentos sem enquadramento/comprovação e último backup JSON.
+“Sem alterações” compara conteúdo com o hash da cópia gerada; editar mostra “Há alterações”.
+Um projeto importado ou duplicado começa sem histórico local de backup. O registro de download
+não confirma gravação física e não representa backup de arquivos binários, ainda não suportados.
+
+Novas telas refluem em uma coluna, aceitam descrições longas e mantêm rótulos, foco, confirmações,
+mensagens de erro e operação por teclado. A suíte E2E cobre cadastro por RSC em 360, 768 e 1440 px,
+além da matriz das rotas vazias com axe-core.

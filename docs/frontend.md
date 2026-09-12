@@ -8,7 +8,7 @@ O shell usa React Router com rotas de histórico do navegador. A aplicação é 
 | `/project/:id`            | Visão geral, progresso aproximado e regulamento vinculado                           |
 | `/project/:id/profile`    | Título, identificação do docente e RSC pretendido                                   |
 | `/project/:id/education`  | CRUD cronológico de formação, aperfeiçoamento e titulação                           |
-| `/project/:id/activities` | Timeline, CRUD, busca, filtros e evidências da trajetória profissional              |
+| `/project/:id/activities` | Cadastro anterior, preservado como recurso de compatibilidade                       |
 | `/project/:id/criteria`   | Exploração somente leitura do catálogo normativo por nível, diretriz e critério     |
 | `/project/:id/scoring`    | Resultado do motor ou motivos reais de indisponibilidade                            |
 | `/project/:id/memorial`   | Editor por seções e narrativas locais das atividades                                |
@@ -138,3 +138,37 @@ outra cópia como projeto local separado. A edição avançada do JSON continua 
 ## Publicação estática
 
 O servidor de arquivos deve encaminhar URLs desconhecidas para `index.html` (fallback de SPA) para permitir recarga direta de `/project/...`. Vite já faz isso em desenvolvimento. Isso não requer backend de dados. Os arquivos exportados são baixados por Blob; não há chamadas remotas para projetos.
+
+## Preenchimento por RSC — nova bateria, etapa 03
+
+A navegação principal passa a ser Visão geral, Dados do docente, RSC I, RSC II, RSC III,
+Comprovantes, Memorial, Revisão e Gerar documentos. Formação, Trajetória, Critérios, Pontuação,
+Prévia e Cadastro anterior ficam no grupo secundário de consultas e compatibilidade. A URL de
+exportação continua `/project/:id/export`, agora com título Gerar documentos.
+
+| Rota nova               | Comportamento                                              |
+| ----------------------- | ---------------------------------------------------------- |
+| `/project/:id/rsc-i`    | preenchimento por diretriz e critério no RSC I             |
+| `/project/:id/rsc-ii`   | preenchimento por diretriz e critério no RSC II            |
+| `/project/:id/rsc-iii`  | preenchimento por diretriz e critério no RSC III           |
+| `/project/:id/evidence` | cadastro, edição e exclusão de referências de comprovantes |
+| `/project/:id/timeline` | trajetória cronológica derivada, sem CRUD paralelo         |
+
+`RscSection` apresenta descrições normativas como título e códigos como referência secundária,
+fator, unidade, peso, limite do item, teto de diretriz e a pontuação produzida pelo motor. A busca
+usa o caso de uso existente e ignora acentos. Adicionar lançamento fixa explicitamente o critério
+e o nível escolhidos; o formulário pede título, quantidade, período, categoria editorial,
+descrição, local/função e evidências. Edição preserva dados adicionais não exibidos; exclusão
+confirmada não apaga comprovantes compartilhados. Foco segue ao título do lançamento e retorna
+ao acionador ao concluir ou cancelar.
+
+Projetos 2.0/2.1 usam o mesmo fluxo sem migração silenciosa; 3.0 persiste os lançamentos como
+ocorrências pela ponte existente. A criação continua em 2.1 e a conversão para 3.0 permanece
+explícita. O antigo CRUD em `/activities` é mantido como Cadastro anterior para continuidade dos
+projetos e revisão de enquadramentos pendentes; a trajetória principal é a rota `/timeline`.
+
+Catálogo pendente ou ausente mostra diagnóstico e preserva referências anteriores, sem inventar
+opções. Comprovantes ainda são metadados: a tela não anuncia arquivos anexados. A visão geral
+mostra contagens, pendências, pontuação e cópia JSON mais recente. O registro local de backup usa
+hash SHA-256 do envelope normalizado, data do download e comparação com o projeto atual. Não
+integra o envelope exportado nem altera a revisão de conteúdo do projeto.

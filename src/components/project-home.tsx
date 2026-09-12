@@ -48,8 +48,8 @@ export function ProjectHome({
   return (
     <div className="space-y-8">
       <p className="max-w-2xl leading-7 text-slate-300">
-        Organize seu memorial e continue de onde parou. Os dados ficam neste navegador; exporte uma
-        cópia para guardar ou levar a outro computador.
+        Organize seu processo de RSC e continue de onde parou. Os dados ficam neste navegador;
+        exporte uma cópia para guardar ou levar a outro computador.
       </p>
       <section aria-label="Novo projeto" className="panel">
         <h2 className="mb-4 text-xl font-semibold">Novo projeto</h2>
@@ -85,7 +85,7 @@ export function ProjectHome({
           </Button>
         </form>
         <p className="mt-3 text-sm text-amber-200">
-          Você pode começar o memorial com o catálogo pendente. A pontuação depende da validação
+          Você pode começar o processo com o catálogo pendente. A pontuação depende da validação
           normativa.
         </p>
         {error && <p role="alert">{error}</p>}

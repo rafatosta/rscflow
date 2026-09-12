@@ -10,7 +10,7 @@ test('migra em cópia, edita o domínio 3.0, recarrega e exporta sem perder refe
   await page.getByRole('button', { name: 'Criar projeto', exact: true }).click();
   await expect(page).toHaveURL(/\/project\/[^/]+$/);
   const originalUrl = page.url();
-  await page.getByRole('link', { name: 'Exportar', exact: true }).click();
+  await page.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
   await page.getByText('Edição avançada dos dados JSON').click();
   const editor = page.getByLabel('Dados editáveis do projeto (JSON)');
   const data = JSON.parse(await editor.inputValue());
@@ -40,11 +40,11 @@ test('migra em cópia, edita o domínio 3.0, recarrega e exporta sem perder refe
   await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByLabel(/^Nome completo/)).toHaveValue('Docente migrado');
-  await page.getByRole('link', { name: 'Trajetória', exact: true }).click();
+  await page.getByRole('link', { name: 'Cadastro anterior', exact: true }).click();
   await expect(page.getByText('Ocorrência 1', { exact: true })).toBeVisible();
   await expect(page.getByText('Ocorrência 2', { exact: true })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-  await page.getByRole('link', { name: 'Exportar', exact: true }).click();
+  await page.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Migrar para critérios e ocorrências em nova cópia' }),
   ).toHaveCount(0);

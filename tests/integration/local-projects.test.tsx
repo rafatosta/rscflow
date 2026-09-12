@@ -111,6 +111,6 @@ it('atualiza a data do último autosave exibida após a gravação', async () =>
     target: { value: 'Autosave atualizado' },
   });
   await screen.findByText('Salvo localmente');
-  fireEvent.click(screen.getByRole('link', { name: 'Exportar' }));
+  fireEvent.click(screen.getByRole('link', { name: 'Gerar documentos' }));
   expect(await screen.findByText(/02\/01\/2030/)).toBeVisible();
 });

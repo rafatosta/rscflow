@@ -28,14 +28,19 @@ for (const viewport of viewports) {
     for (const [path, heading] of [
       ['', 'Visão geral'],
       ['profile', 'Dados do docente'],
+      ['rsc-i', 'RSC I'],
+      ['rsc-ii', 'RSC II'],
+      ['rsc-iii', 'RSC III'],
+      ['evidence', 'Comprovantes'],
+      ['timeline', 'Trajetória'],
       ['education', 'Formação'],
-      ['activities', 'Trajetória'],
+      ['activities', 'Cadastro anterior'],
       ['criteria', 'Critérios'],
       ['scoring', 'Pontuação'],
       ['memorial', 'Memorial'],
       ['preview', 'Prévia'],
       ['review', 'Revisão'],
-      ['export', 'Exportar'],
+      ['export', 'Gerar documentos'],
     ]) {
       await page.goto(`${projectUrl}${path ? `/${path}` : ''}`);
       await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();

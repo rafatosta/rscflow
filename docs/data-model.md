@@ -96,3 +96,11 @@ não backup binário. Sem downgrade automático para 2.x.
 `applyActivityProjectEdits` aplica as edições de volta em 3.0, preservando descritores, fileIds,
 campos legados e identidade de grupos. Essa projeção não é formato de exportação. O editor JSON
 avançado e o download trabalham com o envelope 3.0 real, validados antes de autosave.
+
+## Histórico local da cópia JSON
+
+`LocalProject.lastBackup`, opcional, contém `createdAt` e `fingerprint` SHA-256 do conteúdo
+normalizado da última cópia JSON gerada. Não integra o envelope, não muda a revisão nem timestamp
+de edição, e não é herdado por importação/duplicação. O banco permanece v1. Hash igual significa
+igualdade do conteúdo do envelope, não garantia de disponibilidade de binários ou gravação do
+arquivo de download. Ausência da marca não é preenchida com data presumida.
