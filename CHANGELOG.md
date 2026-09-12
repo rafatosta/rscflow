@@ -6,6 +6,11 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Relatório do estado atual e plano incremental para critérios, ocorrências, arquivos locais,
+  mapas de páginas, saídas derivadas e backup completo, com migração e matriz de testes.
+- Registro da orientação da nova bateria: resolução como única fonte normativa oficial e
+  planilha informal como material auxiliar; incompatibilidade do schema registrada para correção.
+
 - Documentação consolidada de arquitetura, domínio, schemas, regulação, interface, UX, testes e fluxo de manutenção.
 - Matriz automatizada de dependências entre camadas e regressões contra rede, acesso normativo direto pela apresentação e implementações incompletas.
 - Procedimento auditável para corrigir JSON normativo conforme a precedência da resolução e registrar divergências.

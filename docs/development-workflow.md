@@ -16,7 +16,7 @@ Todo agente ou desenvolvedor segue esta sequência:
 
 ## Alterações normativas
 
-A prioridade é instrução atual do mantenedor, resolução oficial, planilha oficial, JSON validado,
+A prioridade é instrução atual do mantenedor, resolução oficial, JSON validado,
 documentação e código. A resolução prevalece sobre divergências com a planilha ou o JSON e a
 divergência deve ser documentada. Uma ambiguidade interna da resolução permanece pendente; não se
 infere seu significado. O procedimento de edição e validação está em `docs/rsc-regulation.md`.

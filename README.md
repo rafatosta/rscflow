@@ -12,8 +12,8 @@ JSON. O catálogo completo de diretrizes e critérios de RSC I, II e III ainda e
 `pending-official-validation`, arrays vazios e versão normativa `null`. Por isso, o dataset de
 produção retorna cálculo indisponível e a interface não cria critérios nem pontuações fictícias.
 
-Em divergências, vale a seguinte ordem: instrução atual do mantenedor, resolução oficial, planilha
-oficial, JSON normativo validado, documentação e código. A resolução prevalece sobre a planilha e o
+Em divergências, vale a seguinte ordem: instrução atual do mantenedor, resolução oficial,
+JSON normativo validado, documentação e código. A resolução prevalece sobre a planilha e o
 JSON; a divergência e suas fontes devem ser registradas. Ambiguidades internas da resolução não são
 resolvidas por inferência. Consulte [Dados e motor normativos](docs/rsc-regulation.md).
 
@@ -45,6 +45,10 @@ legado permanece opaco e o rascunho 2.1 preserva ausências explícitas. Valida�
 arquivo não certifica sua referência normativa nem sua pontuação.
 
 ## Arquitetura e manutenção
+
+A nova bateria começa pelo [relatório de análise e plano de refatoração](docs/plano-refatoracao.md),
+que registra o modelo alvo, a migração e a ordem dos incrementos. A resolução é a única fonte
+normativa oficial; a planilha é material informal auxiliar, conforme o roteiro de 11/09/2026.
 
 Antes de alterar código, leia [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) e a
 documentação pertinente:

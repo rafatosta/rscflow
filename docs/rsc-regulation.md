@@ -1,5 +1,13 @@
 # Dados e motor normativos
 
+## Atualização de fonte — nova bateria de 11/09/2026
+
+A resolução é a única fonte normativa oficial. A planilha anteriormente chamada de oficial é
+material informal auxiliar de terceiro. Esta orientação substitui essa classificação anterior.
+O schema ainda exige o campo `officialScoringSpreadsheet` para validar o catálogo; sua correção
+com compatibilidade está planejada em [plano-refatoracao.md](plano-refatoracao.md). A etapa de
+análise não alterou schemas ou datasets nem revalidou os parâmetros existentes.
+
 ## Precedência das fontes
 
 Decisão do mantenedor em 10/09/2026: **em divergências, prevalece sempre a normativa**. Essa decisão substitui o bloqueio anterior por divergências entre resolução, planilha e JSON. A fonte primária é a Resolução CONSUP/IFBA nº 189/2026 em `docs/ifba/`; a planilha é fonte auxiliar. Não se corrigem ambiguidades internas da resolução por inferência.

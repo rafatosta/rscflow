@@ -9,8 +9,8 @@ projeto. O fluxo detalhado está em [docs/development-workflow.md](docs/developm
 4. Acrescente teste para toda mudança de comportamento e atualize a documentação e o changelog.
 5. Execute a bateria completa de qualidade e relate qualquer verificação não executada.
 
-Dados normativos seguem a prioridade: instrução atual do mantenedor, resolução oficial, planilha
-oficial, JSON validado, documentação e código. A resolução prevalece quando divergir da planilha ou
+Dados normativos seguem a prioridade: instrução atual do mantenedor, resolução oficial,
+JSON validado, documentação e código. A resolução prevalece quando divergir da planilha ou
 do JSON; registre a diferença e as fontes. Se a própria resolução for ambígua, não escolha uma
 interpretação: mantenha o dado pendente e solicite decisão do mantenedor.
 

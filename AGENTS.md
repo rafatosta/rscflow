@@ -3,7 +3,7 @@
 Before changing code, every agent must read this file and the relevant documentation in `docs/`.
 
 1. Do not invent, complete, adjust, or reinterpret missing normative rules.
-2. Source-of-truth priority is: current maintainer instruction > official resolution > official scoring spreadsheet > validated normative JSON > documentation > code.
+2. Source-of-truth priority is: current maintainer instruction > official resolution > validated normative JSON > documentation > code. Conforme o roteiro da nova bateria de 11/09/2026, a resolução é a única fonte normativa oficial; a planilha é material informal auxiliar de terceiro, sem autoridade normativa.
 3. Em divergências entre resolução normativa, planilha e JSON, prevalece sempre a resolução normativa, conforme decisão do mantenedor em 10/09/2026. Registre a divergência e sua fonte. Não resolva por inferência ambiguidades internas da própria normativa.
 4. Keep domain, rules, persistence, UI, memorial, and PDF separate. Normative rules are forbidden in React components.
 5. Every behavioral change requires its corresponding test.
