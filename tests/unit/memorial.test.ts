@@ -152,7 +152,8 @@ describe('gerador determinístico do memorial', () => {
     project.userData.activities = [editActivityText(activity, 'Narrativa manual', [evidence])];
     project.userData.evidence = [evidence];
     const imported = projectExportSchema.parse(JSON.parse(exportProject(project)));
-    if (imported.schemaVersion === '1.0') throw new Error('Formato inesperado.');
+    if (imported.schemaVersion === '1.0' || imported.schemaVersion === '3.0')
+      throw new Error('Formato inesperado.');
     expect(imported.userData.memorial?.sectionTexts?.teaching).toBe('Texto autoral da seção');
     expect(imported.userData.activities[0]).toMatchObject({
       editedText: 'Narrativa manual',

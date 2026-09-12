@@ -67,3 +67,32 @@ Os campos estendidos de `education` também são opcionais no contrato para pres
 Os metadados adicionais de `activities` e `evidence` são opcionais no contrato 2.0/2.1 para leitura retrocompatível. Novas atividades recebem categoria, lista de competências, `createdAt` e `updatedAt`. `criterionId` representa a referência normativa declarada e `evidenceIds` mantém vínculos por ID com a coleção global `evidence`. Excluir uma evidência limpa esses vínculos na mesma atualização do projeto. Somente metadados e referências são exportados; não há blobs ou caminhos locais de anexos novos.
 
 Projetos 1.0 e 2.0 não são migrados automaticamente. Duplicação de 2.1 segue as mesmas regras de identidade de 2.0. Exportação/importação e persistência aceitam os três formatos. Null não é uma versão normativa validada e não é atualizado silenciosamente quando o catálogo mudar. Para dados 2.1 completos com catálogo validado, o caso de uso adapta apenas a entrada do cálculo ao contrato 2.0, sem alterar o arquivo persistido.
+
+## Envelope 3.0 e migração explícita
+
+O leitor `projectExportSchema`, importação/exportação, IndexedDB e autosave também aceitam `3.0`.
+Seu `userData` contém id, title, teacher, request, education, criterionEntries,
+unassignedOccurrences, evidence, storedFiles e memorial. Não contém uma coleção activities
+redundante. `regulation.version` continua aceitando null. Os envelopes anteriores permanecem
+legíveis e exportáveis com suas versões originais; novos projetos do shell ainda iniciam em 2.1.
+
+`migrateProject` em `domain/project-migration.ts` valida 2.0/2.1 e retorna projeto 3.0,
+sourceVersion e pendingOccurrenceIds. Cada atividade vira uma ocorrência; o agrupamento mantém
+critério e nível declarados, IDs de ocorrência, quantidades, períodos, ordem, autoria, metadados
+de evidência, formação e referência normativa. IDs de grupos são determinísticos. O resultado
+não certifica critérios contra o catálogo; isso continua responsabilidade do motor.
+
+Migrar 3.0 é idempotente. Migrar 1.0 falha explicitamente sem converter seu registro opaco.
+`migrateLocalProject` cria nova cópia local e preserva a origem; a tela Exportar de 2.0/2.1 oferece
+“Migrar para critérios e ocorrências em nova cópia”, usando a mesma criação de cópias da importação.
+O localId novo identifica a cópia; userData.id mantém a identidade portátil original, como na
+importação atual. Abrir, recarregar ou listar não dispara migração.
+
+A versão Dexie continua 1: a tabela projects já armazena o envelope e não exige mudança estrutural
+para este formato JSON. Não há tabela de bytes ainda. Exportação 3.0 é JSON de dados e descritores,
+não backup binário. Sem downgrade automático para 2.x.
+
+`activityProjectView` projeta 3.0 em 2.1 somente em memória para consumidores existentes;
+`applyActivityProjectEdits` aplica as edições de volta em 3.0, preservando descritores, fileIds,
+campos legados e identidade de grupos. Essa projeção não é formato de exportação. O editor JSON
+avançado e o download trabalham com o envelope 3.0 real, validados antes de autosave.

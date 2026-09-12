@@ -1,3 +1,5 @@
+import { occurrenceProjectExportSchema } from '@/domain/criterion-entry';
+import { activityProjectView } from '@/domain/project-migration';
 import { currentProjectExportSchema } from '@/domain/project';
 import {
   criterionSchema,
@@ -108,7 +110,11 @@ export function calculateProjectScore(
     );
   if (!policy || policy.provenance.status !== 'validated' || !policy.provenance.validatedBy)
     return unavailable('pending-policy', 'Política de cálculo pendente de validação.');
-  const projectResult = currentProjectExportSchema.safeParse(projectInput);
+  const occurrenceInput = occurrenceProjectExportSchema.safeParse(projectInput);
+  const scoringInput = occurrenceInput.success
+    ? { ...activityProjectView(occurrenceInput.data), schemaVersion: '2.0' }
+    : projectInput;
+  const projectResult = currentProjectExportSchema.safeParse(scoringInput);
   if (!projectResult.success)
     return unavailable(
       'invalid-project',

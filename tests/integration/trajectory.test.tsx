@@ -117,7 +117,7 @@ it('persiste CRUD de atividades e evidências, vínculos e edição posterior', 
 
   await waitFor(async () => {
     const saved = await repository.load(record.localId);
-    if (!saved || saved.project.schemaVersion === '1.0') return;
+    if (!saved || saved.project.schemaVersion !== '2.1') throw new Error('Formato inesperado.');
     expect(saved.project.userData.activities).toHaveLength(1);
     expect(saved.project.userData.evidence).toHaveLength(1);
     expect(saved.project.userData.activities[0]).toMatchObject({
@@ -161,7 +161,7 @@ it('persiste CRUD de atividades e evidências, vínculos e edição posterior', 
 
   await waitFor(async () => {
     const saved = await repository.load(record.localId);
-    if (!saved || saved.project.schemaVersion === '1.0') return;
+    if (!saved || saved.project.schemaVersion !== '2.1') throw new Error('Formato inesperado.');
     expect(saved.project.userData.evidence).toEqual([]);
     expect(saved.project.userData.activities.every(({ evidenceIds }) => !evidenceIds.length)).toBe(
       true,

@@ -1,3 +1,4 @@
+import { activityProjectView } from '@/domain/project-migration';
 import { AlertCircle, CheckCircle2, Info, TriangleAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
@@ -62,7 +63,7 @@ export function FinalReview({
   scoring: CalculationResult;
 }) {
   if (record.project.schemaVersion === '1.0') return null;
-  const review = reviewProject(record.project, scoring);
+  const review = reviewProject(activityProjectView(record.project), scoring);
   return (
     <div className="space-y-5">
       <section className="panel space-y-4" aria-labelledby="review-summary-title">

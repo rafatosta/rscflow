@@ -27,7 +27,7 @@ export async function validateProjectFile(file: Pick<File, 'text'>): Promise<Pro
   const errors = result.error.issues.map((issue) => {
     const field = issue.path.join('.');
     if (field === 'schemaVersion')
-      return 'Versão do esquema ausente ou incompatível. Esperado: 1.0, 2.0 ou 2.1.';
+      return 'Versão do esquema ausente ou incompatível. Esperado: 1.0, 2.0, 2.1 ou 3.0.';
     if (!field) return 'O conteúdo deve ser um objeto de projeto.';
     if (field === 'regulation') return 'Referência normativa ausente ou inválida.';
     if (field === 'userData') return 'Dados do usuário ausentes ou inválidos. Esperado: um objeto.';

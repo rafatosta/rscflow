@@ -73,3 +73,35 @@ O critério pode permanecer vazio em rascunhos 2.1 e é obrigatório no contrato
 `Memorial` preserva título, apresentação introdutória e conclusão dos arquivos anteriores e pode armazenar textos complementares para formação, atuação docente, produção, serviços à comunidade, gestão e títulos/prêmios/concursos. A introdução é uma opção editorial e não é usada como requisito de completude. Os campos adicionais são opcionais para manter compatibilidade com projetos 2.0 e 2.1 já exportados.
 
 Cada `Activity` pode armazenar `generatedText`, `editedText` e `isManuallyEdited`. O primeiro registra a última base produzida pelos dados estruturados; o segundo contém a versão apresentada no memorial; o terceiro distingue edição autoral. Esses campos são conteúdo do projeto e participam normalmente de IndexedDB, exportação e importação JSON. Pontuação e valores normativos não são copiados para eles.
+
+## Critérios e ocorrências — envelope 3.0
+
+`src/domain/criterion-entry.ts` define `OccurrenceProject` (raiz RscProject do formato 3.0),
+`CriterionEntry`, `Occurrence`, `OccurrenceEvidence` e `StoredFile`. O contrato `RscProject`
+anterior permanece para leitura de 2.0/2.1; não é reinterpretado silenciosamente.
+
+Um lançamento `CriterionEntry` contém ID próprio, referência normativa `criterionId`, escolha
+explícita `selectedLevel` e várias ocorrências. O par critério/nível é único no projeto. Nível
+pode estar ausente em uma referência antiga e impede cálculo, sem inferência. Uma ocorrência
+sem critério fica em `unassignedOccurrences`, preservando eventual nível informado.
+
+`Occurrence` reaproveita título, categoria, local, função, quantidade, descrição, resultados,
+competências, evidências, timestamps e textos autorais de Activity. `period.start/end` substituem
+startDate/endDate; `order` preserva a sequência global anterior mesmo após agrupar por critério.
+Cada ID de ocorrência é único em todo o projeto. Quantidade não é inferida de datas ou do número
+de registros: o motor soma as quantidades declaradas e aplica os limites do dataset.
+
+`OccurrenceEvidence` estende os metadados de Evidence com `fileIds`. Ocorrências compartilham
+Evidence por `evidenceIds`; evidências podem compartilhar um descritor StoredFile. O schema
+rejeita IDs duplicados, vínculos inexistentes e parâmetros normativos copiados para o projeto.
+Arrays de evidências/arquivos podem ficar vazios durante a elaboração.
+
+StoredFile contém id, name, mediaType, size e sha256 opcional. É um descritor portátil, não uma
+prova de presença dos bytes; anexação binária e backup completo são etapas posteriores. Migração
+não transforma fileName legado em um arquivo existente. Nesta etapa, textos gerados/manuais
+continuam na ocorrência e `memorial` conserva sua estrutura anterior; a separação em overrides
+é evolução posterior, preservando autoria desde já.
+
+Os comandos em `features/criterion-entries/entries.ts` criam grupos, adicionam e editam ocorrências
+sem mutação e validam referências no projeto completo. Novas edições validam a ordem das datas;
+a leitura/migração conserva períodos legados aceitos pelo schema antigo, mesmo se invertidos.

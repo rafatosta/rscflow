@@ -1,3 +1,4 @@
+import { activityProjectView } from '@/domain/project-migration';
 import { draftProjectExportSchema, type ProjectExport } from '@/domain/project';
 import { loadRegulations } from '@/data/regulations/load';
 import { rscLevelSchema, type RscLevel } from '@/domain/regulation';
@@ -32,12 +33,13 @@ export function projectTitle(project: ProjectExport) {
 }
 export function completion(project: ProjectExport) {
   if (project.schemaVersion === '1.0') return { percent: 0, items: [] };
-  const data = project.userData;
+  const view = activityProjectView(project);
+  const data = view.userData;
   const items = [
     {
       label: 'Identificação do docente',
       section: 'profile',
-      complete: teacherProfileIsComplete(project),
+      complete: teacherProfileIsComplete(view),
     },
     { label: 'Formação registrada', section: 'education', complete: data.education.length > 0 },
     { label: 'Trajetória registrada', section: 'activities', complete: data.activities.length > 0 },

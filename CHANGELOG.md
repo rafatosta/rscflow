@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Domínio 3.0 com lançamentos por critério, ocorrências, evidências compartilhadas e descritores de arquivos.
+- Migração explícita de 2.0/2.1 em nova cópia, sem perda de autoria, quantidades ou referências; legado 1.0 permanece opaco.
+- Ponte compatível para formulários, pontuação e memorial, com importação/exportação e autosave de 3.0 e testes de migração/round-trip.
+
 - Relatório do estado atual e plano incremental para critérios, ocorrências, arquivos locais,
   mapas de páginas, saídas derivadas e backup completo, com migração e matriz de testes.
 - Registro da orientação da nova bateria: resolução como única fonte normativa oficial e

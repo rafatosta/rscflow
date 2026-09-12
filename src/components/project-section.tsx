@@ -1,3 +1,9 @@
+import {
+  activityProjectView,
+  applyActivityProjectEdits,
+  migrateProject,
+} from '@/domain/project-migration';
+import { draftProjectExportSchema } from '@/domain/project';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
 import type { ProjectExport, TypedProjectExport } from '@/domain/project';
@@ -51,7 +57,7 @@ function JsonEditor({
   );
 }
 
-export function ProjectSection(props: Props) {
+function ActivityProjectSection(props: Props & { sourceProps?: Props }) {
   const { record, section, edit, busy, onExport } = props;
   if (record.project.schemaVersion === '1.0')
     return (
@@ -61,13 +67,13 @@ export function ProjectSection(props: Props) {
           Os dados originais são preservados sem conversão automática. Você pode editá-los e
           exportá-los neste formato.
         </p>
-        <JsonEditor {...props} />
+        <JsonEditor {...(props.sourceProps ?? props)} />
         <Button onClick={onExport} disabled={Boolean(props.invalid)}>
           Exportar JSON
         </Button>
       </div>
     );
-  const project: TypedProjectExport = record.project;
+  const project = record.project as TypedProjectExport;
   const data = project.userData;
   const update = (patch: Partial<typeof data>) => edit(JSON.stringify({ ...data, ...patch }));
   const progress = completion(project);
@@ -180,6 +186,20 @@ export function ProjectSection(props: Props) {
   if (section === 'export')
     return (
       <>
+        {!props.sourceProps && (
+          <Button
+            disabled={busy || Boolean(props.invalid)}
+            onClick={() => props.onImport(migrateProject(project).project)}
+          >
+            Migrar para critérios e ocorrências em nova cópia
+          </Button>
+        )}
+        {!props.sourceProps && (
+          <p className="my-3 text-sm text-slate-300">
+            A cópia original será preservada. Referências incompletas e textos manuais serão
+            mantidos.
+          </p>
+        )}
         <FinalExport
           record={record}
           scoring={scoring}
@@ -192,7 +212,7 @@ export function ProjectSection(props: Props) {
           <details>
             <summary className="cursor-pointer font-medium">Edição avançada dos dados JSON</summary>
             <div className="mt-4">
-              <JsonEditor {...props} />
+              <JsonEditor {...(props.sourceProps ?? props)} />
             </div>
           </details>
         </section>
@@ -200,4 +220,25 @@ export function ProjectSection(props: Props) {
     );
 
   return null;
+}
+
+export function ProjectSection(props: Props) {
+  if (props.record.project.schemaVersion !== '3.0') return <ActivityProjectSection {...props} />;
+  const original = props.record.project;
+  const view = activityProjectView(original);
+  return (
+    <ActivityProjectSection
+      {...props}
+      sourceProps={props}
+      record={{ ...props.record, project: view }}
+      edit={(text) => {
+        const edited = draftProjectExportSchema.safeParse({ ...view, userData: JSON.parse(text) });
+        if (!edited.success) {
+          props.edit(text);
+          return;
+        }
+        props.edit(JSON.stringify(applyActivityProjectEdits(original, edited.data).userData));
+      }}
+    />
+  );
 }

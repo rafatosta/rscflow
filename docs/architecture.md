@@ -98,3 +98,17 @@ e inicia um download por Blob. Não há envio de dados, backend ou serviço de c
 portugueses são preservados; símbolos não representáveis pela fonte são substituídos de modo
 seguro para que conteúdo livre não interrompa a exportação. A camada não consulta nem implementa
 regras normativas.
+
+## Ponte incremental do domínio 3.0
+
+Os schemas de critérios/ocorrências estão em `domain/criterion-entry.ts`; migração e projeção
+compatível em `domain/project-migration.ts`. O motor aceita 3.0 e converte apenas sua entrada
+para a representação quantitativa já testada. Continua agregando por critério, nunca por grupo,
+e retorna occurrenceId nos campos activityId existentes para preservar consumidores.
+
+A fronteira ProjectSection projeta o projeto 3.0 para os formulários atuais e reconcilia edições
+antes do autosave. Não persiste Activity em paralelo. O memorial/PDF recebem a mesma projeção,
+com ordem e textos preservados; nenhuma regra normativa foi acrescentada em React.
+Os comandos de criação/edição e migração local ficam em features/criterion-entries.
+StoredFile é somente contrato de metadados nesta etapa; FileResolver e persistência de bytes não
+foram introduzidos. A versão do banco e os projetos antigos permanecem compatíveis.

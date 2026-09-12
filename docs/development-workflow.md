@@ -55,3 +55,12 @@ Ao concluir, informe cada comando executado, quantidade de testes quando dispon�
 não representem falha. Use `npm run format` para formatar o repositório inteiro ou Prettier nos
 arquivos alterados. Revise `git diff` e `git diff --check` antes de sugerir a mensagem descrita em
 `docs/commit-convention.md`.
+
+## Alterações no domínio 3.0
+
+Preserve os leitores 1.0/2.0/2.1 e a migração explícita em cópia. Para mudanças em grupos,
+ocorrências ou arquivos, execute `tests/unit/criterion-entry.test.ts` e o E2E
+`tests/e2e/criterion-entry.spec.ts`, além da bateria completa. O round-trip deve preservar
+quantidades, autoria, ordem, referências incompletas, evidências compartilhadas e descritores.
+Não adicione campos normativos ao envelope e não exporte a projeção transitória Activity como se
+fosse o projeto 3.0. O banco permanece v1 até a etapa de armazenamento binário.

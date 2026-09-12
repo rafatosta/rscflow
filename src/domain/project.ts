@@ -1,3 +1,4 @@
+import { occurrenceProjectExportSchema } from './criterion-entry';
 import { z } from 'zod';
 import { rscProjectSchema, draftRscProjectSchema } from './models';
 export * from './models';
@@ -26,6 +27,7 @@ export const projectExportSchema = z.discriminatedUnion('schemaVersion', [
   legacyProjectExportSchema,
   currentProjectExportSchema,
   draftProjectExportSchema,
+  occurrenceProjectExportSchema,
 ]);
 export type ProjectExport = z.infer<typeof projectExportSchema>;
 export type CurrentProjectExport = z.infer<typeof currentProjectExportSchema>;
