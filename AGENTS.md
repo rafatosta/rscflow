@@ -34,7 +34,7 @@ If this contract conflicts with a maintainer instruction, follow the maintainer 
 
 ## Current normative snapshot
 
-The scoring policy is source-validated, but the production RSC I, II, and III catalogs remain
-`pending-official-validation`, empty, and without a normative version. Production scoring must stay
-unavailable until the complete catalog is validated. Synthetic fixtures are test-only and the E2E
-catalog is injected only in Vite `e2e` mode.
+The scoring policy is source-validated. The populated production RSC I, II, and III catalogs remain
+`pending-official-validation` and without a normative version. Production scoring must stay
+unavailable until the complete catalog and its recorded conflict are validated. Synthetic fixtures
+are test-only and the E2E catalog is injected only in Vite `e2e` mode.

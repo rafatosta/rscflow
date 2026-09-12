@@ -6,6 +6,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Catálogos RSC I, II e III transcritos dos Anexos IV–VI, com 137 critérios ainda pendentes de validação humana final.
+- Integridade estrutural por nível e conflito normativo do RSC II d.5 registrado como dado, visível na consulta e bloqueado para cálculo.
+- Validação normativa desvinculada da planilha auxiliar legada, mantendo o campo nullable por compatibilidade.
+
 - Preenchimento por RSC I/II/III, com busca por descrição, diretrizes, limites, pontuação derivada e CRUD de lançamentos.
 - Seção própria de comprovantes e trajetória cronológica derivada, mantendo o cadastro anterior como compatibilidade.
 - Visão geral do processo com pendências, referências documentais e histórico local de backup JSON com detecção de alterações.

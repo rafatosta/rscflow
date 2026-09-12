@@ -45,7 +45,11 @@ export function calculateActivity(
   const result = criterionSchema.safeParse(input);
   if (!result.success || !Number.isFinite(quantity) || quantity < 0)
     return { status: 'unavailable', reason: 'Critério ou quantidade inválidos.' };
-  if (result.data.provenance.status !== 'validated' || !result.data.provenance.validatedBy)
+  if (
+    result.data.provenance.status !== 'validated' ||
+    !result.data.provenance.validatedBy ||
+    result.data.provenance.issue
+  )
     return { status: 'unavailable', reason: 'Critério pendente de validação.' };
   try {
     return {

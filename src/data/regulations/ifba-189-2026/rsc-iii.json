@@ -3,6 +3,827 @@
   "regulationId": "ifba-189-2026",
   "section": "rsc-iii",
   "status": "pending-official-validation",
-  "criteria": [],
-  "directives": []
+  "directives": [
+    {
+      "id": "rsc-iii-a",
+      "code": "a",
+      "title": "Desenvolvimento, produção e transferência de tecnologias",
+      "maxScore": 10,
+      "weight": 1,
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b",
+      "code": "b",
+      "title": "Desenvolvimento de pesquisas e aplicação de métodos e tecnologias educacionais que proporcionem a interdisciplinaridade e a integração de conteúdos acadêmicos na educação profissional e tecnológica ou na educação básica",
+      "maxScore": 28,
+      "weight": 2,
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-c",
+      "code": "c",
+      "title": "Desenvolvimento de pesquisas e atividades de extensão que proporcionem a articulação Institucional com os arranjos sociais, culturais e produtivos",
+      "maxScore": 20,
+      "weight": 2,
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22–23."
+      }
+    },
+    {
+      "id": "rsc-iii-d",
+      "code": "d",
+      "title": "Atuação em projetos e/ou atividades em parceria com outras instituições",
+      "maxScore": 12,
+      "weight": 1,
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-e",
+      "code": "e",
+      "title": "Atuação em atividades de assistência técnica nacional e/ou internacional",
+      "maxScore": 5,
+      "weight": 1,
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f",
+      "code": "f",
+      "title": "Produção acadêmica e/ou tecnológica, nas atividades de ensino, pesquisa, extensão e/ou inovação",
+      "maxScore": 20,
+      "weight": 2,
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23–24."
+      }
+    },
+    {
+      "id": "rsc-iii-g",
+      "code": "g",
+      "title": "Outras pós-graduações stricto sensu, na área de interesse, além daquela que o habilita e define o nível RSC pretendido, no âmbito do plano de qualificação institucional",
+      "maxScore": 5,
+      "weight": 1,
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    }
+  ],
+  "criteria": [
+    {
+      "id": "rsc-iii-a-1",
+      "code": "a.1",
+      "description": "Elaboração e utilização de protótipo e tecnologia com aplicação em ensino, pesquisa e extensão.",
+      "unit": "contrato ou licenciamento",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-a",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-a-2",
+      "code": "a.2",
+      "description": "Contratos de transferência de tecnologia e licenciamento",
+      "unit": "contrato ou licenciamento",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-a",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-a-3",
+      "code": "a.3",
+      "description": "Propriedade intelectual (patente, registro)",
+      "unit": "Patente ou Registro",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-a",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-a-4",
+      "code": "a.4",
+      "description": "Produto ou processo não patenteado, protótipo, software não registrado e similares",
+      "unit": "Desenvolv. concluído",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-a",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-1",
+      "code": "b.1",
+      "description": "Participação em elaboração de Projeto Pedagógico de Cursos (PPC)",
+      "unit": "PPC",
+      "factor": 14.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-2",
+      "code": "b.2",
+      "description": "Participação em reformulação de Projeto Pedagógico de Cursos (PPC)",
+      "unit": "PPC",
+      "factor": 14.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-3",
+      "code": "b.3",
+      "description": "Participação em elaboração ou reformulação de programas e projetos institucionais",
+      "unit": "programa",
+      "factor": 14.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-4",
+      "code": "b.4",
+      "description": "Coordenação de implantação de Projetos Pedagógicos de novos Cursos.",
+      "unit": "PPC",
+      "factor": 2.8,
+      "maxQuantity": 5,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-5",
+      "code": "b.5",
+      "description": "Desenvolvimento de pesquisa e aplicação de métodos e tecnologias educacionais",
+      "unit": "semestre",
+      "factor": 7.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-6",
+      "code": "b.6",
+      "description": "Desenvolvimento de atividades educacionais de integração dos conteúdos acadêmicos",
+      "unit": "semestre",
+      "factor": 7.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-7",
+      "code": "b.7",
+      "description": "Participação em comissões de Colegiado de Curso e Núcleo Docente Estruturante – NDE de Cursos Superiores",
+      "unit": "mês",
+      "factor": 1.16,
+      "maxQuantity": 12,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-8",
+      "code": "b.8",
+      "description": "Bancas de trabalho de conclusão de especialização lato sensu e stricto sensu",
+      "unit": "banca",
+      "factor": 7.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-9",
+      "code": "b.9",
+      "description": "Orientação de trabalhos em cursos de graduação ou pós-graduação",
+      "unit": "Monografia ou Dissertação",
+      "factor": 7.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-10",
+      "code": "b.10",
+      "description": "Membro de comissão editorial",
+      "unit": "semestre",
+      "factor": 7.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-11",
+      "code": "b.11",
+      "description": "Consultor de revistas ou revisor de periódicos ou avaliador ou consultor de projetos de pesquisa (ad hoc) ou eventos científicos",
+      "unit": "item/semestre",
+      "factor": 7.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-12",
+      "code": "b.12",
+      "description": "Atuação nos processos de ensino pesquisa e extensão e os inerentes ao exercício de direção, assessoramento, chefia, coordenação e assistência na própria instituição nos diversos níveis e modalidades de educação",
+      "unit": "mês",
+      "factor": 0.58,
+      "maxQuantity": 24,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-13",
+      "code": "b.13",
+      "description": "Participação como membro dos órgãos deliberativos do instituto, bem como em comissões instituída pela Gestão ou MEC",
+      "unit": "Mês",
+      "factor": 0.58,
+      "maxQuantity": 24,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-b-14",
+      "code": "b.14",
+      "description": "Participação em comissão de elaboração de PPC de curso de pós-graduação",
+      "unit": "PPC",
+      "factor": 7.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-b",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22."
+      }
+    },
+    {
+      "id": "rsc-iii-c-1",
+      "code": "c.1",
+      "description": "Captação de recursos em projetos de pesquisa, inovação tecnológica e extensão na própria instituição",
+      "unit": "Projeto",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-c",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 22–23."
+      }
+    },
+    {
+      "id": "rsc-iii-c-2",
+      "code": "c.2",
+      "description": "Coordenação e/ou participação em núcleo de inovação tecnológica",
+      "unit": "mês",
+      "factor": 0.83,
+      "maxQuantity": 12,
+      "weight": 2,
+      "directiveId": "rsc-iii-c",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-c-3",
+      "code": "c.3",
+      "description": "Coordenação e/ou participação em atividades de extensão",
+      "unit": "mês",
+      "factor": 0.83,
+      "maxQuantity": 12,
+      "weight": 2,
+      "directiveId": "rsc-iii-c",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-c-4",
+      "code": "c.4",
+      "description": "Coordenação e/ou participação em pesquisas no âmbito da instituição, voltadas aos arranjos científicos, sociais, culturais e produtivos",
+      "unit": "mês",
+      "factor": 0.83,
+      "maxQuantity": 12,
+      "weight": 2,
+      "directiveId": "rsc-iii-c",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-c-5",
+      "code": "c.5",
+      "description": "Participação em grupo de pesquisa registrado na PRPGI",
+      "unit": "semestre",
+      "factor": 2.5,
+      "maxQuantity": 4,
+      "weight": 2,
+      "directiveId": "rsc-iii-c",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-d-1",
+      "code": "d.1",
+      "description": "Captação de recursos em projetos de pesquisa, inovação tecnológicas e extensão em parceria com outras instituições",
+      "unit": "Projeto",
+      "factor": 12.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-d",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-d-2",
+      "code": "d.2",
+      "description": "Coordenação de projetos de extensão, pesquisa ou inovação tecnológicas em parcerias com outras instituições",
+      "unit": "Projeto",
+      "factor": 12.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-d",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-d-3",
+      "code": "d.3",
+      "description": "Coordenação ou participação em equipe diretiva visando a implantação de unidade de ensino ou campus",
+      "unit": "Unidade institucional",
+      "factor": 12.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-d",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-d-4",
+      "code": "d.4",
+      "description": "Participação em projetos de extensão, pesquisa e inovação tecnológica em parceria com outras instituições",
+      "unit": "Projeto",
+      "factor": 12.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-d",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-d-5",
+      "code": "d.5",
+      "description": "Orientação de educandos em trabalhos de conclusão em curso de graduação e pós-graduação",
+      "unit": "TCC/Monografia/Dissertação",
+      "factor": 6.0,
+      "maxQuantity": 2,
+      "weight": 1,
+      "directiveId": "rsc-iii-d",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-e-1",
+      "code": "e.1",
+      "description": "Trabalhos ou laudos técnicos",
+      "unit": "Atividade concluída",
+      "factor": 5.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-e",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-e-2",
+      "code": "e.2",
+      "description": "Consultorias a órgãos especializados de gestão científica, tecnológica ou cultural ou consultorias técnicas prestadas a órgãos públicos e privados",
+      "unit": "Consultoria realizada",
+      "factor": 5.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-e",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-e-3",
+      "code": "e.3",
+      "description": "Curso ministrado em âmbito nacional ou internacional",
+      "unit": "Curso",
+      "factor": 5.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-e",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-e-4",
+      "code": "e.4",
+      "description": "Palestra ministrada em âmbito nacional, regional ou internacional",
+      "unit": "Palestra",
+      "factor": 5.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-e",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-e-5",
+      "code": "e.5",
+      "description": "Participação como avaliador requisitado ou convidado por órgãos governamentais ou particulares",
+      "unit": "Atividade",
+      "factor": 5.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-e",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-1",
+      "code": "f.1",
+      "description": "Prêmios por atividade científicos, artísticas, esportivas e culturais",
+      "unit": "Prêmio",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-2",
+      "code": "f.2",
+      "description": "Publicação de livro, capítulo de livro ou tradução de livro (organização, autoria ou co-autoria)",
+      "unit": "Livro",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-3",
+      "code": "f.3",
+      "description": "Revisor técnico de livro especializado",
+      "unit": "Livro",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-4",
+      "code": "f.4",
+      "description": "Apresentação e/ou publicação de trabalho de pesquisa em eventos",
+      "unit": "Trabalho",
+      "factor": 5.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-5",
+      "code": "f.5",
+      "description": "Coordenação/Participação de ações de extensão (visitas, eventos externos, parcerias, ações sociais ou outros similares)",
+      "unit": "evento",
+      "factor": 5.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-6",
+      "code": "f.6",
+      "description": "Coordenação e/ou orientação ou coorientação de monitores",
+      "unit": "Monitor",
+      "factor": 1.0,
+      "maxQuantity": 10,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-7",
+      "code": "f.7",
+      "description": "Publicação de artigo em periódico",
+      "unit": "Artigo",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-8",
+      "code": "f.8",
+      "description": "Publicação ou apresentação de pesquisa interna",
+      "unit": "Unidade",
+      "factor": 1.0,
+      "maxQuantity": 10,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-9",
+      "code": "f.9",
+      "description": "Artigos publicados em jornais, revistas e outros meios de comunicação",
+      "unit": "Unidade",
+      "factor": 5.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 23."
+      }
+    },
+    {
+      "id": "rsc-iii-f-10",
+      "code": "f.10",
+      "description": "Produção de mídias para EAD",
+      "unit": "Programa",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-11",
+      "code": "f.11",
+      "description": "Prefácio e posfácio de livro",
+      "unit": "Prefácio/Posfácio",
+      "factor": 10.0,
+      "maxQuantity": 1,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-12",
+      "code": "f.12",
+      "description": "Contemplado em edital de extensão cooperativo com instituições parceiras",
+      "unit": "Edital",
+      "factor": 5.0,
+      "maxQuantity": 2,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-13",
+      "code": "f.13",
+      "description": "Aprovação e orientação de bolsistas de iniciação científica",
+      "unit": "Bolsista",
+      "factor": 1.0,
+      "maxQuantity": 10,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-14",
+      "code": "f.14",
+      "description": "Produção artística e/ou cultural",
+      "unit": "Unidade",
+      "factor": 3.33,
+      "maxQuantity": 3,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-15",
+      "code": "f.15",
+      "description": "Participação em bancas de TCC de cursos técnicos, superiores e banca de concursos.",
+      "unit": "Banca",
+      "factor": 1.0,
+      "maxQuantity": 10,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-16",
+      "code": "f.16",
+      "description": "Resumo de pesquisa e/ou extensão publicado em anais de eventos nacionais",
+      "unit": "Publicações",
+      "factor": 1.0,
+      "maxQuantity": 10,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-17",
+      "code": "f.17",
+      "description": "Aprovação em concursos público federal e/ou nível superior em áreas afins",
+      "unit": "Concurso",
+      "factor": 2.0,
+      "maxQuantity": 5,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-18",
+      "code": "f.18",
+      "description": "Matriculado regularmente ou aprovado em seleção stricto senso (doutorado)",
+      "unit": "Seleção",
+      "factor": 2.0,
+      "maxQuantity": 5,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-f-19",
+      "code": "f.19",
+      "description": "Disciplinas cursadas e aprovada de doutorado.",
+      "unit": "Disciplina",
+      "factor": 1.0,
+      "maxQuantity": 10,
+      "weight": 2,
+      "directiveId": "rsc-iii-f",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    },
+    {
+      "id": "rsc-iii-g-1",
+      "code": "g.1",
+      "description": "Curso stricto sensu concluído",
+      "unit": "Curso",
+      "factor": 5.0,
+      "maxQuantity": 1,
+      "weight": 1,
+      "directiveId": "rsc-iii-g",
+      "provenance": {
+        "status": "pending-official-validation",
+        "sourceReference": "Resolução CONSUP/IFBA nº 189/2026, Anexo VI, p. 24."
+      }
+    }
+  ]
 }

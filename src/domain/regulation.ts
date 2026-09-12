@@ -6,7 +6,21 @@ const amount = z.number().finite().nonnegative();
 export const rscLevelSchema = z.enum(['rsc-i', 'rsc-ii', 'rsc-iii']);
 export type RscLevel = z.infer<typeof rscLevelSchema>;
 const status = z.enum(['pending-official-validation', 'validated']);
-const provenance = z.object({ status, sourceReference: text, validatedBy: text.optional() });
+export const provenanceSchema = z
+  .object({
+    status,
+    sourceReference: text,
+    validatedBy: text.optional(),
+    issue: z
+      .object({
+        type: z.literal('normative-conflict'),
+        description: text,
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+export type Provenance = z.infer<typeof provenanceSchema>;
 export const scoringPolicySchema = z
   .object({
     minimumTotal: amount,
@@ -20,7 +34,7 @@ export const scoringPolicySchema = z
         decimalPlaces: z.number().int().min(0).max(10),
       })
       .strict(),
-    provenance,
+    provenance: provenanceSchema,
   })
   .strict();
 export type ScoringPolicy = z.infer<typeof scoringPolicySchema>;
@@ -31,7 +45,7 @@ export const directiveSchema = z
     title: text,
     maxScore: amount,
     weight: amount.optional(),
-    provenance,
+    provenance: provenanceSchema,
   })
   .strict();
 export const criterionSchema = z
@@ -44,7 +58,7 @@ export const criterionSchema = z
     maxQuantity: amount,
     weight: amount,
     directiveId: id,
-    provenance,
+    provenance: provenanceSchema,
   })
   .strict();
 export type Directive = z.infer<typeof directiveSchema>;
@@ -91,7 +105,10 @@ export const regulationLevelSchema = z
       (!level.directives.length ||
         !level.criteria.length ||
         [...level.directives, ...level.criteria].some(
-          (row) => row.provenance.status !== 'validated' || !row.provenance.validatedBy,
+          (row) =>
+            row.provenance.status !== 'validated' ||
+            !row.provenance.validatedBy ||
+            Boolean(row.provenance.issue),
         ))
     )
       ctx.addIssue({
@@ -138,7 +155,6 @@ export const regulationSchema = z
       metadata.status === 'validated' &&
       (!metadata.version ||
         !metadata.source.resolution ||
-        !metadata.source.officialScoringSpreadsheet ||
         levels.some((level) => level.status !== 'validated'))
     )
       ctx.addIssue({

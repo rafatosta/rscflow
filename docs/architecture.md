@@ -58,7 +58,11 @@ não consultam nem recalculam regras. A interface coordena essas saídas, sem co
 
 ## Contratos e carregamento
 
-`src/data/regulations/load.ts` carrega os três JSONs e os metadados pelo schema genérico de domínio. Alterações em valores e inclusão de critérios/diretrizes dentro desse contrato exigem apenas edição dos JSONs, sem lógica ou valores normativos em React. A validação é executada pelos testes e em cada carregamento. O motor recebe o envelope e o dataset como argumentos, sem acessar armazenamento ou interface.
+`src/data/regulations/load.ts` carrega os três JSONs preenchidos e os metadados pelo schema genérico
+de domínio. Alterações em valores e critérios dentro desse contrato exigem apenas editar os JSONs,
+sem valores normativos em React. `provenance.issue` carrega conflitos como dados; nenhum código de
+critério aparece no motor ou na interface. A validação estrutural ocorre nos testes e no carregamento.
+O motor recebe envelope e dataset por argumento e recusa catálogos pendentes ou conflitantes.
 
 ## Motor quantitativo
 

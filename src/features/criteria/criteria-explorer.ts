@@ -1,4 +1,4 @@
-import type { Criterion, Directive, Regulation, RscLevel } from '@/domain/regulation';
+import type { Criterion, Directive, Provenance, Regulation, RscLevel } from '@/domain/regulation';
 
 export type CriterionContext = {
   level: RscLevel;
@@ -51,4 +51,10 @@ export function findCriterion(
 
 export function criterionStatusLabel(status: 'pending-official-validation' | 'validated'): string {
   return status === 'validated' ? 'Validado' : 'Pendente de validação oficial';
+}
+
+export function criterionProvenanceLabel(provenance: Provenance): string {
+  return provenance.issue
+    ? 'Conflito normativo pendente de validação humana'
+    : criterionStatusLabel(provenance.status);
 }

@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { loadIfbaRegulation, loadRegulations, parseRegulation } from '@/data/regulations/load';
-import { regulationLevelSchema } from '@/domain/regulation';
+import { regulationLevelSchema, type Provenance } from '@/domain/regulation';
 
 // Dados exclusivamente sintéticos, sem significado normativo.
-const provenance = { status: 'pending-official-validation', sourceReference: 'fixture sintética' };
+const provenance: Provenance = {
+  status: 'pending-official-validation',
+  sourceReference: 'fixture sintética',
+};
 const level = () => ({
   schemaVersion: '1.0',
   regulationId: 'teste',
@@ -97,5 +100,39 @@ describe('datasets normativos', () => {
     expect(regulationLevelSchema.safeParse({ ...level(), status: 'validated' }).success).toBe(
       false,
     );
+  });
+  it('não permite validar um nível enquanto houver conflito normativo', () => {
+    const candidate = level();
+    candidate.status = 'validated';
+    candidate.directives[0].provenance = {
+      status: 'validated',
+      sourceReference: 'fixture sintética',
+      validatedBy: 'Pessoa de teste',
+      issue: {
+        type: 'normative-conflict',
+        description: 'Ambiguidade sintética ainda pendente.',
+      },
+    };
+    candidate.criteria[0].provenance = {
+      status: 'validated',
+      sourceReference: 'fixture sintética',
+      validatedBy: 'Pessoa de teste',
+    };
+    expect(regulationLevelSchema.safeParse(candidate).success).toBe(false);
+  });
+  it('reconhece a resolução como única fonte necessária para futura validação', () => {
+    const candidate = loadIfbaRegulation();
+    candidate.metadata.status = 'validated';
+    candidate.metadata.version = 'fixture-validada';
+    candidate.metadata.source.officialScoringSpreadsheet = null;
+    for (const entry of candidate.levels) {
+      entry.status = 'validated';
+      for (const row of [...entry.directives, ...entry.criteria]) {
+        row.provenance.status = 'validated';
+        row.provenance.validatedBy = 'Pessoa de teste';
+        delete row.provenance.issue;
+      }
+    }
+    expect(parseRegulation(candidate).metadata.status).toBe('validated');
   });
 });

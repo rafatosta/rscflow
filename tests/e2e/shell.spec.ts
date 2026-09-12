@@ -340,7 +340,9 @@ test('memorial gera, preserva e regenera narrativas localmente', async ({ page }
   await page.screenshot({ path: '/tmp/rscflow-memorial-preview-mobile.png', fullPage: true });
 });
 
-test('critérios mostram o catálogo pendente sem presumir opções normativas', async ({ page }) => {
+test('critérios mostram a transcrição pendente sem habilitar novos enquadramentos', async ({
+  page,
+}) => {
   await start(page);
   await page.getByRole('link', { name: 'Critérios', exact: true }).click();
 
@@ -348,9 +350,11 @@ test('critérios mostram o catálogo pendente sem presumir opções normativas',
     'aria-selected',
     'true',
   );
-  await expect(page.getByText('Pendente de validação oficial')).toBeVisible();
-  await expect(page.getByText(/ainda não contém critérios transcritos/)).toBeVisible();
+  await expect(page.getByText('Pendente de validação oficial').first()).toBeVisible();
   await expect(page.getByLabel('Buscar no RSC II')).toBeVisible();
+  await page.getByLabel('Buscar no RSC II').fill('d.5');
+  await expect(page.getByRole('heading', { name: /d\.5 — Organização/ })).toBeVisible();
+  await expect(page.getByText('Conflito normativo pendente de validação humana')).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.screenshot({ path: '/tmp/rscflow-criteria-pending.png', fullPage: true });
 

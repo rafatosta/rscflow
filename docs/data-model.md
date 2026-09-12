@@ -25,7 +25,17 @@ O exemplo mostra somente a forma do envelope; `userData` completo segue os schem
 
 `projectExportSchema` aceita 1.0, 2.0 e 2.1. `currentProjectExportSchema` preserva o contrato 2.0; `draftProjectExportSchema` define o novo rascunho 2.1. Campos adicionais do envelope e da referência normativa continuam ignorados. A versão normativa declarada não é certificada pela importação. A verificação do arquivo ocorre em memória, sem envio ou limite de tamanho. O botão de importação grava uma nova cópia local após validação; falhas são apresentadas em português.
 
-Os datasets têm versão estrutural 1.0 independente da versão de projeto. A versão normativa permanece null enquanto pendente. Critérios exigem id, code, description, unit, factor, maxQuantity, weight, directiveId e provenance. Diretrizes exigem id, code, title, maxScore e provenance; weight é opcional. Valores numéricos devem ser finitos e não negativos. Ausência normativa não equivale a zero: não cadastrar valores desconhecidos.
+Os datasets têm versão estrutural 1.0 independente da versão de projeto. A versão normativa permanece null enquanto pendente. Critérios exigem id, code, description, unit, factor, maxQuantity, weight, directiveId e provenance. Diretrizes exigem id, code, title, maxScore e provenance; weight é opcional. `provenance.issue`, quando presente, registra um conflito normativo interno e impede promover o nível a validado. Valores numéricos devem ser finitos e não negativos. Ausência normativa não equivale a zero: não cadastrar valores desconhecidos.
+
+`source.officialScoringSpreadsheet` permanece nullable no contrato para ler os arquivos existentes,
+mas não é requisito de validação. Somente `source.resolution`, versão, status e validação humana dos
+níveis compõem a certificação estrutural, conforme a resolução como única fonte oficial.
+
+Os três níveis de produção estão preenchidos a partir dos Anexos IV–VI, mas seguem
+`pending-official-validation`: 8 diretrizes/48 critérios no RSC I, 7/36 no RSC II e 7/53 no RSC III.
+Cada nível soma 100 em `maxScore` e 10 nos pesos de suas diretrizes. Esses totais são verificações
+estruturais do Anexo VII e não constituem validação humana dos critérios. O peso 14 do RSC II d.5
+permanece literal e marcado como conflito, sem normalização pela regra geral ou pela planilha.
 
 ## Escolha de enquadramento e política de cálculo
 

@@ -8,9 +8,10 @@ autenticação, telemetria ou envio dos dados pessoais para serviços externos.
 ## Estado normativo
 
 A política de cálculo da Resolução CONSUP/IFBA nº 189/2026 foi conferida e está representada em
-JSON. O catálogo completo de diretrizes e critérios de RSC I, II e III ainda está com status
-`pending-official-validation`, arrays vazios e versão normativa `null`. Por isso, o dataset de
-produção retorna cálculo indisponível e a interface não cria critérios nem pontuações fictícias.
+JSON. O catálogo de diretrizes e critérios de RSC I, II e III foi transcrito dos Anexos IV–VI e
+está com status `pending-official-validation` e versão normativa `null`. Ele pode ser consultado,
+mas o dataset de produção retorna cálculo indisponível e não habilita novos enquadramentos até a
+validação humana final. O conflito interno do RSC II d.5 permanece literal e sinalizado.
 
 Em divergências, vale a seguinte ordem: instrução atual do mantenedor, resolução oficial,
 JSON normativo validado, documentação e código. A resolução prevalece sobre a planilha e o

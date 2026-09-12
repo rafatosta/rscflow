@@ -4,9 +4,9 @@
 
 A resolução é a única fonte normativa oficial. A planilha anteriormente chamada de oficial é
 material informal auxiliar de terceiro. Esta orientação substitui essa classificação anterior.
-O schema ainda exige o campo `officialScoringSpreadsheet` para validar o catálogo; sua correção
-com compatibilidade está planejada em [plano-refatoracao.md](plano-refatoracao.md). A etapa de
-análise não alterou schemas ou datasets nem revalidou os parâmetros existentes.
+O schema preserva o campo legado `officialScoringSpreadsheet`, atualmente null, por compatibilidade;
+a planilha não participa nem é requisito da validação. Em 12/09/2026, os Anexos IV, V e VI foram
+incorporados como transcrição de trabalho, ainda pendente de validação humana final.
 
 ## Precedência das fontes
 
@@ -48,11 +48,22 @@ classificação é inferida por título, período, categoria ou evidência compa
 
 ## Catálogo e validação
 
-Os três arquivos de níveis continuam com status `pending-official-validation` e arrays vazios: não foi concluída a transcrição e validação integral dos anexos. A conferência da política de cálculo não torna o catálogo validado. A versão normativa permanece null. O motor retorna `unavailable`, sem total, para esse dataset.
+Os JSONs em `src/data/regulations/ifba-189-2026/` são a representação normativa consumida pela
+aplicação e foram transcritos dos Anexos IV, V e VI da Resolução nº 189/2026. RSC I contém 8
+diretrizes e 48 critérios; RSC II, 7 e 36; RSC III, 7 e 53. Permanecem pendentes de validação humana
+final, com versão normativa null. A conferência estrutural e da política de cálculo não promove o
+catálogo a validado; o motor retorna `unavailable`, sem total.
 
-O explorador de critérios lê diretamente os níveis, diretrizes, critérios e proveniência desse contrato. A busca e a apresentação não mantêm cópias de fator, unidade, peso, quantidade máxima, descrição ou teto de diretriz. Assim, editar um JSON validado altera a interface sem alterar componentes. Enquanto o catálogo IFBA permanecer pendente e vazio, a tela informa essa condição e o seletor de atividades fica indisponível, preservando referências importadas sem criar enquadramentos fictícios.
+O explorador de critérios lê diretamente níveis, diretrizes, critérios e proveniência. A busca e a
+apresentação não mantêm cópias de fator, unidade, peso, quantidade máxima, descrição ou teto. Assim,
+editar o JSON altera a consulta sem alterar componentes. O catálogo pendente fica visível para
+consulta, enquanto o seletor de lançamentos permanece indisponível e preserva referências existentes.
 
-Durante a conferência, a célula de peso de RSC II/d.5 (Anexo V, PDF p. 20) apresenta a sequência “14”, enquanto os arts. 7 e 15 descrevem pesos 1 ou 2. A célula não foi interpretada nem transcrita. Sua eventual anotação/ambiguidade interna precisa ser esclarecida antes da validação integral do catálogo; a precedência sobre a planilha não resolve ambiguidades dentro da própria normativa.
+No RSC II/d.5, o Anexo V, página 20 do PDF, imprime peso **14**, enquanto o art. 15 limita os pesos
+a 1 ou 2 e o Anexo VII atribui peso 1 à diretriz d. O JSON mantém literalmente 14 e registra
+`provenance.issue.type = normative-conflict`. A interface anuncia o conflito; schemas impedem
+validar o nível enquanto a marca existir; motor e cadastro quantitativo continuam bloqueados.
+A precedência da resolução sobre a planilha não resolve essa ambiguidade interna da normativa.
 
 Schemas verificam três níveis distintos, referência normativa, IDs globais únicos, códigos únicos por coleção/nível e vínculo critério–diretriz. A convenção técnica de código é letras minúsculas para diretriz e `<diretriz>.<inteiro positivo>` para critério. Valores devem ser finitos e não negativos. Valores ausentes nunca são convertidos em zero.
 

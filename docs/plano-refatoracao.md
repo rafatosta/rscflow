@@ -27,7 +27,7 @@ não haverá editor de normativa na aplicação, backend ou processamento remoto
 | Domínio       | `src/domain/models.ts`: Teacher, RscRequest, Education, Activity, Evidence e Memorial; schemas estritos e integridade de IDs/vínculos | preservar contratos antigos e acrescentar nova versão                           |
 | Activity      | um critério, nível opcional, quantidade, período, categoria, descrição, resultados, competências, evidências e textos gerados/manuais | cada Activity torna-se uma Occurrence sem perder campos                         |
 | Evidence      | metadados, referência de processo, campos legados fileName/description; nenhum binário                                                | preservar identidade e acrescentar referências a arquivos locais                |
-| Catálogo      | metadata + três arquivos de nível; arrays vazios e status pendente; política de cálculo marcada validada                              | manter indisponibilidade e concluir validação em tarefa normativa própria       |
+| Catálogo      | metadata + níveis preenchidos (48/36/53 critérios), ainda pendentes; conflito RSC II d.5 explícito                                    | manter indisponibilidade até validação humana e resolução do conflito           |
 | Pontuação     | `rules/scoring.ts` e `decimal.ts`: funções puras, BigInt, limites consolidados por critério/diretriz/nível, arredondamento final      | reaproveitar matemática, adaptar entrada e rastreabilidade                      |
 | Persistência  | `storage/project-repository.ts`: banco Dexie v1, tabelas projects/preferences, revisão otimista em transação                          | ampliar com armazenamento de arquivos e operações atômicas                      |
 | Autosave      | `features/local-projects/autosave.ts`: debounce 500 ms, fila serial, snapshot mais recente, retry e flush                             | manter fila para dados estruturados; arquivos fora dos snapshots JSON           |
@@ -236,20 +236,20 @@ são produtos distintos; JSON simples continua disponível com indicação de qu
 
 ## 7. Riscos e tratamento
 
-| Prioridade | Risco                                                          | Tratamento e verificação                                                               |
-| ---------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| alta       | catálogo vazio e ambiguidade interna já registrada             | manter indisponibilidade; validação da resolução em trilha própria; não fabricar itens |
-| alta       | schema exige planilha informal como oficial                    | corrigir proveniência e testes antes de promover catálogo                              |
-| alta       | perda de campos legados ou autoria                             | migração sem perda, cópia original preservada, fixtures com todos os opcionais         |
-| alta       | limites multiplicados por agrupamento                          | consolidar pelo critério normativo, testar múltiplos grupos e ocorrências              |
-| alta       | bytes/referências inconsistentes por quota ou concorrência     | comandos transacionais, revisão otimista e falhas simuladas                            |
-| alta       | referências de páginas incorretas após reordenação             | PageMap derivado do snapshot exato, invalidado por alteração                           |
-| alta       | PDFs protegidos, corrompidos, grandes ou imagens incompatíveis | validação local e erros por arquivo; orçamento de memória e cancelamento               |
-| média      | importação ZIP abusiva ou incompleta                           | limites explícitos, validação de caminhos e hashes, rollback/staging                   |
-| média      | duplicação de formação e ocorrência                            | vínculo explícito e projeção editorial; não deduplicar por heurística                  |
-| média      | rascunhos impedidos pela falta de catálogo                     | permitir ocorrências sem enquadramento e metadados sem arquivo                         |
-| média      | regressão de navegação e acessibilidade                        | conservar URLs; teclado, anúncios de progresso e alternativas à ordenação por arraste  |
-| média      | mudança de dataset reinterpreta projeto antigo                 | referência imutável; atualização normativa somente por ação explícita                  |
+| Prioridade | Risco                                                          | Tratamento e verificação                                                              |
+| ---------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| alta       | catálogo transcrito, pendente, com ambiguidade interna em d.5  | manter indisponibilidade; validar a resolução; não normalizar o valor por inferência  |
+| alta       | schema exige planilha informal como oficial                    | corrigir proveniência e testes antes de promover catálogo                             |
+| alta       | perda de campos legados ou autoria                             | migração sem perda, cópia original preservada, fixtures com todos os opcionais        |
+| alta       | limites multiplicados por agrupamento                          | consolidar pelo critério normativo, testar múltiplos grupos e ocorrências             |
+| alta       | bytes/referências inconsistentes por quota ou concorrência     | comandos transacionais, revisão otimista e falhas simuladas                           |
+| alta       | referências de páginas incorretas após reordenação             | PageMap derivado do snapshot exato, invalidado por alteração                          |
+| alta       | PDFs protegidos, corrompidos, grandes ou imagens incompatíveis | validação local e erros por arquivo; orçamento de memória e cancelamento              |
+| média      | importação ZIP abusiva ou incompleta                           | limites explícitos, validação de caminhos e hashes, rollback/staging                  |
+| média      | duplicação de formação e ocorrência                            | vínculo explícito e projeção editorial; não deduplicar por heurística                 |
+| média      | rascunhos impedidos pela falta de catálogo                     | permitir ocorrências sem enquadramento e metadados sem arquivo                        |
+| média      | regressão de navegação e acessibilidade                        | conservar URLs; teclado, anúncios de progresso e alternativas à ordenação por arraste |
+| média      | mudança de dataset reinterpreta projeto antigo                 | referência imutável; atualização normativa somente por ação explícita                 |
 
 Limites de tamanho, tipos de arquivo aceitos, ordem editorial padrão e layouts dos formulários
 precisam ser definidos nas etapas correspondentes. São decisões técnicas ou dependentes da fonte,

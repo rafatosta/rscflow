@@ -46,9 +46,10 @@ describe('exploração de critérios', () => {
     );
   });
 
-  it('não inventa resultados para o catálogo de produção pendente e vazio', () => {
+  it('consulta genericamente o catálogo de produção sem torná-lo selecionável', () => {
     const production = loadIfbaRegulation();
-    expect(criterionContexts(production)).toEqual([]);
-    expect(searchCriteria(production, 'TCC')).toEqual([]);
+    expect(criterionContexts(production)).toHaveLength(137);
+    expect(searchCriteria(production, 'TCC').length).toBeGreaterThan(0);
+    expect(production.metadata.status).toBe('pending-official-validation');
   });
 });

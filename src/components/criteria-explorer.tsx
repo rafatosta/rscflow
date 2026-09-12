@@ -1,6 +1,10 @@
 import { useId, useState, type KeyboardEvent } from 'react';
 import type { Regulation, RscLevel } from '@/domain/regulation';
-import { criterionStatusLabel, searchCriteria } from '@/features/criteria/criteria-explorer';
+import {
+  criterionProvenanceLabel,
+  criterionStatusLabel,
+  searchCriteria,
+} from '@/features/criteria/criteria-explorer';
 import { levelLabel } from '@/features/project-shell/project-view';
 
 export function CriteriaExplorer({
@@ -159,7 +163,12 @@ export function CriteriaExplorer({
                                 </div>
                               </dl>
                               <div className="mt-3 border-t border-slate-700 pt-3 text-sm text-slate-300">
-                                <p>{criterionStatusLabel(criterion.provenance.status)}</p>
+                                <p>{criterionProvenanceLabel(criterion.provenance)}</p>
+                                {criterion.provenance.issue && (
+                                  <p role="alert" className="mt-1 text-amber-200 break-words">
+                                    {criterion.provenance.issue.description}
+                                  </p>
+                                )}
                                 <p className="mt-1 break-words">
                                   Origem: {criterion.provenance.sourceReference}
                                 </p>

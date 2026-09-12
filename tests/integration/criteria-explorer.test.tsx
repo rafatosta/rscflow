@@ -35,10 +35,17 @@ it('navega por abas, busca e renderiza todos os valores diretamente do dataset',
   expect(screen.getByText('publicação atualizada')).toBeVisible();
 });
 
-it('expõe estado pendente e ausência real de critérios no dataset de produção', () => {
-  render(<CriteriaExplorer dataset={loadIfbaRegulation()} initialLevel="rsc-i" />);
-  expect(screen.getByText('Pendente de validação oficial')).toBeVisible();
-  expect(screen.getByText(/ainda não contém critérios transcritos/)).toBeVisible();
+it('expõe o catálogo pendente e sinaliza o conflito normativo transcrito', () => {
+  render(<CriteriaExplorer dataset={loadIfbaRegulation()} initialLevel="rsc-ii" />);
+  expect(screen.getAllByText('Pendente de validação oficial').length).toBeGreaterThan(0);
+  fireEvent.change(screen.getByLabelText('Buscar no RSC II'), { target: { value: 'd.5' } });
+  expect(
+    screen.getByRole('heading', {
+      name: /d\.5 — Organização e\/ou execução de visitas técnicas/,
+    }),
+  ).toBeVisible();
+  expect(screen.getByText('Conflito normativo pendente de validação humana')).toBeVisible();
+  expect(screen.getByRole('alert')).toHaveTextContent('O Anexo V imprime peso 14');
   expect(screen.getAllByRole('tab')).toHaveLength(3);
 });
 
