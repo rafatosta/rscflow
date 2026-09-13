@@ -53,16 +53,19 @@ test('jornada de requisitos, anexo, pontuação, autoria, revisão e transporte 
   await profile(page);
   await page.getByRole('link', { name: 'Requisitos', exact: true }).click();
   await add(page, '99');
-  await expect(page.getByRole('article', { name: 'Orientação de TCC', exact: true })).toContainText(
-    'Pontuação do requisito: 10',
-  );
+  const requirement = page.getByRole('article', { name: 'Orientação de TCC', exact: true });
+  await expect(requirement.locator('.requirement-metric').first()).toContainText('10 pontos');
+  await requirement.getByRole('button', { name: /Ver lançamentos/ }).click();
+  await expect(requirement.getByRole('list', { name: /Lançamentos de/ })).toBeFocused();
   await page.reload();
   await expect(page.getByText('Documentos: declaracao.txt')).toBeVisible();
   await add(page, '2', false);
   await expect(page.getByText('Pendente: sem documento comprobatório.')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Orientação de TCC', exact: true })).toContainText(
-    'Pontuação do requisito: 10',
-  );
+  await expect(
+    page
+      .getByRole('article', { name: 'Orientação de TCC', exact: true })
+      .getByText('10 pontos', { exact: true }),
+  ).toBeVisible();
   await page.getByRole('link', { name: 'Memorial', exact: true }).click();
   await page.getByRole('button', { name: 'Preparar memorial com os dados cadastrados' }).click();
   await page
@@ -129,7 +132,13 @@ test('catálogo pendente calcula requisito provisório e preserva bloqueio de co
   await page.getByRole('spinbutton').fill('2');
   await expect(page.getByText(/Pontuação calculada: .*pontos.*ainda não validada/)).toBeVisible();
   await page.getByRole('button', { name: 'Salvar lançamento', exact: true }).click();
-  await expect(page.getByText(/Pontuação do requisito: \d/)).toBeVisible();
+  await expect(
+    page
+      .getByRole('article')
+      .filter({ hasText: 'Item a.1' })
+      .locator('dd')
+      .filter({ hasText: /^\d+ pontos$/ }),
+  ).toBeVisible();
   const validationBadge = page.getByRole('button', { name: 'Não validado' });
   const validationTooltip = page.getByRole('tooltip');
   await expect(validationBadge).toBeVisible();

@@ -27,6 +27,9 @@ it('formulário mínimo deriva contexto, muda unidade e oferece arquivo no mesmo
     />,
   );
   const article = screen.getByRole('article', { name: first.description });
+  expect(within(article).getByRole('button', { name: 'Ver lançamentos' })).toBeDisabled();
+  expect(within(article).getByText(first.provenance.sourceReference)).toBeVisible();
+  expect(within(article).queryByText('Referência normativa')).toBeNull();
   fireEvent.click(within(article).getByRole('button', { name: 'Adicionar lançamento' }));
   const form = screen.getByRole('form', { name: 'Lançamento' });
   await waitFor(() => expect(screen.getByLabelText('De')).toHaveFocus());
