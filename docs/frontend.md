@@ -35,3 +35,7 @@ O PDF disponível é o memorial; formulários RSC, PDF consolidado de comprovant
 ## Acessibilidade
 
 Sidebar em desktop e Sheet com foco contido em telas menores; link de salto, título focável após navegação, labels, erros associados, abas por teclado e estado textual além de cor. Formulários usam uma coluna no mobile. A prévia A4 reduz sua escala sem alterar a paginação. Testes axe e reflow cobrem mobile, tablet e desktop.
+
+O controle Aparência no cabeçalho oferece tema claro, escuro ou sincronizado com o sistema, texto
+ampliado, contraste reforçado e redução de movimentos. As escolhas são guardadas no `localStorage`
+do navegador e aplicadas antes da montagem da interface; não integram nem alteram os projetos.

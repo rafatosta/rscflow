@@ -30,4 +30,8 @@ Autosave funciona em dados do docente, formação e memorial. No lançamento, us
 
 IndexedDB guarda projetos e anexos neste navegador. Limpar os dados do site pode removê-los. JSON é uma cópia dos dados, sem bytes; depois de importar, anexe novamente o mesmo arquivo para recuperar a disponibilidade. O hash evita duplicação do descritor. A marca do último backup informa que o download foi iniciado, sem garantir gravação no disco.
 
+O menu Aparência permite acompanhar o tema do sistema ou escolher claro/escuro, ampliar o texto,
+reforçar o contraste e reduzir movimentos. Essas preferências pertencem ao navegador e não são
+incluídas no JSON do processo.
+
 Novos projetos usam 3.0. Leitores portáteis antigos permanecem úteis; ao editar 2.0/2.1, o projeto é convertido para 3.0 no mesmo registro. O formato opaco 1.0 pode ser exportado para consulta, sem formulário experimental. Nenhum dado local é apagado nesta refatoração.

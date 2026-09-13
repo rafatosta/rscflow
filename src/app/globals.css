@@ -10,6 +10,9 @@
     --primary-foreground: 210 40% 98%;
     --radius: 0.5rem;
   }
+  html[data-text-size='large'] {
+    font-size: 112.5%;
+  }
   * {
     @apply border-slate-200;
   }
@@ -19,6 +22,105 @@
   }
   :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
     @apply outline outline-2 outline-offset-2 outline-cyan-300;
+  }
+}
+
+@layer utilities {
+  html[data-theme='light'] .bg-slate-950,
+  html[data-theme='light'] .bg-slate-950\/95 {
+    background-color: rgb(248 250 252);
+  }
+  html[data-theme='light'] .bg-slate-900 {
+    background-color: rgb(255 255 255);
+  }
+  html[data-theme='light'] .bg-slate-800 {
+    background-color: rgb(226 232 240);
+  }
+  html[data-theme='light'] .text-slate-50,
+  html[data-theme='light'] .text-slate-100,
+  html[data-theme='light'] .text-slate-200 {
+    color: rgb(15 23 42);
+  }
+  html[data-theme='light'] .text-slate-300 {
+    color: rgb(51 65 85);
+  }
+  html[data-theme='light'] .text-slate-400 {
+    color: rgb(71 85 105);
+  }
+  html[data-theme='light'] .text-cyan-200,
+  html[data-theme='light'] .text-cyan-300 {
+    color: rgb(7 89 133);
+  }
+  html[data-theme='light'] .text-rose-200,
+  html[data-theme='light'] .text-rose-300 {
+    color: rgb(159 18 57);
+  }
+  html[data-theme='light'] .text-amber-100,
+  html[data-theme='light'] .text-amber-200 {
+    color: rgb(120 53 15);
+  }
+  html[data-theme='light'] .text-emerald-200,
+  html[data-theme='light'] .text-emerald-300 {
+    color: rgb(6 95 70);
+  }
+  html[data-theme='light'] .bg-rose-950\/30 {
+    background-color: rgb(255 241 242);
+  }
+  html[data-theme='light'] .bg-amber-950\/20 {
+    background-color: rgb(255 251 235);
+  }
+  html[data-theme='light'] .bg-cyan-950\/20 {
+    background-color: rgb(236 254 255);
+  }
+  html[data-theme='light'] .border-slate-500 {
+    border-color: rgb(100 116 139);
+  }
+  html[data-theme='light'] .border-slate-600,
+  html[data-theme='light'] .border-slate-700 {
+    border-color: rgb(203 213 225);
+  }
+  html[data-theme='light'] .field {
+    background-color: white;
+    color: rgb(15 23 42);
+  }
+  html[data-theme='light'] .hover\:bg-slate-800:hover {
+    background-color: rgb(226 232 240);
+  }
+
+  html[data-contrast='high'] * {
+    border-color: currentColor;
+  }
+  html[data-contrast='high']
+    :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+  html[data-contrast='high'][data-theme='dark'] .bg-slate-950,
+  html[data-contrast='high'][data-theme='dark'] .bg-slate-900 {
+    background-color: black;
+  }
+  html[data-contrast='high'][data-theme='light'] .bg-slate-950,
+  html[data-contrast='high'][data-theme='light'] .bg-slate-900 {
+    background-color: white;
+  }
+
+  html[data-motion='reduced'] *,
+  html[data-motion='reduced'] *::before,
+  html[data-motion='reduced'] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 

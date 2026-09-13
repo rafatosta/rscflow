@@ -16,6 +16,7 @@ import { ProjectSection } from '@/components/project-section';
 import { Sheet } from '@/components/ui/sheet';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Button } from '@/components/ui/button';
+import { VisualPreferencesControl } from '@/components/visual-preferences';
 
 export function App({ repository }: { repository?: ProjectRepository }) {
   const [defaultRepository] = useState(() => new DexieProjectRepository());
@@ -167,6 +168,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
               {current ? projectTitle(current.project) : 'Projetos locais'}
             </p>
           </div>
+          <VisualPreferencesControl />
           {current && (
             <>
               <div

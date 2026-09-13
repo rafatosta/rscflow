@@ -67,3 +67,20 @@ test('skip link e mudança de rota mantêm uma ordem de foco previsível', async
   await page.getByRole('button', { name: 'Cancelar' }).press('Enter');
   await expect(deleteProject).toBeFocused();
 });
+
+test('preferências visuais são aplicadas e preservadas após recarregar', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Aparência').click();
+  await page.getByLabel('Claro').check();
+  await page.getByLabel('Tamanho do texto').selectOption('large');
+  await page.getByLabel(/Contraste reforçado/).check();
+  await page.getByLabel(/Reduzir movimentos/).check();
+
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('html')).toHaveAttribute('data-text-size', 'large');
+  await expect(page.locator('html')).toHaveAttribute('data-contrast', 'high');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expectNoSeriousAxeViolations(page);
+});
