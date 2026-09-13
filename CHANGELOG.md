@@ -6,6 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Estrutura documental ARRP com `AGENTS.md` como roteador, mapa de contexto sob demanda, protocolo
+  de tarefas, política de decisões e reconciliação documental pós-alteração.
+
 - Fluxo público reduzido a Visão geral, Dados do docente, Requisitos, Memorial, Revisão e Gerar documentos.
 - Lançamentos mínimos por requisito, com abas RSC I/II/III, dados derivados do catálogo, arquivo opcional e registros provisórios para catálogo pendente sem cálculo presumido.
 - Persistência local de bytes no Dexie v2, checagem SHA-256, transação atômica, cópia de anexos na duplicação e indicação de arquivos ausentes após importar JSON.
@@ -99,6 +102,8 @@ This project follows Keep a Changelog and Semantic Versioning.
 - Testes de leitura, rejeição estrutural, seleção concorrente e fluxo E2E com acessibilidade.
 
 ### Changed
+
+- Plano de refatoração de 11/09/2026 arquivado como histórico, separado da documentação vigente.
 
 - README e guia de contribuição alinhados ao estado real do catálogo pendente, aos formatos 1.0/2.0/2.1 e ao fluxo local sem backend.
 

@@ -48,12 +48,12 @@ sua referência normativa nem sua pontuação.
 
 ## Arquitetura e manutenção
 
-A nova bateria começa pelo [relatório de análise e plano de refatoração](docs/plano-refatoracao.md),
-que registra o modelo alvo, a migração e a ordem dos incrementos. A resolução é a única fonte
-normativa oficial; a planilha é material informal auxiliar, conforme o roteiro de 11/09/2026.
+O [plano de refatoração de 11/09/2026](docs/maintainers/history/plano-refatoracao.md) foi preservado
+como histórico da evolução que levou ao estado atual. A resolução é a única fonte normativa oficial;
+a planilha é material informal auxiliar, conforme a decisão registrada nessa etapa.
 
-Antes de alterar código, leia [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) e a
-documentação pertinente:
+Antes de alterar código, comece por [AGENTS.md](AGENTS.md) e use o
+[mapa de documentação](docs/ai/documentation-map.md) para selecionar o contexto pertinente:
 
 - [arquitetura e dependências](docs/architecture.md);
 - [domínio e relações](docs/domain.md);

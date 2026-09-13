@@ -1,40 +1,35 @@
-# RSCFlow agent contract
+# Contrato do agente do RSCFlow
 
-Before changing code, every agent must read this file and the relevant documentation in `docs/`.
+Este arquivo é a porta de entrada e o roteador de contexto do projeto.
 
-1. Do not invent, complete, adjust, or reinterpret missing normative rules.
-2. Source-of-truth priority is: current maintainer instruction > official resolution > validated normative JSON > documentation > code. Conforme o roteiro da nova bateria de 11/09/2026, a resolução é a única fonte normativa oficial; a planilha é material informal auxiliar de terceiro, sem autoridade normativa.
-3. Em divergências entre resolução normativa, planilha e JSON, prevalece sempre a resolução normativa, conforme decisão do mantenedor em 10/09/2026. Registre a divergência e sua fonte. Não resolva por inferência ambiguidades internas da própria normativa.
-4. Keep domain, rules, persistence, UI, memorial, and PDF separate. Normative rules are forbidden in React components.
-5. Every behavioral change requires its corresponding test.
-6. Do not leave TODOs, stubs, or deliberately incomplete functionality.
-7. Update documentation and the changelog when applicable.
-8. Before concluding, run lint, typecheck, applicable tests, build, and applicable E2E checks; explicitly report any validation not run.
-9. Use Conventional Commits with descriptions and bodies in Portuguese, retaining standard type tokens, in the format `type(escopo): descrição`. Suggest a message at the end; never create a commit without explicit maintainer authorization.
+## Antes de alterar
 
-## Repository boundaries
+1. Preserve a solicitação do usuário ou mantenedor como objetivo principal.
+2. Leia `docs/ai/task-protocol.md`.
+3. Inspecione o estado do Git e preserve mudanças não relacionadas.
+4. Identifique as áreas afetadas e consulte somente os documentos indicados em
+   `docs/ai/documentation-map.md`.
 
-- `src/domain/`: stable domain contracts and schemas.
-- `src/rules/`: deterministic normative rule evaluation, only after source validation.
-- `src/storage/`: persistence adapters, including Dexie.
-- `src/components/` and `src/app/`: presentation and composition only.
-- `src/memorial/` and `src/pdf/`: document assembly and rendering, separate from rule evaluation.
-- `src/data/regulations/`: versioned source data. Pending data must remain explicitly unvalidated.
+## Invariantes
 
-If this contract conflicts with a maintainer instruction, follow the maintainer instruction and document the decision.
+- Não invente, complete, ajuste nem reinterprete regra normativa ausente ou ambígua.
+- A prioridade das fontes é: instrução atual do mantenedor, resolução oficial, JSON normativo
+  validado, documentação e código. A resolução prevalece sobre a planilha auxiliar e o JSON; toda
+  divergência deve ser registrada com suas fontes.
+- Domínio, regras, persistência, interface, memorial e PDF permanecem separados. Componentes React
+  não contêm valores nem critérios normativos.
+- Catálogos de produção pendentes continuam indisponíveis para pontuação. Fixtures sintéticas são
+  exclusivas de testes; o catálogo E2E só pode ser injetado no modo Vite `e2e`.
+- Toda mudança de comportamento exige teste correspondente. Não deixe `TODO`, stub ou
+  funcionalidade deliberadamente incompleta.
+- Não crie commit sem autorização explícita do mantenedor.
 
-## Required reading by change
+## Conclusão
 
-- Architecture or dependencies: `docs/architecture.md` and `docs/development-workflow.md`.
-- Domain, import, export, or persistence: `docs/domain.md` and `docs/data-model.md`.
-- Rules or normative data: `docs/rsc-regulation.md` and the cited official source in `docs/ifba/`.
-- Interface behavior: `docs/frontend.md` and `docs/ux.md`.
-- Tests or fixtures: `docs/testing.md`.
-- Commit preparation: `docs/commit-convention.md` and `CHANGELOG.md`.
+Siga `docs/development-workflow.md`, atualize documentação e `CHANGELOG.md` quando aplicável e
+execute lint, typecheck, testes aplicáveis, build e E2E aplicável. Relate toda validação não
+executada. Para commits, consulte `docs/commit-convention.md` e sugira uma mensagem em português no
+formato `type(escopo): descrição`.
 
-## Current normative snapshot
-
-The scoring policy is source-validated. The populated production RSC I, II, and III catalogs remain
-`pending-official-validation` and without a normative version. Production scoring must stay
-unavailable until the complete catalog and its recorded conflict are validated. Synthetic fixtures
-are test-only and the E2E catalog is injected only in Vite `e2e` mode.
+O contexto do projeto e o roteamento completo estão em `docs/ai/project-context.md` e
+`docs/ai/documentation-map.md`. Não leia toda a documentação por padrão.

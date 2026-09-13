@@ -1,5 +1,8 @@
 # Análise do estado atual e plano de refatoração
 
+> Documento histórico de 11/09/2026. Registra o estado e as propostas daquela data; consulte a
+> documentação vigente em `docs/` para o comportamento atual.
+
 Data: 11/09/2026. Base inspecionada: `ca06a90`, árvore inicialmente limpa.
 Escopo: primeira etapa da nova bateria; análise e documentação, sem alterar código,
 schemas, dados normativos ou comportamento. As propostas abaixo ainda não estão implementadas.
@@ -14,7 +17,7 @@ Conforme o roteiro desta bateria, a Resolução CONSUP/IFBA nº 189/2026 é a ú
 normativa oficial. A planilha em `docs/ifba/` é material informal auxiliar de terceiro.
 Essa orientação substitui as referências anteriores a “planilha oficial”; não autoriza
 interpretar ambiguidades da resolução. Os registros de divergências em
-[rsc-regulation.md](rsc-regulation.md) continuam preservados como histórico.
+[rsc-regulation.md](../../rsc-regulation.md) continuam preservados como histórico.
 
 A presente análise não revalida a transcrição normativa nem certifica formulários legais.
 Valores, unidades, fatores, pesos e limites continuam exclusivamente nos JSONs versionados;

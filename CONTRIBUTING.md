@@ -1,7 +1,8 @@
 # Como contribuir
 
-Leia [AGENTS.md](AGENTS.md) e a documentação pertinente em [docs/](docs/) antes de alterar o
-projeto. O fluxo detalhado está em [docs/development-workflow.md](docs/development-workflow.md).
+Leia [AGENTS.md](AGENTS.md) e use o
+[mapa de documentação](docs/ai/documentation-map.md) antes de alterar o projeto. O fluxo detalhado
+está em [docs/development-workflow.md](docs/development-workflow.md).
 
 1. Confirme o estado da árvore de trabalho e identifique as camadas afetadas.
 2. Para regras ou dados normativos, confira as fontes e a proveniência antes de implementar.
