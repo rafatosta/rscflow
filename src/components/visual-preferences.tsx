@@ -1,5 +1,5 @@
 import { SlidersHorizontal } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   applyVisualPreferences,
   defaultVisualPreferences,
@@ -13,6 +13,7 @@ import {
 const colorSchemeQuery = '(prefers-color-scheme: dark)';
 
 export function VisualPreferencesControl() {
+  const details = useRef<HTMLDetailsElement>(null);
   const [preferences, setPreferences] = useState<VisualPreferences>(() =>
     typeof window === 'undefined'
       ? defaultVisualPreferences
@@ -29,11 +30,32 @@ export function VisualPreferencesControl() {
     return () => media?.removeEventListener('change', apply);
   }, [preferences]);
 
+  useEffect(() => {
+    const closeWhenOutside = (event: Event) => {
+      const current = details.current;
+      if (current?.open && event.target instanceof Node && !current.contains(event.target)) {
+        current.open = false;
+      }
+    };
+    document.addEventListener('pointerdown', closeWhenOutside);
+    document.addEventListener('focusin', closeWhenOutside);
+    return () => {
+      document.removeEventListener('pointerdown', closeWhenOutside);
+      document.removeEventListener('focusin', closeWhenOutside);
+    };
+  }, []);
+
   const update = (change: Partial<VisualPreferences>) =>
     setPreferences((current) => ({ ...current, ...change }));
 
   return (
-    <details className="visual-preferences relative">
+    <details
+      ref={details}
+      className="visual-preferences relative"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+      }}
+    >
       <summary
         aria-label="Aparência"
         className="button-base button-outline cursor-pointer list-none px-3 py-2"

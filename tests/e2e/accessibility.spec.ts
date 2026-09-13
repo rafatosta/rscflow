@@ -81,6 +81,8 @@ test('preferências visuais são aplicadas e preservadas após recarregar', asyn
   await expect(page.locator('html')).toHaveAttribute('data-text-size', 'large');
   await expect(page.locator('html')).toHaveAttribute('data-contrast', 'high');
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+  await page.getByRole('heading', { name: 'Meus projetos' }).click();
+  await expect(page.getByLabel('Claro')).toBeHidden();
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expectNoSeriousAxeViolations(page);

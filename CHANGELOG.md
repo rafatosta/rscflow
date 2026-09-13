@@ -10,7 +10,8 @@ This project follows Keep a Changelog and Semantic Versioning.
   e sobreposições, preservando os fluxos e a organização funcional existentes.
 
 - Temas claro, escuro e sincronizado com o sistema, com preferências locais para texto ampliado,
-  contraste reforçado e redução de movimentos, sem alterar a estrutura das telas.
+  contraste reforçado e redução de movimentos, sem alterar a estrutura das telas; o painel fecha ao
+  perder o foco ou receber uma interação externa.
 - Prévia A4 do memorial disponível também como item do menu principal, mantendo o acesso pela
   Revisão.
 

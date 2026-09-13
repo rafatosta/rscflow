@@ -75,4 +75,19 @@ describe('preferências visuais', () => {
       textSize: 'large',
     });
   });
+
+  it('fecha o popup quando o foco segue para fora do controle', () => {
+    render(
+      <>
+        <VisualPreferencesControl />
+        <button>Destino externo</button>
+      </>,
+    );
+    const trigger = screen.getByLabelText('Aparência');
+    fireEvent.click(trigger);
+    expect(trigger.closest('details')).toHaveAttribute('open');
+
+    screen.getByRole('button', { name: 'Destino externo' }).focus();
+    expect(trigger.closest('details')).not.toHaveAttribute('open');
+  });
 });
