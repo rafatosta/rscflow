@@ -24,6 +24,8 @@ export function parseRoute(
 }
 export const projectPath = (id: string, section: string = '') =>
   `/project/${encodeURIComponent(id)}${section ? `/${section}` : ''}`;
+export const requirementEditPath = (localId: string, occurrenceId: string) =>
+  `${projectPath(localId, 'requirements')}?edit=${encodeURIComponent(occurrenceId)}`;
 
 export const primarySections: readonly Section[] = [
   '',

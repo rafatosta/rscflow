@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, within, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { RequirementsSection } from '@/components/requirements-section';
 import { parseRegulation, loadIfbaRegulation } from '@/data/regulations/load';
 import { createDraft } from '@/features/project-shell/project-view';
@@ -17,14 +18,16 @@ it('formulário mínimo deriva contexto, muda unidade e oferece arquivo no mesmo
   const dirty = vi.fn();
   const project = createDraft('rsc-i', 'ifba-189-2026');
   render(
-    <RequirementsSection
-      project={project}
-      dataset={dataset}
-      scoring={unavailable}
-      disabled={false}
-      save={save}
-      setFormDirty={dirty}
-    />,
+    <MemoryRouter>
+      <RequirementsSection
+        project={project}
+        dataset={dataset}
+        scoring={unavailable}
+        disabled={false}
+        save={save}
+        setFormDirty={dirty}
+      />
+    </MemoryRouter>,
   );
   const article = screen.getByRole('article', { name: first.description });
   expect(within(article).getByRole('button', { name: 'Ver lançamentos' })).toBeDisabled();
@@ -50,14 +53,16 @@ it('formulário mínimo deriva contexto, muda unidade e oferece arquivo no mesmo
 it('consulta todos os níveis e apresenta conflito como dado do catálogo', () => {
   const dataset = loadIfbaRegulation();
   render(
-    <RequirementsSection
-      project={createDraft('rsc-i', 'ifba-189-2026')}
-      dataset={dataset}
-      scoring={unavailable}
-      disabled={false}
-      save={vi.fn()}
-      setFormDirty={vi.fn()}
-    />,
+    <MemoryRouter>
+      <RequirementsSection
+        project={createDraft('rsc-i', 'ifba-189-2026')}
+        dataset={dataset}
+        scoring={unavailable}
+        disabled={false}
+        save={vi.fn()}
+        setFormDirty={vi.fn()}
+      />
+    </MemoryRouter>,
   );
   fireEvent.keyDown(screen.getByRole('tab', { name: /^RSC I$/ }), { key: 'ArrowRight' });
   expect(screen.getByRole('tab', { name: /^RSC II$/ })).toHaveFocus();
@@ -66,4 +71,44 @@ it('consulta todos os níveis e apresenta conflito como dado do catálogo', () =
   expect(screen.getByText('Conflito normativo pendente de validação humana')).toBeVisible();
   expect(screen.getByText(/O Anexo V imprime peso 14/)).toBeVisible();
   expect(screen.getByRole('button', { name: 'Adicionar lançamento' })).toBeEnabled();
+});
+
+it('abre diretamente o lançamento indicado para corrigir o arquivo', async () => {
+  const dataset = parseRegulation(fixture);
+  const criterion = dataset.levels[0].criteria[0];
+  const project = createDraft('rsc-i', 'ifba-189-2026');
+  project.userData.criterionEntries = [
+    {
+      id: 'entry',
+      criterionId: criterion.id,
+      selectedLevel: 'rsc-i',
+      occurrences: [
+        {
+          id: 'occurrence-file',
+          title: 'Lançamento com arquivo ausente',
+          quantity: 1,
+          evidenceIds: [],
+          order: 0,
+          period: {},
+        },
+      ],
+    },
+  ];
+  render(
+    <MemoryRouter initialEntries={['/project/local-1/requirements?edit=occurrence-file']}>
+      <RequirementsSection
+        project={project}
+        dataset={dataset}
+        scoring={unavailable}
+        disabled={false}
+        save={vi.fn()}
+        setFormDirty={vi.fn()}
+      />
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByRole('form', { name: 'Lançamento' })).toBeVisible();
+  expect(screen.getByRole('heading', { name: 'Editar lançamento' })).toBeVisible();
+  expect(screen.getByText(criterion.description)).toBeVisible();
+  expect(screen.getByLabelText('Documento comprobatório (opcional)')).toBeVisible();
 });

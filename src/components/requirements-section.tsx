@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { List, PlusCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import type { Occurrence, OccurrenceProjectExport } from '@/domain/criterion-entry';
 import type { Criterion, Regulation, RscLevel } from '@/domain/regulation';
 import type { CalculationResult } from '@/domain/scoring';
@@ -41,6 +42,7 @@ export function RequirementsSection({
   const [editing, setEditing] = useState<{ criterion: Criterion; occurrence?: Occurrence }>();
   const [deleting, setDeleting] = useState<Occurrence>();
   const [reframing, setReframing] = useState<Occurrence>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const trigger = useRef<HTMLElement | null>(null);
   const close = () => {
     setEditing(undefined);
@@ -63,6 +65,25 @@ export function RequirementsSection({
       )
       .flatMap((entry) => entry.occurrences),
   ];
+  useEffect(() => {
+    const occurrenceId = searchParams.get('edit');
+    if (!occurrenceId || !dataset || editing) return;
+    const entry = project.userData.criterionEntries.find((item) =>
+      item.occurrences.some((occurrence) => occurrence.id === occurrenceId),
+    );
+    const occurrence = entry?.occurrences.find((item) => item.id === occurrenceId);
+    const nextLevel = entry?.selectedLevel;
+    const criterion = dataset.levels
+      .find((item) => item.section === nextLevel)
+      ?.criteria.find((item) => item.id === entry?.criterionId);
+    if (occurrence && nextLevel && criterion) {
+      setLevel(nextLevel);
+      setEditing({ criterion, occurrence });
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('edit');
+    setSearchParams(next, { replace: true });
+  }, [dataset, editing, project, searchParams, setSearchParams]);
   return (
     <div className="space-y-5">
       <p>
