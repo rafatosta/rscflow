@@ -21,6 +21,10 @@ Rotas anteriores de formação, trajetória, critérios, pontuação, comprovant
 
 O formulário recebe o critério escolhido e pede apenas De, Até, quantidade na unidade do catálogo, descrição e arquivo opcionais. Datas civis não determinam quantidade de meses: não existe regra validada de contagem automática. Nenhum peso, fator, limite, unidade ou valor calculado é editável. O catálogo pendente permite pontuação provisória por requisito e lançamento, com aviso de validação humana pendente. O requisito consolida quantidades antes de aplicar o limite do item; os totais do projeto continuam indisponíveis até validar o catálogo. Critérios com conflito normativo explícito não são calculados.
 
+Nos cartões de requisitos pendentes, um badge “Não validado” no topo direito substitui a repetição
+dos avisos de pontuação provisória e validação oficial. O tooltip associado aparece por mouse ou
+foco do teclado; conflitos normativos específicos continuam descritos no corpo do cartão.
+
 Salvar prepara ocorrência, evidência e descritor no caso de uso e grava os bytes junto com o projeto. Falhas mantêm o formulário. Sem arquivo, o lançamento permanece com pendência e pode ser editado depois. Documentos já cadastrados podem ser compartilhados. Selecionar novamente o mesmo conteúdo recupera seu vínculo local por hash sem duplicar descritores. Registros importados sem enquadramento podem ser associados a um requisito sem perder sua identidade e texto manual.
 
 ## Edição e saídas

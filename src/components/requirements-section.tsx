@@ -18,6 +18,7 @@ import {
 } from '@/features/requirements/requirements';
 import { Button } from './ui/button';
 import { ConfirmDialog } from './ui/confirm-dialog';
+import { ValidationBadge } from './ui/validation-badge';
 
 export function RequirementsSection({
   project,
@@ -202,7 +203,14 @@ export function RequirementsSection({
                         className="subpanel space-y-3 break-words"
                         aria-label={criterion.description}
                       >
-                        <h3 className="font-semibold text-lg">{criterion.description}</h3>
+                        <div className="flex items-start gap-3">
+                          <h3 className="min-w-0 flex-1 text-lg font-semibold">
+                            {criterion.description}
+                          </h3>
+                          {points.unvalidated && (
+                            <ValidationBadge tooltipId={`validation-${criterion.id}`} />
+                          )}
+                        </div>
                         <p className="text-sm text-slate-300">
                           {levelLabel(level)} · item {criterion.code} · Unidade: {criterion.unit} ·
                           Máximo considerado: {criterion.maxQuantity}
@@ -213,12 +221,7 @@ export function RequirementsSection({
                             ? points.score.toLocaleString('pt-BR')
                             : '—'}
                         </p>
-                        {points.status === 'available' && points.unvalidated && (
-                          <p className="text-amber-200">
-                            Pontuação provisória, ainda não validada por conferência humana.
-                          </p>
-                        )}
-                        {criterion.provenance.status !== 'validated' && (
+                        {criterion.provenance.issue && (
                           <p className="text-amber-200">
                             {criterionProvenanceLabel(criterion.provenance)}
                           </p>
@@ -242,7 +245,9 @@ export function RequirementsSection({
                                 {entry.description || entry.title} · {entry.quantity}{' '}
                                 {criterion.unit}
                               </p>
-                              <p>{previewRequirement(dataset!, criterion, entry.quantity)}</p>
+                              <p>
+                                {previewRequirement(dataset!, criterion, entry.quantity, false)}
+                              </p>
                               <p>
                                 {entry.evidenceIds.length
                                   ? `Documentos: ${entry.evidenceIds.map((id) => project.userData.evidence.find((item) => item.id === id)?.title).join('; ')}`

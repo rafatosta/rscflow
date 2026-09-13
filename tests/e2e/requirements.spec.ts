@@ -130,11 +130,16 @@ test('catálogo pendente calcula requisito provisório e preserva bloqueio de co
   await expect(page.getByText(/Pontuação calculada: .*pontos.*ainda não validada/)).toBeVisible();
   await page.getByRole('button', { name: 'Salvar lançamento', exact: true }).click();
   await expect(page.getByText(/Pontuação do requisito: \d/)).toBeVisible();
-  await expect(
-    page.getByText('Pontuação provisória, ainda não validada por conferência humana.', {
-      exact: true,
-    }),
-  ).toBeVisible();
+  const validationBadge = page.getByRole('button', { name: 'Não validado' });
+  const validationTooltip = page.getByRole('tooltip');
+  await expect(validationBadge).toBeVisible();
+  await expect(validationTooltip).toBeHidden();
+  await validationBadge.focus();
+  await expect(validationTooltip).toBeVisible();
+  await expect(validationTooltip).toContainText(
+    'Pontuação provisória, ainda não validada por conferência humana.',
+  );
+  await expect(validationTooltip).toContainText('Pendente de validação oficial.');
   await page.getByLabel('Buscar requisitos').fill('d.5');
   await expect(page.getByText('Conflito normativo pendente de validação humana')).toBeVisible();
   await page.getByRole('button', { name: 'Adicionar lançamento', exact: true }).click();

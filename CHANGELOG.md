@@ -10,7 +10,8 @@ This project follows Keep a Changelog and Semantic Versioning.
   seletores na interface e identificação de valores legados fora das listas.
 
 - Pontuação provisória por requisito e lançamento em catálogo pendente de validação humana, com
-  aviso explícito; totais do projeto e critérios com conflito normativo permanecem indisponíveis.
+  aviso condensado em badge e tooltip; totais do projeto e critérios com conflito normativo
+  permanecem indisponíveis.
 
 - Padrões visuais compartilhados para superfícies, títulos, cartões, campos, botões, links, avisos
   e sobreposições, preservando os fluxos e a organização funcional existentes.

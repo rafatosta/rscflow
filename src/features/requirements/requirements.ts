@@ -40,10 +40,15 @@ export function requirementPoints(dataset: Regulation, criterion: Criterion, qua
       dataset.metadata.status !== 'validated' || criterion.provenance.status !== 'validated',
   };
 }
-export function previewRequirement(dataset: Regulation, criterion: Criterion, quantity: number) {
+export function previewRequirement(
+  dataset: Regulation,
+  criterion: Criterion,
+  quantity: number,
+  includeValidationNotice = true,
+) {
   const result = requirementPoints(dataset, criterion, [quantity]);
   return result.status === 'available'
-    ? `${result.score.toLocaleString('pt-BR')} pontos (antes dos tetos compartilhados)${result.unvalidated ? ' · Pontuação provisória, ainda não validada por conferência humana.' : ''}`
+    ? `${result.score.toLocaleString('pt-BR')} pontos (antes dos tetos compartilhados)${result.unvalidated && includeValidationNotice ? ' · Pontuação provisória, ainda não validada por conferência humana.' : ''}`
     : result.reason;
 }
 export function allOccurrences(project: OccurrenceProjectExport) {
