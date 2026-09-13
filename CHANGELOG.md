@@ -19,6 +19,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Geração local dos formulários e Anexos II a VII do processo de RSC a partir do catálogo, dos
+  dados do projeto, da projeção canônica de pontuação e do mapa de páginas dos comprovantes, com
+  estado provisório ou indisponível e informações incompletas explícitos.
+
 - Referências derivadas de páginas dos comprovantes nos respectivos lançamentos do Memorial, com a
   mesma projeção semântica utilizada pela prévia A4 e pelo PDF final.
 

@@ -7,10 +7,11 @@ import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
 import type { FileResolver } from '@/domain/local-files';
 import type { ProjectExport, TypedProjectExport } from '@/domain/project';
 import type { CalculationResult } from '@/domain/scoring';
+import type { Regulation } from '@/domain/regulation';
 import { reviewProject } from '@/features/final-review/review';
 import { projectJsonFilename } from '@/features/local-projects/project-files';
 import { projectPath } from '@/features/project-shell/routes';
-import { memorialPdfFilename } from '@/pdf/file-name';
+import { memorialPdfFilename, normativeFormsPdfFilename } from '@/pdf/file-name';
 import { ProjectImport } from './project-import';
 import { Button } from './ui/button';
 
@@ -23,6 +24,7 @@ export function FinalExport({
   onImport,
   evidenceProject,
   resolver,
+  dataset,
 }: {
   record: LocalProject;
   scoring: CalculationResult;
@@ -32,6 +34,7 @@ export function FinalExport({
   onImport: (project: ProjectExport) => void;
   evidenceProject?: OccurrenceProjectExport;
   resolver?: FileResolver;
+  dataset?: Regulation;
 }) {
   const project = activityProjectView(record.project as TypedProjectExport);
   const review = reviewProject(project, scoring);
@@ -61,6 +64,29 @@ export function FinalExport({
       else await downloadMemorialPdf(project);
     } catch {
       setError('Não foi possível gerar o PDF. Revise os dados e tente novamente.');
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function generateForms() {
+    if (!dataset) return setError('O catálogo normativo vinculado ao projeto não está disponível.');
+    setGenerating(true);
+    setError('');
+    try {
+      let pageMap;
+      if (evidenceProject && resolver)
+        pageMap = await import('@/pdf/evidence-bundle').then(({ createEvidencePageMap }) =>
+          createEvidencePageMap(evidenceProject, resolver),
+        );
+      const { buildNormativeProcessDocument } = await import('@/normative-documents/model');
+      const model = buildNormativeProcessDocument(project, dataset, scoring, pageMap);
+      const { downloadNormativeFormsPdf } = await import('@/pdf/normative-forms');
+      await downloadNormativeFormsPdf(project, model);
+    } catch {
+      setError(
+        'Não foi possível gerar os formulários. Verifique os dados e os comprovantes locais.',
+      );
     } finally {
       setGenerating(false);
     }
@@ -122,7 +148,7 @@ export function FinalExport({
           </p>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           <article className="subpanel p-5">
             <FileSearch className="text-cyan-300" aria-hidden="true" />
             <h3 className="mt-3 subsection-title">Memorial em PDF</h3>
@@ -136,6 +162,21 @@ export function FinalExport({
             >
               <Download className="mr-2" size={17} aria-hidden="true" />
               {generating ? 'Gerando PDF…' : 'Gerar PDF'}
+            </Button>
+          </article>
+          <article className="subpanel p-5">
+            <FileSearch className="text-cyan-300" aria-hidden="true" />
+            <h3 className="mt-3 subsection-title">Formulários e anexos normativos</h3>
+            <p className="mt-2 break-all text-sm text-slate-300">
+              Nome sugerido: <code>{normativeFormsPdfFilename(project)}</code>
+            </p>
+            <Button
+              className="mt-4"
+              onClick={() => void generateForms()}
+              disabled={review.blocksPdf || Boolean(invalid) || busy || generating || !dataset}
+            >
+              <Download className="mr-2" size={17} aria-hidden="true" />
+              {generating ? 'Gerando PDF…' : 'Gerar formulários'}
             </Button>
           </article>
           <article className="subpanel p-5">

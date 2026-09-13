@@ -49,10 +49,12 @@ lançamentos que o referenciam. A ação abre diretamente o seletor nativo e, ap
 a referência da evidência e grava os bytes na transação existente, sem navegar ou exigir outra
 confirmação. Evidências compartilhadas preservam todos os lançamentos vinculados.
 
-O PDF disponível é o memorial; suas referências de comprovantes usam o mapa derivado da
-consolidação local e aparecem tanto na prévia quanto no download. Formulários RSC, download do PDF
-consolidado de comprovantes e backup binário `.rscflow` não têm ações simuladas. JSON transporta
-dados e descritores, sem bytes.
+O Memorial e os formulários normativos dos Anexos II a VII são gerados localmente. Os formulários
+consomem os dados do docente, o enquadramento, a projeção do motor e o mapa derivado da consolidação;
+campos não registrados permanecem vazios e são expostos como diagnósticos na projeção. A condição
+provisória ou indisponível da pontuação é apresentada no documento. O download do PDF consolidado
+de comprovantes e o backup binário `.rscflow` ainda não têm ação própria. JSON transporta dados e
+descritores, sem bytes.
 
 ## Acessibilidade
 

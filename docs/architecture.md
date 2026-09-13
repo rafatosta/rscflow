@@ -120,6 +120,13 @@ referências ao respectivo parágrafo, depois do texto autoral ou gerado. Prévi
 mesmo mapa à montagem compartilhada; números de página não entram no projeto nem são recalculados
 pela camada de memorial.
 
+`src/normative-documents/model.ts` projeta os Anexos II a VII do regulamento IFBA 189/2026 a partir
+do projeto, do catálogo, do `CalculationResult` e do `EvidencePageMap`. A projeção não calcula
+pontuação, não ordena comprovantes e não é persistida. Ela mantém ausências como campos vazios com
+diagnósticos e transporta o estado validado, provisório ou indisponível entregue pelo domínio.
+`src/pdf/normative-forms.ts` contém apenas o template visual e o download local, permitindo alterar
+o desenho dos anexos sem mover regras para a camada PDF.
+
 ## Ponte incremental do domínio 3.0
 
 Os schemas de critérios/ocorrências estão em `domain/criterion-entry.ts`; migração e projeção

@@ -194,12 +194,13 @@ export function ProjectSection(props: Props) {
           onImport={props.onImport}
           evidenceProject={project}
           resolver={props.resolver}
+          dataset={dataset}
         />
         <ProjectDocuments project={project} resolver={props.resolver} save={props.save} />
         <p className="text-sm text-slate-300">
-          O PDF disponível contém o memorial. Formulários do RSC, consolidação dos comprovantes e
-          backup completo .rscflow ainda não estão disponíveis. A cópia JSON guarda os dados, sem os
-          arquivos anexados.
+          Os PDFs do memorial e dos formulários normativos são derivados do projeto. A consolidação
+          dos comprovantes e o backup completo .rscflow ainda não têm download próprio. A cópia JSON
+          guarda os dados, sem os arquivos anexados.
         </p>
       </div>
     );

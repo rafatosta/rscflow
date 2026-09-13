@@ -7,8 +7,13 @@ import { FinalExport } from '@/components/final-export';
 import { FinalReview } from '@/components/final-review';
 import { createDraft, datasets } from '@/features/project-shell/project-view';
 import { downloadMemorialPdf } from '@/pdf/generator';
+import { downloadNormativeFormsPdf } from '@/pdf/normative-forms';
 
 vi.mock('@/pdf/generator', () => ({ downloadMemorialPdf: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('@/pdf/normative-forms', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/pdf/normative-forms')>();
+  return { ...original, downloadNormativeFormsPdf: vi.fn().mockResolvedValue(undefined) };
+});
 
 const scoring = {
   status: 'unavailable' as const,
@@ -72,6 +77,7 @@ it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos',
         invalid=""
         onExportJson={exportJson}
         onImport={vi.fn()}
+        dataset={datasets[0]}
       />
     </MemoryRouter>,
   );
@@ -92,6 +98,8 @@ it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos',
       ),
     ),
   );
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar formulários' }));
+  await waitFor(() => expect(downloadNormativeFormsPdf).toHaveBeenCalledOnce());
 });
 
 it('bloqueia somente o PDF quando há erros de revisão', () => {
