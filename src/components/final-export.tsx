@@ -37,18 +37,26 @@ export function FinalExport({
   const review = reviewProject(project, scoring);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [referenceWarning, setReferenceWarning] = useState('');
 
   async function generatePdf() {
     setGenerating(true);
     setError('');
+    setReferenceWarning('');
     try {
       const { downloadMemorialPdf } = await import('@/pdf/generator');
-      const pageMap =
-        evidenceProject && resolver
-          ? await import('@/pdf/evidence-bundle').then(({ createEvidencePageMap }) =>
-              createEvidencePageMap(evidenceProject, resolver),
-            )
-          : undefined;
+      let pageMap;
+      if (evidenceProject && resolver) {
+        try {
+          pageMap = await import('@/pdf/evidence-bundle').then(({ createEvidencePageMap }) =>
+            createEvidencePageMap(evidenceProject, resolver),
+          );
+        } catch {
+          setReferenceWarning(
+            'O Memorial foi gerado sem referências de páginas. Verifique os comprovantes locais.',
+          );
+        }
+      }
       if (pageMap) await downloadMemorialPdf(project, pageMap);
       else await downloadMemorialPdf(project);
     } catch {
@@ -106,6 +114,11 @@ export function FinalExport({
         {error && (
           <p role="alert" className="text-rose-200">
             {error}
+          </p>
+        )}
+        {referenceWarning && (
+          <p className="notice border-amber-500 bg-amber-950/20 text-amber-100">
+            {referenceWarning}
           </p>
         )}
 

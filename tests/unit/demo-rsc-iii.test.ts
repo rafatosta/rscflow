@@ -7,6 +7,7 @@ import { occurrenceProjectExportSchema } from '@/domain/criterion-entry';
 import { loadIfbaRegulation } from '@/data/regulations/load';
 import { importProject } from '@/features/local-projects/project-files';
 import { calculateProjectScore, calculateRequirementScore } from '@/rules/scoring';
+import { createEvidenceBundle } from '@/pdf/evidence-bundle';
 import { DexieProjectRepository, ProjectDatabase } from '@/storage/project-repository';
 
 const directory = join(process.cwd(), 'examples/rsc-iii-demonstrativo');
@@ -86,7 +87,15 @@ it('restaura os comprovantes do demonstrativo na transação local existente', a
   );
 
   expect(restored.revision).toBe(2);
-  await expect(
-    repository.fileResolver(restored.localId).getFile('file-rsc-iii-a-1'),
-  ).resolves.toBeInstanceOf(File);
+  const resolver = repository.fileResolver(restored.localId);
+  await expect(resolver.getFile('file-rsc-iii-a-1')).resolves.toBeInstanceOf(File);
+  const bundle = await createEvidenceBundle(project, {
+    getFile: async (id) => {
+      const descriptor = project.userData.storedFiles.find((item) => item.id === id)!;
+      const bytes = readFileSync(join(directory, 'comprovantes', descriptor.name));
+      return { arrayBuffer: async () => Uint8Array.from(bytes).buffer } as File;
+    },
+  });
+  if (bundle.status === 'error') throw new Error(JSON.stringify(bundle.issues));
+  expect(bundle).toMatchObject({ status: 'success' });
 });

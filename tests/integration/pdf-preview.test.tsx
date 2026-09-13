@@ -66,3 +66,24 @@ it('navega pela prévia A4, volta ao editor e inicia o download local', async ()
   );
   expect(downloadMemorialPdf).toHaveBeenCalledWith(activityProjectView(project), mappedPages);
 });
+
+it('mantém a prévia disponível quando os comprovantes locais não podem ser consolidados', async () => {
+  vi.mocked(createEvidencePageMap).mockRejectedValueOnce(new Error('Arquivo ausente.'));
+  const project = createDraft('rsc-i', datasets[0].metadata.regulation.id);
+  const record: LocalProject = {
+    localId: 'local-2',
+    revision: 1,
+    createdAt: '2026-09-11T12:00:00.000Z',
+    updatedAt: '2026-09-11T12:00:00.000Z',
+    project,
+  };
+  render(
+    <MemoryRouter>
+      <PdfPreview record={record} evidenceProject={project} resolver={{ getFile: vi.fn() }} />
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByRole('article', { name: 'Página 1' })).toBeVisible();
+  expect(screen.getByText(/prévia foi montada sem referências de páginas/i)).toBeVisible();
+  expect(screen.queryByText('Não foi possível montar a pré-visualização do memorial.')).toBeNull();
+});

@@ -73,6 +73,7 @@ export function PdfPreview({
   const [pageIndex, setPageIndex] = useState(0);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [referenceWarning, setReferenceWarning] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -80,11 +81,18 @@ export function PdfPreview({
     setPageMap(undefined);
     setPageIndex(0);
     setError('');
+    setReferenceWarning('');
     void Promise.all([
       import('@/pdf/layout'),
       evidenceProject && resolver
         ? import('@/pdf/evidence-bundle').then(({ createEvidencePageMap }) =>
-            createEvidencePageMap(evidenceProject, resolver),
+            createEvidencePageMap(evidenceProject, resolver).catch(() => {
+              if (active)
+                setReferenceWarning(
+                  'A prévia foi montada sem referências de páginas. Verifique os comprovantes locais.',
+                );
+              return undefined;
+            }),
           )
         : undefined,
     ])
@@ -154,6 +162,9 @@ export function PdfPreview({
           <p role="alert" className="text-rose-200">
             {error}
           </p>
+        )}
+        {referenceWarning && (
+          <p className="notice border-amber-500 p-3 text-amber-100">{referenceWarning}</p>
         )}
       </div>
 

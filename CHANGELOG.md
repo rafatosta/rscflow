@@ -6,6 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Fixed
 
+- Projeto demonstrativo e projetos com comprovantes locais indisponíveis voltam a abrir a prévia do
+  Memorial; a ausência das referências de páginas é informada sem interromper o documento.
+
 - Troca de tema deixa de alterar dinamicamente o esquema nativo de cores do navegador, removendo o
   gatilho associado à queda observada no renderer do Chrome e preservando tema, recarga e
   preferências persistidas.

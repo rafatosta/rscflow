@@ -117,6 +117,19 @@ function issueFor(error: unknown, evidenceId: string, descriptor: StoredFile): E
   };
 }
 
+function fileBytes(file: File): Promise<ArrayBuffer> {
+  if (typeof file.arrayBuffer === 'function') return file.arrayBuffer();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () =>
+      reader.result instanceof ArrayBuffer
+        ? resolve(reader.result)
+        : reject(new Error('Não foi possível ler os bytes do arquivo.'));
+    reader.onerror = () => reject(reader.error ?? new Error('Não foi possível ler o arquivo.'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 /** Consolida PDFs vinculados sem consultar armazenamento nem alterar o projeto. */
 export async function createEvidenceBundle(
   project: OccurrenceProjectExport,
@@ -147,7 +160,7 @@ export async function createEvidenceBundle(
       }
       try {
         const file = await resolver.getFile(fileId);
-        const document = await PDFDocument.load(await file.arrayBuffer());
+        const document = await PDFDocument.load(await fileBytes(file));
         if (document.getPageCount() === 0) throw new Error('O PDF não possui páginas.');
         const current = loaded.get(item.evidenceId) ?? [];
         current.push({ descriptor, document });
