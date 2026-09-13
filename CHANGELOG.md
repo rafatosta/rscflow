@@ -6,8 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Fixed
 
-- Arquivos ausentes em Documentos comprobatórios passam a oferecer a edição direta de cada
-  lançamento vinculado, abrindo o requisito correto para restaurar o anexo.
+- Arquivos ausentes em Documentos comprobatórios passam a abrir diretamente o seletor nativo e a
+  restaurar o anexo no lançamento vinculado imediatamente após a escolha, sem navegação ou passos
+  adicionais.
 
 - Projeto demonstrativo e projetos com comprovantes locais indisponíveis voltam a abrir a prévia do
   Memorial; a ausência das referências de páginas é informada sem interromper o documento.

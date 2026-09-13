@@ -44,9 +44,10 @@ A preparação do memorial cria as bases ausentes e preserva narrativas manuais.
 
 Revisão separa ERROR, WARNING e INFO. Apenas erros estruturais bloqueiam o PDF. Prévia e arquivo usam o mesmo layout A4 e processamento local. A prévia memoriza sua projeção para não reiniciar a paginação a cada navegação. A disponibilidade dos anexos verifica tamanho e SHA-256 dos bytes, separadamente da validade dos metadados.
 
-Em Documentos comprobatórios, cada arquivo local ausente oferece no próprio item ações para editar
-os lançamentos que o referenciam. O destino abre diretamente o formulário no RSC e requisito
-vinculados, onde a nova seleção do arquivo usa a gravação transacional já existente.
+Em Documentos comprobatórios, cada arquivo local ausente oferece no próprio item ações para os
+lançamentos que o referenciam. A ação abre diretamente o seletor nativo e, após a escolha, substitui
+a referência da evidência e grava os bytes na transação existente, sem navegar ou exigir outra
+confirmação. Evidências compartilhadas preservam todos os lançamentos vinculados.
 
 O PDF disponível é o memorial; suas referências de comprovantes usam o mapa derivado da
 consolidação local e aparecem tanto na prévia quanto no download. Formulários RSC, download do PDF

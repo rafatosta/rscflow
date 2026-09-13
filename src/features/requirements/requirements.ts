@@ -153,3 +153,49 @@ export function removeRequirement(input: ProjectExport, occurrenceId: string) {
   );
   return { project: occurrenceProjectExportSchema.parse(project) };
 }
+
+export async function replaceOccurrenceEvidenceFile(
+  input: ProjectExport,
+  occurrenceId: string,
+  replacedFileId: string,
+  file: File,
+) {
+  const project = migrateProject(input).project;
+  const occurrence = allOccurrences(project).find((item) => item.id === occurrenceId);
+  if (!occurrence) throw new Error('Lançamento vinculado ao arquivo não encontrado.');
+  const linkedEvidence = new Set(occurrence.evidenceIds);
+  const affected = project.userData.evidence.filter(
+    (item) => linkedEvidence.has(item.id) && item.fileIds.includes(replacedFileId),
+  );
+  if (!affected.length) throw new Error('O arquivo não está vinculado a este lançamento.');
+
+  const hash = await sha256(file);
+  const reusable = project.userData.storedFiles.find(
+    (item) => item.size === file.size && item.sha256 === hash,
+  );
+  const fileId = reusable?.id ?? crypto.randomUUID();
+  if (!reusable)
+    project.userData.storedFiles.push({
+      id: fileId,
+      name: file.name,
+      mediaType: file.type || 'application/octet-stream',
+      size: file.size,
+      sha256: hash,
+    });
+  project.userData.evidence = project.userData.evidence.map((item) =>
+    affected.some((proof) => proof.id === item.id)
+      ? {
+          ...item,
+          fileIds: item.fileIds.map((id) => (id === replacedFileId ? fileId : id)),
+        }
+      : item,
+  );
+  if (!project.userData.evidence.some((item) => item.fileIds.includes(replacedFileId)))
+    project.userData.storedFiles = project.userData.storedFiles.filter(
+      (item) => item.id !== replacedFileId,
+    );
+  return {
+    project: occurrenceProjectExportSchema.parse(project),
+    files: [{ id: fileId, blob: file }],
+  };
+}

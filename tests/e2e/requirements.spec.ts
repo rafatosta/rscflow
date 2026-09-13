@@ -108,16 +108,18 @@ test('jornada de requisitos, anexo, pontuação, autoria, revisão e transporte 
   await expect(page).toHaveURL(/\/project\/[^/]+$/);
   expect(page.url()).not.toBe(originalUrl);
   await expect(page.getByText('0 de 1 arquivos disponíveis')).toBeVisible();
-  await page.getByRole('link', { name: 'Requisitos', exact: true }).click();
-  await page.getByRole('button', { name: 'Editar lançamento', exact: true }).first().click();
-  await page.getByLabel('Documento comprobatório (opcional)', { exact: true }).setInputFiles({
+  await page.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
+  const chooserEvent = page.waitForEvent('filechooser');
+  await page
+    .getByRole('button', { name: /Editar lançamento/ })
+    .first()
+    .click();
+  const chooser = await chooserEvent;
+  await chooser.setFiles({
     name: 'declaracao.txt',
     mimeType: 'text/plain',
     buffer: Buffer.from('Comprovação local'),
   });
-  await page.getByRole('button', { name: 'Salvar lançamento', exact: true }).click();
-  await expect(page.getByRole('form', { name: 'Lançamento' })).toHaveCount(0);
-  await page.getByRole('link', { name: 'Revisão', exact: true }).click();
   await expect(page.getByText('1 de 1 arquivos disponíveis')).toBeVisible();
 });
 

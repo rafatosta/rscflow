@@ -95,12 +95,7 @@ export function ProjectSection(props: Props) {
           </ul>
         </section>
         <ScoringDashboard result={scoring} compact />
-        <ProjectDocuments
-          project={project}
-          localId={record.localId}
-          resolver={props.resolver}
-          compact
-        />
+        <ProjectDocuments project={project} resolver={props.resolver} save={props.save} compact />
         <ProcessOverview record={record} />
       </div>
     );
@@ -176,7 +171,7 @@ export function ProjectSection(props: Props) {
       <div className="space-y-5">
         <ScoringDashboard result={scoring} compact />
         <FinalReview record={record} scoring={scoring} />
-        <ProjectDocuments project={project} localId={record.localId} resolver={props.resolver} />
+        <ProjectDocuments project={project} resolver={props.resolver} save={props.save} />
         <Button variant="outline" onClick={() => setPreview((value) => !value)}>
           {preview ? 'Fechar prévia' : 'Visualizar prévia'}
         </Button>
@@ -200,7 +195,7 @@ export function ProjectSection(props: Props) {
           evidenceProject={project}
           resolver={props.resolver}
         />
-        <ProjectDocuments project={project} localId={record.localId} resolver={props.resolver} />
+        <ProjectDocuments project={project} resolver={props.resolver} save={props.save} />
         <p className="text-sm text-slate-300">
           O PDF disponível contém o memorial. Formulários do RSC, consolidação dos comprovantes e
           backup completo .rscflow ainda não estão disponíveis. A cópia JSON guarda os dados, sem os

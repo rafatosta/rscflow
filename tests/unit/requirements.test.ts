@@ -11,6 +11,7 @@ import {
   saveRequirement,
   removeRequirement,
   requirementFormSchema,
+  replaceOccurrenceEvidenceFile,
 } from '@/features/requirements/requirements';
 import { occurrenceProjectExportSchema } from '@/domain/criterion-entry';
 import { DexieProjectRepository, ProjectDatabase } from '@/storage/project-repository';
@@ -208,5 +209,44 @@ describe('lançamentos por requisitos', () => {
         'missing',
       ]),
     ).rejects.toThrow();
+  });
+  it('substitui arquivo ausente preservando evidência compartilhada e lançamentos', async () => {
+    const created = await saveRequirement(
+      project(),
+      dataset,
+      criterion.id,
+      'rsc-i',
+      values,
+      undefined,
+      new File(['antigo'], 'antigo.pdf', { type: 'application/pdf' }),
+    );
+    const occurrence = allOccurrences(created.project)[0];
+    const evidenceId = occurrence.evidenceIds[0];
+    const oldFileId = created.project.userData.evidence[0].fileIds[0];
+    created.project.userData.criterionEntries[0].occurrences.push({
+      ...occurrence,
+      id: 'shared-occurrence',
+      order: 1,
+    });
+    const replacement = new File(['novo'], 'novo.pdf', { type: 'application/pdf' });
+    const result = await replaceOccurrenceEvidenceFile(
+      created.project,
+      occurrence.id,
+      oldFileId,
+      replacement,
+    );
+
+    expect(result.files).toEqual([{ id: expect.any(String), blob: replacement }]);
+    expect(result.project.userData.storedFiles).toHaveLength(1);
+    expect(result.project.userData.storedFiles[0]).toMatchObject({ name: 'novo.pdf', size: 4 });
+    expect(result.project.userData.evidence[0]).toMatchObject({ id: evidenceId });
+    expect(result.project.userData.evidence[0].fileIds).toEqual([
+      result.project.userData.storedFiles[0].id,
+    ]);
+    expect(allOccurrences(result.project).map((item) => item.evidenceIds)).toEqual([
+      [evidenceId],
+      [evidenceId],
+    ]);
+    expect(created.project.userData.storedFiles[0].id).toBe(oldFileId);
   });
 });
