@@ -12,6 +12,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Consolidação local dos PDFs de comprovantes por RSC, requisito e lançamento, com suporte a
+  múltiplas páginas e arquivos, deduplicação de evidências compartilhadas, mapa de intervalos de
+  páginas e diagnósticos de arquivos ausentes, inválidos ou incompatíveis.
+
 - Projeção derivada por requisito na pontuação do projeto, com lançamentos, comprovantes,
   quantidades, limites, valores calculados e estado de validação normativa.
 

@@ -105,6 +105,13 @@ portugueses são preservados; símbolos não representáveis pela fonte são sub
 seguro para que conteúdo livre não interrompa a exportação. A camada não consulta nem implementa
 regras normativas.
 
+`src/pdf/evidence-bundle.ts` consolida os PDFs associados aos lançamentos em ordem de RSC,
+requisito e lançamento. Comprovantes compartilhados entram uma única vez e mantêm todas as
+associações no mapa derivado. O resultado informa intervalos inclusivos por comprovante e por
+arquivo; ausência, conteúdo inválido ou tipo incompatível produz diagnósticos por arquivo e impede
+uma saída parcial. O resolvedor de bytes continua sendo recebido por contrato, sem acesso direto ao
+IndexedDB.
+
 ## Ponte incremental do domínio 3.0
 
 Os schemas de critérios/ocorrências estão em `domain/criterion-entry.ts`; migração e projeção

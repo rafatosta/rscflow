@@ -32,6 +32,11 @@ A atualização v1 → v2 adiciona a tabela files, preservando projetos e prefer
 
 `StoredFile` contém id, nome, tipo, tamanho e SHA-256 opcional no leitor. Arquivo novo recebe hash. `FileResolver` lê bytes locais e confere tamanho/hash; ausência, descritor sem hash ou divergência retorna erro explícito. Selecionar novamente um conteúdo com o mesmo hash/tamanho reutiliza o descritor e restaura os bytes do projeto importado.
 
+O PDF derivado de comprovantes não altera esses vínculos. Seu mapa de páginas associa cada
+`evidenceId` aos lançamentos que o referenciam e registra intervalos inclusivos do comprovante e de
+cada `fileId`. Uma evidência compartilhada possui um único intervalo, ainda que tenha várias
+associações.
+
 `updateWithFiles` salva projeto e bytes na mesma transação com revisão otimista; quota, referência inválida ou conflito não deixam atualização parcial. O armazenamento não interpreta normativa.
 
 ## Autosave e portabilidade
