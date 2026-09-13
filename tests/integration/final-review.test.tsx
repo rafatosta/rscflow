@@ -8,6 +8,11 @@ import { FinalReview } from '@/components/final-review';
 import { createDraft, datasets } from '@/features/project-shell/project-view';
 import { downloadMemorialPdf } from '@/pdf/generator';
 import { downloadNormativeFormsPdf } from '@/pdf/normative-forms';
+import * as preparation from '@/features/final-documents/prepare';
+import { downloadPdfBytes } from '@/pdf/download';
+import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
+
+vi.mock('@/pdf/download', () => ({ downloadPdfBytes: vi.fn() }));
 
 vi.mock('@/pdf/generator', () => ({ downloadMemorialPdf: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('@/pdf/normative-forms', async (importOriginal) => {
@@ -47,6 +52,108 @@ function record(complete: boolean): LocalProject {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.restoreAllMocks();
+});
+
+it('gera cada artefato com o projeto atual e revalida comprovantes após alteração', async () => {
+  const bytes = new Uint8Array([1, 2]);
+  const pageMap = { totalPages: 2, evidences: [] };
+  const prepare = vi
+    .spyOn(preparation, 'prepareEvidenceArtifacts')
+    .mockResolvedValue({ status: 'success', bytes, pageMap });
+  const resolver = { getFile: vi.fn() };
+  const current = record(true);
+  const props = {
+    record: current,
+    scoring,
+    busy: false,
+    invalid: '',
+    onExportJson: vi.fn(),
+    onImport: vi.fn(),
+    dataset: datasets[0],
+    evidenceProject: current.project as OccurrenceProjectExport,
+    resolver,
+  };
+  const rendered = render(
+    <MemoryRouter>
+      <FinalExport {...props} />
+    </MemoryRouter>,
+  );
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Gerar comprovantes' })).toBeEnabled(),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar comprovantes' }));
+  await waitFor(() =>
+    expect(downloadPdfBytes).toHaveBeenCalledWith(bytes, 'comprovantes-rsc-joana-conceicao.pdf'),
+  );
+  const updated = record(true);
+  if (updated.project.schemaVersion === '1.0') throw new Error('Projeto legado inesperado.');
+  updated.project.userData.teacher.name = 'Maria Atualizada';
+  rendered.rerender(
+    <MemoryRouter>
+      <FinalExport
+        {...props}
+        record={updated}
+        evidenceProject={updated.project as OccurrenceProjectExport}
+      />
+    </MemoryRouter>,
+  );
+  await waitFor(() => expect(prepare).toHaveBeenCalledWith(updated.project, resolver));
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar PDF' }));
+  await waitFor(() =>
+    expect(downloadMemorialPdf).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userData: expect.objectContaining({
+          teacher: expect.objectContaining({ name: 'Maria Atualizada' }),
+        }),
+      }),
+      pageMap,
+    ),
+  );
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Gerar formulários' })).toBeEnabled(),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar formulários' }));
+  await waitFor(() =>
+    expect(downloadNormativeFormsPdf).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        request: expect.objectContaining({
+          fields: expect.arrayContaining([
+            { label: 'Nome do(a) docente', value: 'Maria Atualizada' },
+          ]),
+        }),
+      }),
+    ),
+  );
+});
+
+it('mostra erros de arquivo por artefato e mantém Memorial disponível sem referências', async () => {
+  vi.spyOn(preparation, 'prepareEvidenceArtifacts').mockResolvedValue({
+    status: 'error',
+    issues: [
+      { code: 'missing-file', evidenceId: 'e', message: 'Arquivo local ausente: comprovante.pdf' },
+    ],
+  });
+  render(
+    <MemoryRouter>
+      <FinalExport
+        record={record(true)}
+        scoring={scoring}
+        busy={false}
+        invalid=""
+        onExportJson={vi.fn()}
+        onImport={vi.fn()}
+        dataset={datasets[0]}
+      />
+    </MemoryRouter>,
+  );
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Gerar formulários' })).toBeDisabled(),
+  );
+  expect(screen.getByRole('button', { name: 'Gerar comprovantes' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Gerar PDF' })).toBeEnabled();
+  expect(screen.getAllByText(/Arquivo local ausente/).length).toBeGreaterThan(0);
 });
 
 it('mostra erros, avisos e informações com links para correção', () => {
@@ -83,7 +190,9 @@ it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos',
   );
 
   expect(
-    screen.getByText('Há avisos para conferir, mas eles não impedem a geração do PDF.'),
+    screen.getByText(
+      'Há avisos para conferir, mas eles não impedem a geração dos artefatos disponíveis.',
+    ),
   ).toBeVisible();
   expect(screen.getByText('memorial-rsc-joana-conceicao.pdf')).toBeVisible();
   expect(screen.getByText('rscflow-processo-rsc-i.json')).toBeVisible();
@@ -117,5 +226,5 @@ it('bloqueia somente o PDF quando há erros de revisão', () => {
   );
   expect(screen.getByRole('button', { name: 'Gerar PDF' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Exportar JSON' })).toBeEnabled();
-  expect(screen.getByRole('alert')).toHaveTextContent('PDF final bloqueado');
+  expect(screen.getByRole('alert')).toHaveTextContent('Memorial bloqueado');
 });

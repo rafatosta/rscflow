@@ -38,11 +38,27 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.getByRole('main').getByRole('link', { name: 'Gerar documentos' }).click();
   await expect(
-    page.getByText('Há avisos para conferir, mas eles não impedem a geração do PDF.'),
+    page.getByText(
+      'Há avisos para conferir, mas eles não impedem a geração dos artefatos disponíveis.',
+    ),
   ).toBeVisible();
   await expect(page.getByText('memorial-rsc-livia-conceicao.pdf')).toBeVisible();
   await expect(page.getByText('rscflow-memorial-de-competencias-docentes.json')).toBeVisible();
   await expect(page.getByLabel('Arquivo de projeto JSON')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Gerar comprovantes' })).toBeDisabled();
+  await expect(
+    page.getByText('Nenhum comprovante vinculado a lançamentos enquadrados.').first(),
+  ).toBeVisible();
+  const formsPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Gerar formulários' }).click();
+  const formsDownload = await formsPromise;
+  expect(formsDownload.suggestedFilename()).toBe('formularios-anexos-rsc-livia-conceicao.pdf');
+  const formsStream = await formsDownload.createReadStream();
+  const formsChunks: Buffer[] = [];
+  for await (const chunk of formsStream) formsChunks.push(Buffer.from(chunk));
+  expect((await PDFDocument.load(Buffer.concat(formsChunks))).getTitle()).toBe(
+    'Formulários e anexos do processo de RSC',
+  );
   const jsonDownloadPromise = page.waitForEvent('download');
   await page.getByRole('main').getByRole('button', { name: 'Exportar JSON' }).click();
   const jsonDownload = await jsonDownloadPromise;

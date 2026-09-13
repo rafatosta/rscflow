@@ -152,3 +152,8 @@ em transação, preserva edições concorrentes e ignora conclusões de backups 
 mais recente. A tabela `files` foi adicionada no Dexie v2, sem alterar projetos ou preferências.
 Exportação de JSON continua independente da gravação dessa marca: falha de armazenamento não
 desfaz o download já iniciado.
+
+A preparação de comprovantes em `features/final-documents/prepare.ts` reutiliza o plano e o
+gerador existentes. A tela verifica a disponibilidade por projeto/resolvedor, descarta resultados
+antigos e prepara novamente os arquivos ao gerar cada artefato. O download do consolidado usa os
+mesmos bytes que originam o mapa, sem outra ordenação ou paginação.

@@ -198,9 +198,9 @@ export function ProjectSection(props: Props) {
         />
         <ProjectDocuments project={project} resolver={props.resolver} save={props.save} />
         <p className="text-sm text-slate-300">
-          Os PDFs do memorial e dos formulários normativos são derivados do projeto. A consolidação
-          dos comprovantes e o backup completo .rscflow ainda não têm download próprio. A cópia JSON
-          guarda os dados, sem os arquivos anexados.
+          Os PDFs do memorial e dos formulários normativos são derivados do projeto. O PDF
+          consolidado dos comprovantes também está disponível. O backup completo .rscflow ainda não
+          tem download próprio. A cópia JSON guarda os dados, sem os arquivos anexados.
         </p>
       </div>
     );

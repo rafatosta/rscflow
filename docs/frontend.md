@@ -11,7 +11,7 @@ O shell React Router oferece sete seções, com a sessão local acima das rotas.
 | `/project/:id/memorial`     | Texto determinístico, formação e narrativas cronológicas editáveis                        |
 | `/project/:id/review`       | Checklist por severidade, pontuação, disponibilidade dos arquivos e ação de prévia A4     |
 | `/project/:id/preview`      | Prévia A4 paginada do memorial, acessível pela Revisão e pelo menu principal              |
-| `/project/:id/documents`    | PDF do memorial, cópia JSON, importação e documentos locais                               |
+| `/project/:id/documents`    | Memorial, formulários/anexos normativos, comprovantes consolidados e cópia JSON           |
 
 Rotas anteriores de formação, trajetória, critérios, pontuação, comprovantes, RSCs separados, prévia, exportação e edição técnica foram removidas. Endereços desconhecidos mostram uma página de recuperação. A hospedagem estática precisa de fallback para `index.html`.
 
@@ -52,8 +52,11 @@ confirmação. Evidências compartilhadas preservam todos os lançamentos vincul
 O Memorial e os formulários normativos dos Anexos II a VII são gerados localmente. Os formulários
 consomem os dados do docente, o enquadramento, a projeção do motor e o mapa derivado da consolidação;
 campos não registrados permanecem vazios e são expostos como diagnósticos na projeção. A condição
-provisória ou indisponível da pontuação é apresentada no documento. O download do PDF consolidado
-de comprovantes e o backup binário `.rscflow` ainda não têm ação própria. JSON transporta dados e
+provisória ou indisponível da pontuação é apresentada no documento. O PDF consolidado dos comprovantes tem download individual, com validação prévia de arquivos
+ausentes, inválidos ou incompatíveis e aviso quando não há comprovantes vinculados. Apenas o
+Memorial depende da conclusão e da estrutura editorial; formulários dependem da identificação
+e do nível solicitado. Estados e limitações aparecem no cartão de cada artefato. O backup
+binário `.rscflow` ainda não tem ação própria. JSON transporta dados e
 descritores, sem bytes.
 
 ## Acessibilidade

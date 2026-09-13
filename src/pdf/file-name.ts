@@ -10,3 +10,8 @@ export function normativeFormsPdfFilename(project: TypedProjectExport): string {
   const base = readableFileStem(project.userData.teacher.name || project.userData.title, 'docente');
   return `formularios-anexos-rsc-${base}.pdf`;
 }
+
+export function evidenceBundlePdfFilename(project: TypedProjectExport): string {
+  const base = readableFileStem(project.userData.teacher.name || project.userData.title, 'docente');
+  return `comprovantes-rsc-${base}.pdf`;
+}

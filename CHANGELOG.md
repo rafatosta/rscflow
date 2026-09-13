@@ -19,6 +19,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Etapa Gerar documentos com downloads individuais do Memorial, formulários normativos e PDF
+  consolidado dos comprovantes, estados por artefato e validação dos arquivos locais atuais.
+
 - Geração local dos formulários e Anexos II a VII do processo de RSC a partir do catálogo, dos
   dados do projeto, da projeção canônica de pontuação e do mapa de páginas dos comprovantes, com
   estado provisório ou indisponível e informações incompletas explícitos.
