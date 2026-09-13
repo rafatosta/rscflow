@@ -1,17 +1,17 @@
 # RSCFlow
 
 RSCFlow é uma aplicação web local para organizar o Memorial Descritivo do Reconhecimento de Saberes
-e Competências (RSC) docente do IFBA. Ela reúne dados do docente, formação, trajetória, evidências,
-enquadramentos, pontuação quantitativa, memorial, revisão e exportações JSON/PDF. Não há backend,
-autenticação, telemetria ou envio dos dados pessoais para serviços externos.
+e Competências (RSC) docente do IFBA. O fluxo reúne dados do docente, formação, requisitos,
+lançamentos, documentos, memorial, revisão e exportações JSON/PDF. Não há backend, autenticação,
+telemetria ou envio dos dados pessoais para serviços externos.
 
 ## Estado normativo
 
 A política de cálculo da Resolução CONSUP/IFBA nº 189/2026 foi conferida e está representada em
 JSON. O catálogo de diretrizes e critérios de RSC I, II e III foi transcrito dos Anexos IV–VI e
-está com status `pending-official-validation` e versão normativa `null`. Ele pode ser consultado,
-mas o dataset de produção retorna cálculo indisponível e não habilita novos enquadramentos até a
-validação humana final. O conflito interno do RSC II d.5 permanece literal e sinalizado.
+está com status `pending-official-validation` e versão normativa `null`. Ele pode ser consultado e
+receber registros provisórios, mas o dataset de produção retorna cálculo indisponível até a validação
+humana final. O conflito interno do RSC II d.5 permanece literal e sinalizado.
 
 Em divergências, vale a seguinte ordem: instrução atual do mantenedor, resolução oficial,
 JSON normativo validado, documentação e código. A resolução prevalece sobre a planilha e o
@@ -34,16 +34,17 @@ navegador.
 ## Funcionalidades
 
 - múltiplos projetos locais, duplicação, importação, exportação e autosave com conflitos explícitos;
-- perfil docente, formação, trajetória profissional e referências de evidências;
-- exploração de catálogo e escolha explícita de nível e critério, quando o dataset estiver validado;
+- perfil docente, formação e lançamentos por requisito em RSC I, II e III;
+- documento comprobatório opcional no próprio lançamento, armazenado localmente e verificado por hash;
 - motor determinístico com limites de item, diretriz e nível e requisitos quantitativos 60/36;
 - memorial determinístico com edição autoral preservada;
-- prévia A4, PDF local, checklist final e correções por seção;
+- prévia A4 na revisão, PDF local, checklist final e correções por seção;
 - rotas responsivas, navegação por teclado e verificações automatizadas com axe-core.
 
-Os envelopes portáteis `1.0`, `2.0` e `2.1` são aceitos. Não há migração silenciosa: o formato
-legado permanece opaco e o rascunho 2.1 preserva ausências explícitas. Validação estrutural de um
-arquivo não certifica sua referência normativa nem sua pontuação.
+Os envelopes portáteis `1.0`, `2.0`, `2.1` e `3.0` são aceitos. Novos projetos usam 3.0; editar
+2.0/2.1 converte a cópia ao formato de ocorrências. O formato 1.0 permanece exportável para
+consulta. JSON não inclui bytes dos documentos. Validação estrutural de um arquivo não certifica
+sua referência normativa nem sua pontuação.
 
 ## Arquitetura e manutenção
 

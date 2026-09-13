@@ -244,7 +244,7 @@ export function EducationSection({ education, disabled, onSave }: Props) {
               <Field id="type" label="Tipo" required register={register} error={errors.type} />
               <Field
                 id="status"
-                label="Situação"
+                label="Situação da formação"
                 required
                 register={register}
                 error={errors.status}
@@ -260,7 +260,7 @@ export function EducationSection({ education, disabled, onSave }: Props) {
               </div>
               <Field
                 id="institution"
-                label="Instituição"
+                label="Instituição da formação"
                 required
                 register={register}
                 error={errors.institution}

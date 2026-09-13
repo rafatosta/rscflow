@@ -139,6 +139,15 @@ export function TeacherProfileForm({ project, disabled, onSave }: Props) {
             autoComplete="off"
           />
           <Field id="role" label="Cargo" error={errors.role} register={register} />
+          <div className="sm:col-span-2">
+            <h3 className="text-lg font-semibold">Instituição de vínculo</h3>
+          </div>
+          <Field
+            id="institution"
+            label="Instituição"
+            error={errors.institution}
+            register={register}
+          />
           <Field
             id="campus"
             label="Campus de lotação"
@@ -168,6 +177,15 @@ export function TeacherProfileForm({ project, disabled, onSave }: Props) {
             id="currentRsc"
             label="RT/RSC atual"
             error={errors.currentRsc}
+            register={register}
+          />
+          <div className="sm:col-span-2">
+            <h3 className="text-lg font-semibold">Requerimento</h3>
+          </div>
+          <Field
+            id="employmentStatus"
+            label="Situação funcional"
+            error={errors.employmentStatus}
             register={register}
           />
           <Field id="schooling" label="Escolaridade" error={errors.schooling} register={register} />

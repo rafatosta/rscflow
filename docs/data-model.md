@@ -1,116 +1,47 @@
-# Modelo de dados
+# Schemas, versões e persistência
 
-O envelope preserva `schemaVersion`, `applicationVersion`, `regulation: { id, version }` e `userData`:
+## Envelope portátil
 
-```json
-{
-  "schemaVersion": "2.1",
-  "applicationVersion": "0.1.0",
-  "regulation": { "id": "ifba-189-2026", "version": null },
-  "userData": { "id": "...", "title": "...", "teacher": { "name": "" } }
-}
-```
+`ProjectExport` discrimina 1.0, 2.0, 2.1 e 3.0. A criação usa `occurrenceProjectExportSchema` 3.0. O envelope contém `schemaVersion`, `applicationVersion`, referência `regulation.id/version` e `userData`. Versão normativa null representa pendência, nunca certificação.
 
-O exemplo mostra somente a forma do envelope; `userData` completo segue os schemas Zod em
-`src/domain/`. `null` registra ausência explícita de versão normativa e não equivale a validação.
+| Versão  | Leitura/exportação                            | Interface                                   |
+| ------- | --------------------------------------------- | ------------------------------------------- |
+| 1.0     | Registro opaco preservado                     | Consulta de estado e exportação, sem edição |
+| 2.0/2.1 | Dados tipados com atividades                  | Projeção e conversão para 3.0 ao editar     |
+| 3.0     | Grupos, ocorrências, evidências e descritores | Formato nativo de criação e edição          |
 
-- `2.0`: contrato tipado anterior, com `userData` validado por `rscProjectSchema`. Campos desconhecidos nos modelos tipados são rejeitados para evitar perda silenciosa de dados.
-- `1.0`: compatibilidade de leitura por `legacyProjectExportSchema`, preservando integralmente o registro opaco. Não há conversão automática, pois o significado dos campos antigos é desconhecido. Consumidores devem discriminar `schemaVersion` antes de acessar o domínio tipado.
+`userData` 3.0 reúne id, title, teacher, request, education, criterionEntries, unassignedOccurrences, evidence, storedFiles e memorial. Não persiste activities nem pontuação. A migração de 2.x preserva referências, IDs, quantidades, período, ordem, autoria e metadados. Ler ou exportar um arquivo antigo isoladamente não modifica sua versão. Migração em nova cópia e editor JSON experimental foram removidos da interface.
 
-| Versão | Leitura | Novos projetos | Migração automática | Observação                                        |
-| ------ | ------- | -------------- | ------------------- | ------------------------------------------------- |
-| `1.0`  | sim     | não            | não                 | conteúdo legado opaco, preservado em round-trip   |
-| `2.0`  | sim     | não            | não                 | domínio tipado e referência normativa obrigatória |
-| `2.1`  | sim     | sim            | não                 | rascunho tipado com ausências iniciais explícitas |
+`activityProjectView` continua sendo uma projeção transitória para regras, memorial e PDF. O antigo adaptador de reconciliação dos formulários foi removido: a interface atualiza 3.0 diretamente. A exportação usa o envelope real, nunca a projeção.
 
-`projectExportSchema` aceita 1.0, 2.0 e 2.1. `currentProjectExportSchema` preserva o contrato 2.0; `draftProjectExportSchema` define o novo rascunho 2.1. Campos adicionais do envelope e da referência normativa continuam ignorados. A versão normativa declarada não é certificada pela importação. A verificação do arquivo ocorre em memória, sem envio ou limite de tamanho. O botão de importação grava uma nova cópia local após validação; falhas são apresentadas em português.
+Docente aceita `institution` e `employmentStatus` opcionais, além dos campos pessoais/funcionais existentes. Lançamentos recebem critério e nível do contexto; datas são ISO, quantidade finita não negativa, descrição opcional. Nenhuma constante normativa é copiada para o projeto. Validação estrutural não certifica enquadramento normativo.
 
-Os datasets têm versão estrutural 1.0 independente da versão de projeto. A versão normativa permanece null enquanto pendente. Critérios exigem id, code, description, unit, factor, maxQuantity, weight, directiveId e provenance. Diretrizes exigem id, code, title, maxScore e provenance; weight é opcional. `provenance.issue`, quando presente, registra um conflito normativo interno e impede promover o nível a validado. Valores numéricos devem ser finitos e não negativos. Ausência normativa não equivale a zero: não cadastrar valores desconhecidos.
+## IndexedDB v2
 
-`source.officialScoringSpreadsheet` permanece nullable no contrato para ler os arquivos existentes,
-mas não é requisito de validação. Somente `source.resolution`, versão, status e validação humana dos
-níveis compõem a certificação estrutural, conforme a resolução como única fonte oficial.
+O banco `rscflow` usa Dexie:
 
-Os três níveis de produção estão preenchidos a partir dos Anexos IV–VI, mas seguem
-`pending-official-validation`: 8 diretrizes/48 critérios no RSC I, 7/36 no RSC II e 7/53 no RSC III.
-Cada nível soma 100 em `maxScore` e 10 nos pesos de suas diretrizes. Esses totais são verificações
-estruturais do Anexo VII e não constituem validação humana dos critérios. O peso 14 do RSC II d.5
-permanece literal e marcado como conflito, sem normalização pela regra geral ou pela planilha.
+| Tabela      | Chave/índices         | Conteúdo                                                      |
+| ----------- | --------------------- | ------------------------------------------------------------- |
+| projects    | localId               | Envelope, revision, createdAt, updatedAt, lastBackup opcional |
+| preferences | key                   | Identificação do projeto ativo                                |
+| files       | [localId+id], localId | Blob vinculado a um descritor e uma cópia local               |
 
-## Escolha de enquadramento e política de cálculo
+A atualização v1 → v2 adiciona a tabela files, preservando projetos e preferências. Versão do banco, envelope e catálogo são independentes. Arquivos de projetos duplicados recebem o novo localId e continuam disponíveis após apagar a origem. Excluir projeto remove apenas seus vínculos binários. Excluir ocorrência preserva evidências e arquivos, inclusive compartilhados.
 
-O campo opcional `activities[].selectedLevel` amplia o contrato 2.0 sem migrar arquivos existentes. A ausência permite leitura, mas impede cálculo até uma escolha explícita. IDs únicos evitam reutilização da mesma atividade em níveis distintos; nenhuma escolha é inferida a partir do título ou de comprovantes compartilhados.
+`StoredFile` contém id, nome, tipo, tamanho e SHA-256 opcional no leitor. Arquivo novo recebe hash. `FileResolver` lê bytes locais e confere tamanho/hash; ausência, descritor sem hash ou divergência retorna erro explícito. Selecionar novamente um conteúdo com o mesmo hash/tamanho reutiliza o descritor e restaura os bytes do projeto importado.
 
-`metadata.scoring` é opcional para leitura de datasets anteriores, mas obrigatório e validado para cálculo. Contém mínimos total/no nível pretendido, teto por nível, escopo de limite de quantidade, modo/escopo/precisão de arredondamento e proveniência. Valores e limites podem ser editados em JSON. Modos ou escopos de algoritmo desconhecidos são rejeitados, sem interpretação automática.
+`updateWithFiles` salva projeto e bytes na mesma transação com revisão otimista; quota, referência inválida ou conflito não deixam atualização parcial. O armazenamento não interpreta normativa.
 
-`CalculationResult` é derivado e não é persistido. Em resultados disponíveis, carrega a política resumida, totais, níveis, diretrizes e critérios com os títulos, máximos, unidades e contagens necessários à interface. O estado indisponível pode carregar somente o resumo de uma política validada para explicar os limites enquanto o catálogo permanece pendente; não contém total ou subtotais presumidos.
+## Autosave e portabilidade
 
-## Persistência local e portabilidade
+Dados pessoais, formação e memorial usam fila serial com debounce de 500 ms. O lançamento usa um comando explícito que conclui autosave anterior e grava a transação. Navegação aguarda gravação e impede abandonar formulário alterado; falhas preservam entradas. Revisão desatualizada não pode sobrescrever nem recriar projeto apagado.
 
-O banco IndexedDB `rscflow`, gerenciado por Dexie, tem versão estrutural 1. `projects` armazena `{ localId, revision, createdAt, updatedAt, project }`; `preferences` guarda o projeto ativo. Esta versão de banco não é a versão do envelope nem a versão normativa.
+`portableProject` rejeita dados não representáveis em JSON. Downloads incluem campos editáveis e descritores, sem Blob, localId, revisão ou preferência. Importação validada cria outra cópia. Arquivo JSON não é backup dos anexos; limpar IndexedDB pode removê-los.
 
-`localId` é a chave da cópia no navegador. Importações repetidas recebem chaves locais diferentes sem alterar o envelope original. Duplicação de um projeto 2.0 gera também um novo `userData.id` e acrescenta “(cópia)” ao título; demais dados e referências são preservados. Duplicação legada mantém o conteúdo opaco integralmente.
+`lastBackup` guarda data e fingerprint SHA-256 da última geração de JSON, sem mudar revisão editorial nem integrar exportação. Importação e duplicação não herdam a marca. A marca não certifica disponibilidade dos bytes nem conclusão do download.
 
-Atualização e exclusão conferem a revisão dentro de transação: uma aba desatualizada não sobrescreve nem recria dados excluídos. A seleção ativa sobrevive à recarga e é removida junto com o projeto excluído. Datas e revisões locais não são exportadas.
+## Catálogos
 
-Exportação inclui o envelope completo, preservando schemaVersion, applicationVersion,
-regulation.id/version e todos os dados editáveis. Importação suporta 1.0, 2.0 e 2.1, sem migração
-implícita, e rejeita versões desconhecidas. Valores não representáveis em JSON (como undefined,
-números não finitos e objetos Date em dados legados programáticos) são rejeitados em vez de perdidos
-silenciosamente. Evidências contêm os metadados definidos no domínio; não há anexação de arquivos
-binários nesta etapa.
+Datasets usam schema 1.0 independente do projeto. Os três níveis de produção seguem pendentes: RSC I tem 8 diretrizes/48 critérios; II, 7/36; III, 7/53. Parâmetros e proveniência permanecem nos JSONs. `provenance.issue` registra conflito e impede validação. A resolução é a única fonte oficial; o campo legado nullable de planilha não é requisito de certificação.
 
-Novos projetos são criados escolhendo RSC e dataset. A referência vem do dataset e sua versão permanece null quando pendente. O shell oferece formulários por seção e edição avançada integral de userData em JSON, com validação antes de gravar. JSON inválido permanece na tela e não substitui a última versão válida.
-
-Autosave aguarda 500 ms após a última edição válida. Trocar de projeto, criar, duplicar ou excluir conclui a gravação pendente antes de prosseguir. Salvando/salvo/erro refletem a fila de gravação; erros preservam o rascunho para nova tentativa ou exportação. Em conflito, é possível exportar o rascunho e reabrir explicitamente a versão salva. Exportar não depende do funcionamento do IndexedDB.
-
-O navegador pode remover IndexedDB ao limpar dados ou encerrar sessões privadas. `visibilitychange` tenta antecipar a gravação e `beforeunload` sinaliza alterações pendentes, mas encerramento forçado não garante salvar os últimos instantes de edição. Aguarde “Salvo localmente” antes de recarregar e exporte cópias para transporte/backup. Nenhum dado é enviado a serviços remotos.
-
-## Envelope 2.1 para início do memorial
-
-`schemaVersion: 2.1` mantém o envelope e os dados tipados, permitindo `regulation.version: null`, `teacher.name: ""` e `activities[].criterionId: ""` enquanto não informados. Não atribui nome, critério ou versão normativa fictícios. A escolha de nível de uma atividade continua explícita. Outras validações, inclusive IDs e referências de comprovantes, são preservadas.
-
-Os campos pessoais e funcionais adicionais de `teacher` são opcionais no contrato serializado para manter compatibilidade com projetos 2.0/2.1 existentes. CPF e telefone são gravados com dígitos; datas são strings ISO. `request.effectiveDate` guarda a data de vigência. Nenhum desses valores é duplicado em estado específico da interface.
-
-Os campos estendidos de `education` também são opcionais no contrato para preservar arquivos anteriores. Novos registros incluem `createdAt` e `updatedAt`; edição mantém a criação e renova a atualização, e duplicação recebe novo ID e novos timestamps. A referência de documento é texto portátil e não incorpora arquivo binário.
-
-Os metadados adicionais de `activities` e `evidence` são opcionais no contrato 2.0/2.1 para leitura retrocompatível. Novas atividades recebem categoria, lista de competências, `createdAt` e `updatedAt`. `criterionId` representa a referência normativa declarada e `evidenceIds` mantém vínculos por ID com a coleção global `evidence`. Excluir uma evidência limpa esses vínculos na mesma atualização do projeto. Somente metadados e referências são exportados; não há blobs ou caminhos locais de anexos novos.
-
-Projetos 1.0 e 2.0 não são migrados automaticamente. Duplicação de 2.1 segue as mesmas regras de identidade de 2.0. Exportação/importação e persistência aceitam os três formatos. Null não é uma versão normativa validada e não é atualizado silenciosamente quando o catálogo mudar. Para dados 2.1 completos com catálogo validado, o caso de uso adapta apenas a entrada do cálculo ao contrato 2.0, sem alterar o arquivo persistido.
-
-## Envelope 3.0 e migração explícita
-
-O leitor `projectExportSchema`, importação/exportação, IndexedDB e autosave também aceitam `3.0`.
-Seu `userData` contém id, title, teacher, request, education, criterionEntries,
-unassignedOccurrences, evidence, storedFiles e memorial. Não contém uma coleção activities
-redundante. `regulation.version` continua aceitando null. Os envelopes anteriores permanecem
-legíveis e exportáveis com suas versões originais; novos projetos do shell ainda iniciam em 2.1.
-
-`migrateProject` em `domain/project-migration.ts` valida 2.0/2.1 e retorna projeto 3.0,
-sourceVersion e pendingOccurrenceIds. Cada atividade vira uma ocorrência; o agrupamento mantém
-critério e nível declarados, IDs de ocorrência, quantidades, períodos, ordem, autoria, metadados
-de evidência, formação e referência normativa. IDs de grupos são determinísticos. O resultado
-não certifica critérios contra o catálogo; isso continua responsabilidade do motor.
-
-Migrar 3.0 é idempotente. Migrar 1.0 falha explicitamente sem converter seu registro opaco.
-`migrateLocalProject` cria nova cópia local e preserva a origem; a tela Exportar de 2.0/2.1 oferece
-“Migrar para critérios e ocorrências em nova cópia”, usando a mesma criação de cópias da importação.
-O localId novo identifica a cópia; userData.id mantém a identidade portátil original, como na
-importação atual. Abrir, recarregar ou listar não dispara migração.
-
-A versão Dexie continua 1: a tabela projects já armazena o envelope e não exige mudança estrutural
-para este formato JSON. Não há tabela de bytes ainda. Exportação 3.0 é JSON de dados e descritores,
-não backup binário. Sem downgrade automático para 2.x.
-
-`activityProjectView` projeta 3.0 em 2.1 somente em memória para consumidores existentes;
-`applyActivityProjectEdits` aplica as edições de volta em 3.0, preservando descritores, fileIds,
-campos legados e identidade de grupos. Essa projeção não é formato de exportação. O editor JSON
-avançado e o download trabalham com o envelope 3.0 real, validados antes de autosave.
-
-## Histórico local da cópia JSON
-
-`LocalProject.lastBackup`, opcional, contém `createdAt` e `fingerprint` SHA-256 do conteúdo
-normalizado da última cópia JSON gerada. Não integra o envelope, não muda a revisão nem timestamp
-de edição, e não é herdado por importação/duplicação. O banco permanece v1. Hash igual significa
-igualdade do conteúdo do envelope, não garantia de disponibilidade de binários ou gravação do
-arquivo de download. Ausência da marca não é preenchida com data presumida.
+Política quantitativa validada pode ser apresentada enquanto o catálogo não está certificado. `CalculationResult` contém pontos somente quando o cálculo está disponível. A ausência nunca é convertida em zero. Veja [regulação](rsc-regulation.md).

@@ -4,6 +4,19 @@ Use Vitest and Testing Library for unit and integration tests. `tests/setup.ts` 
 
 Run `npm run test:run` for the non-watch suite and `npm run test:e2e` after the application can be served. Normative rules require focused tests based on source-backed fixtures.
 
+## Fluxo simplificado
+
+`tests/unit/requirements.test.ts` cobre valores derivados do dataset, período sem inferência de
+meses, catálogo pendente, identidade/autoria, evidência compartilhada, arquivo local, rollback de
+transação e referências inválidas. `tests/integration/requirements.test.tsx` cobre o formulário
+mínimo, foco e abas. `tests/e2e/requirements.spec.ts` percorre docente, requisito, anexo, cálculo
+sintético, memorial manual, revisão, download, importação sem bytes, recuperação de arquivo,
+catálogo de produção pendente, teclado, reflow e axe.
+
+As suítes antigas de trajetória, critérios, RSC separado, comprovantes, editor JSON e shell antigo
+foram removidas porque testavam navegação pré-release eliminada. As verificações úteis foram
+transferidas para Requisitos, Projeto, Memorial, Revisão, PDF e acessibilidade.
+
 ## Matriz e comandos
 
 | Escopo                | Ferramenta                             | Responsabilidade principal                                       |

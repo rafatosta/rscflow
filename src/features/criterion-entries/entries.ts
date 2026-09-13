@@ -5,17 +5,6 @@ import {
   type Occurrence,
   type CriterionEntry,
 } from '@/domain/criterion-entry';
-import { migrateProject } from '@/domain/project-migration';
-import type { ProjectRepository } from '@/domain/local-project';
-
-/** A origem nunca é sobrescrita; a confirmação cabe ao chamador. */
-export async function migrateLocalProject(repository: ProjectRepository, localId: string) {
-  const source = await repository.load(localId);
-  if (!source) throw new Error('Projeto não encontrado.');
-  const result = migrateProject(source.project);
-  const record = await repository.create(result.project);
-  return { ...result, record };
-}
 
 export function createCriterionEntry(
   project: OccurrenceProjectExport,

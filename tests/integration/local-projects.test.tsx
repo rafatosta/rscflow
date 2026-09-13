@@ -58,22 +58,6 @@ it('mantém rascunho quando há erro ao salvar e recupera após nova tentativa',
   });
 });
 
-it('JSON inválido impede mudança de rota sem substituir dados', async () => {
-  const record = await repository.create(projectExportSchema.parse(currentProjectFixture));
-  const { router } = mount(projectPath(record.localId, 'export'));
-  const editor = await screen.findByLabelText('Dados editáveis do projeto (JSON)');
-  fireEvent.change(editor, { target: { value: '{' } });
-  fireEvent.click(screen.getByRole('link', { name: 'Meus projetos' }));
-  await waitFor(() =>
-    expect(screen.getByText('Corrija os dados antes de navegar.')).toBeInTheDocument(),
-  );
-  expect(router.state.location.pathname).toBe(projectPath(record.localId, 'export'));
-  expect((await repository.load(record.localId))?.project).toEqual(
-    projectExportSchema.parse(currentProjectFixture),
-  );
-  expect(editor).toHaveValue('{');
-});
-
 it('apresenta falha do IndexedDB sem alegar salvamento', async () => {
   vi.spyOn(repository, 'list').mockRejectedValue(new Error('denied'));
   mount('/');
@@ -90,9 +74,9 @@ it('conclui autosave antes de mudar de seção', async () => {
   fireEvent.change(await screen.findByLabelText(/^Nome completo/), {
     target: { value: 'Salvo antes de navegar' },
   });
-  fireEvent.click(screen.getByRole('link', { name: 'Formação' }));
+  fireEvent.click(screen.getByRole('link', { name: 'Requisitos' }));
   await waitFor(() =>
-    expect(router.state.location.pathname).toBe(projectPath(record.localId, 'education')),
+    expect(router.state.location.pathname).toBe(projectPath(record.localId, 'requirements')),
   );
   expect((await repository.load(record.localId))?.project.userData.teacher).toEqual({
     name: 'Salvo antes de navegar',

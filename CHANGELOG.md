@@ -6,6 +6,12 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Fluxo público reduzido a Visão geral, Dados do docente, Requisitos, Memorial, Revisão e Gerar documentos.
+- Lançamentos mínimos por requisito, com abas RSC I/II/III, dados derivados do catálogo, arquivo opcional e registros provisórios para catálogo pendente sem cálculo presumido.
+- Persistência local de bytes no Dexie v2, checagem SHA-256, transação atômica, cópia de anexos na duplicação e indicação de arquivos ausentes após importar JSON.
+- Memorial com texto inicial determinístico, formação integrada e preservação explícita de narrativa manual.
+- Regressões unitárias, de integração e E2E para fluxo simplificado, documento local, pendência normativa, teclado, bloqueio de navegação, responsividade e acessibilidade.
+
 - Catálogos RSC I, II e III transcritos dos Anexos IV–VI, com 137 critérios ainda pendentes de validação humana final.
 - Integridade estrutural por nível e conflito normativo do RSC II d.5 registrado como dado, visível na consulta e bloqueado para cálculo.
 - Validação normativa desvinculada da planilha auxiliar legada, mantendo o campo nullable por compatibilidade.

@@ -1,3 +1,4 @@
+import { activityProjectView } from '@/domain/project-migration';
 import { describe, expect, it } from 'vitest';
 import { projectExportSchema, type TypedProjectExport } from '@/domain/project';
 import {
@@ -27,7 +28,7 @@ const completeValues = {
 
 describe('dados do docente', () => {
   it('valida todos os campos e normaliza CPF e telefone ao persistir', () => {
-    const project = createDraft('rsc-i', 'ifba-189-2026');
+    const project = activityProjectView(createDraft('rsc-i', 'ifba-189-2026'));
     const parsed = teacherProfileFormSchema.parse(completeValues);
     const userData = applyTeacherProfile(project, parsed);
     expect(userData.teacher).toEqual({
@@ -78,7 +79,7 @@ describe('dados do docente', () => {
   });
 
   it('lê matrícula legada como SIAPE sem alterar o arquivo durante a leitura', () => {
-    const project = createDraft('rsc-i', 'ifba-189-2026');
+    const project = activityProjectView(createDraft('rsc-i', 'ifba-189-2026'));
     const legacy = {
       ...project,
       userData: { ...project.userData, teacher: { name: 'Docente', registration: '7654321' } },
@@ -88,7 +89,7 @@ describe('dados do docente', () => {
   });
 
   it('não presume RSC pretendido quando o rascunho ainda não contém solicitação', () => {
-    const project = createDraft('rsc-i', 'ifba-189-2026');
+    const project = activityProjectView(createDraft('rsc-i', 'ifba-189-2026'));
     const withoutRequest = {
       ...project,
       userData: { ...project.userData, request: null },
@@ -101,7 +102,7 @@ describe('dados do docente', () => {
   });
 
   it('serializa todos os dados no JSON portátil e os valida no round-trip', () => {
-    const project = createDraft('rsc-i', 'ifba-189-2026');
+    const project = activityProjectView(createDraft('rsc-i', 'ifba-189-2026'));
     const complete = {
       ...project,
       userData: applyTeacherProfile(project, teacherProfileFormSchema.parse(completeValues)),

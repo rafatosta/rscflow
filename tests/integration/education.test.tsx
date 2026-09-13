@@ -25,7 +25,7 @@ afterEach(async () => {
 async function mountEducation() {
   const record = await repository.create(createDraft('rsc-ii', 'ifba-189-2026'));
   const router = createMemoryRouter([{ path: '*', element: <App repository={repository} /> }], {
-    initialEntries: [projectPath(record.localId, 'education')],
+    initialEntries: [projectPath(record.localId, 'profile')],
   });
   routers.push(router);
   return { record, ...render(<RouterProvider router={router} />) };
@@ -33,9 +33,11 @@ async function mountEducation() {
 
 function fillEducation(title = 'Especialização em Educação') {
   fireEvent.change(screen.getByLabelText(/^Tipo/), { target: { value: 'Pós-graduação' } });
-  fireEvent.change(screen.getByLabelText(/^Situação/), { target: { value: 'Concluído' } });
+  fireEvent.change(screen.getByLabelText(/^Situação da formação/), {
+    target: { value: 'Concluído' },
+  });
   fireEvent.change(screen.getByLabelText(/^Curso ou título/), { target: { value: title } });
-  fireEvent.change(screen.getByLabelText(/^Instituição/), {
+  fireEvent.change(screen.getByLabelText(/^Instituição da formação/), {
     target: { value: 'Instituto Federal' },
   });
   fireEvent.change(screen.getByLabelText(/^Área/), { target: { value: 'Educação' } });
@@ -127,7 +129,7 @@ it('cria, persiste, recarrega, edita, duplica e exclui com confirmação', async
 
   unmount();
   const router = createMemoryRouter([{ path: '*', element: <App repository={repository} /> }], {
-    initialEntries: [projectPath(record.localId, 'education')],
+    initialEntries: [projectPath(record.localId, 'profile')],
   });
   routers.push(router);
   render(<RouterProvider router={router} />);

@@ -12,6 +12,8 @@ export const teacherSchema = z
     siape: z.string().optional(),
     role: z.string().optional(),
     campus: z.string().optional(),
+    institution: z.string().optional(),
+    employmentStatus: z.string().optional(),
     email: z.string().optional(),
     phone: z.string().optional(),
     currentRsc: z.string().optional(),

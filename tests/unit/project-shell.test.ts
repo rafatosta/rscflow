@@ -9,6 +9,7 @@ import { parseRoute, projectPath, sections } from '@/features/project-shell/rout
 import { projectExportSchema } from '@/domain/project';
 import { exportProject } from '@/features/local-projects/project-files';
 import { buildMemorialPreview } from '@/memorial/preview';
+import { activityProjectView } from '@/domain/project-migration';
 import { currentProjectFixture, projectFixture } from '../fixtures/project';
 
 describe('rotas e rascunhos do shell', () => {
@@ -35,7 +36,7 @@ describe('rotas e rascunhos do shell', () => {
   it('cria apenas com nível/dataset e mantém pendência explícita no round-trip', () => {
     const draft = createDraft('rsc-ii', datasets[0].metadata.regulation.id);
     expect(draft).toMatchObject({
-      schemaVersion: '2.1',
+      schemaVersion: '3.0',
       regulation: { version: null },
       userData: { teacher: { name: '' }, request: { level: 'rsc-ii' } },
     });
@@ -62,17 +63,18 @@ describe('rotas e rascunhos do shell', () => {
       }).success,
     ).toBe(false);
   });
-  it('permite atividade sem enquadramento somente no rascunho 2.1 e preserva referências', () => {
+  it('permite ocorrência sem enquadramento e preserva referências', () => {
     const draft = createDraft('rsc-i', datasets[0].metadata.regulation.id);
-    draft.userData.activities.push({
+    draft.userData.unassignedOccurrences.push({
       id: 'a',
       title: 'Experiência',
       quantity: 1,
-      criterionId: '',
+      order: 0,
+      period: {},
       evidenceIds: [],
     });
     expect(projectExportSchema.safeParse(draft).success).toBe(true);
-    draft.userData.activities[0].evidenceIds = ['inexistente'];
+    draft.userData.unassignedOccurrences[0].evidenceIds = ['inexistente'];
     expect(projectExportSchema.safeParse(draft).success).toBe(false);
   });
   it('progresso mede preenchimento, não pontuação', () => {
@@ -104,7 +106,7 @@ describe('rotas e rascunhos do shell', () => {
       conclusion: 'Fim',
     };
     draft.userData.education.push({ id: 'e', title: 'Curso', institution: 'Instituição' });
-    const preview = buildMemorialPreview(draft);
+    const preview = buildMemorialPreview(activityProjectView(draft));
     expect(preview).toContain('<script>texto</script>');
     expect(preview).toContain('Curso — Instituição');
     expect(preview).toContain('Fim');

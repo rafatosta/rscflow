@@ -1,19 +1,10 @@
 export const sections = [
   ['', 'Visão geral'],
   ['profile', 'Dados do docente'],
-  ['rsc-i', 'RSC I'],
-  ['rsc-ii', 'RSC II'],
-  ['rsc-iii', 'RSC III'],
-  ['evidence', 'Comprovantes'],
-  ['education', 'Formação'],
-  ['activities', 'Cadastro anterior'],
-  ['timeline', 'Trajetória'],
-  ['criteria', 'Critérios'],
-  ['scoring', 'Pontuação'],
+  ['requirements', 'Requisitos'],
   ['memorial', 'Memorial'],
-  ['preview', 'Prévia'],
   ['review', 'Revisão'],
-  ['export', 'Gerar documentos'],
+  ['documents', 'Gerar documentos'],
 ] as const;
 export type Section = (typeof sections)[number][0];
 export function parseRoute(
@@ -36,11 +27,8 @@ export const projectPath = (id: string, section: string = '') =>
 export const primarySections: readonly Section[] = [
   '',
   'profile',
-  'rsc-i',
-  'rsc-ii',
-  'rsc-iii',
-  'evidence',
+  'requirements',
   'memorial',
   'review',
-  'export',
+  'documents',
 ];

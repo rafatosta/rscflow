@@ -51,7 +51,9 @@ function renderEditor(input: Activity = activity) {
 
 it('edita seções e texto-base sem sobrescrever a narrativa manual', () => {
   const editor = renderEditor();
-  expect(screen.getByLabelText(/Apresentação introdutória/)).toHaveValue('');
+  expect(screen.getByLabelText(/Apresentação introdutória/)).toHaveValue(
+    'Este Memorial Descritivo reúne os dados de formação e os registros profissionais do projeto Memorial teste.',
+  );
   expect(screen.getByRole('heading', { name: 'Atuação docente' })).toBeVisible();
   expect((screen.getByLabelText('Texto da atividade') as HTMLTextAreaElement).value).toContain(
     'Atuação',

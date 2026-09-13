@@ -1,4 +1,4 @@
-import type { Activity, Evidence, Memorial } from '@/domain/models';
+import type { Activity, Evidence, Memorial, Education } from '@/domain/models';
 import {
   activityMemorialSection,
   activityTextIsOutdated,
@@ -9,11 +9,13 @@ import {
   keepActivityText,
   memorialSections,
   regenerateActivityText,
+  generateEducationText,
   type MemorialSectionId,
 } from '@/memorial/generator';
 import { Button } from './ui/button';
 
 type Props = {
+  education?: Education[];
   projectTitle: string;
   memorial: Memorial | null;
   activities: Activity[];
@@ -26,8 +28,9 @@ function currentMemorial(projectTitle: string, memorial: Memorial | null): Memor
   return (
     memorial ?? {
       title: projectTitle,
-      introduction: '',
-      conclusion: '',
+      introduction: `Este Memorial Descritivo reúne os dados de formação e os registros profissionais do projeto ${projectTitle}.`,
+      conclusion:
+        'Os registros e documentos apresentados compõem este memorial para apreciação no processo de Reconhecimento de Saberes e Competências.',
       sectionTexts: {},
     }
   );
@@ -40,6 +43,7 @@ export function MemorialSection({
   evidences,
   disabled,
   onSave,
+  education = [],
 }: Props) {
   const value = currentMemorial(projectTitle, memorial);
   const ordered = chronologicalActivities(activities);
@@ -78,21 +82,19 @@ export function MemorialSection({
         <label className="block" htmlFor="memorial-introduction">
           Apresentação introdutória{' '}
           <span className="text-sm text-slate-400">(opção editorial)</span>
-          <textarea
-            id="memorial-introduction"
-            className="field min-h-32"
-            value={value.introduction}
-            disabled={disabled}
-            onChange={(event) => saveMemorial({ ...value, introduction: event.target.value })}
-          />
         </label>
-        {activities.length > 0 && (
+        <textarea
+          id="memorial-introduction"
+          className="field min-h-32"
+          value={value.introduction}
+          disabled={disabled}
+          onChange={(event) => saveMemorial({ ...value, introduction: event.target.value })}
+        />
+        {
           <Button
             type="button"
             variant="outline"
-            disabled={
-              disabled || activities.every((activity) => activity.generatedText !== undefined)
-            }
+            disabled={disabled}
             onClick={() =>
               onSave({
                 memorial: value,
@@ -104,9 +106,9 @@ export function MemorialSection({
               })
             }
           >
-            Gerar textos-base ausentes
+            Preparar memorial com os dados cadastrados
           </Button>
-        )}
+        }
       </section>
 
       {memorialSections.map((section) => {
@@ -123,16 +125,22 @@ export function MemorialSection({
                 Texto complementar da seção e experiências em ordem cronológica.
               </p>
             </div>
+            {section.id === 'education' &&
+              education.map((item) => (
+                <p key={item.id} className="whitespace-pre-wrap">
+                  {generateEducationText(item)}
+                </p>
+              ))}
             <label className="block" htmlFor={`memorial-${section.id}`}>
               Texto complementar <span className="text-sm text-slate-400">(opcional)</span>
-              <textarea
-                id={`memorial-${section.id}`}
-                className="field min-h-28"
-                value={value.sectionTexts?.[section.id] ?? ''}
-                disabled={disabled}
-                onChange={(event) => saveSection(section.id, event.target.value)}
-              />
             </label>
+            <textarea
+              id={`memorial-${section.id}`}
+              className="field min-h-28"
+              value={value.sectionTexts?.[section.id] ?? ''}
+              disabled={disabled}
+              onChange={(event) => saveSection(section.id, event.target.value)}
+            />
             {sectionActivities.map((activity) => {
               const generated = generateActivityText(activity, evidences);
               const outdated = activityTextIsOutdated(activity, evidences);
@@ -181,16 +189,16 @@ export function MemorialSection({
                   </details>
                   <label className="mt-3 block" htmlFor={`activity-text-${activity.id}`}>
                     Texto da atividade
-                    <textarea
-                      id={`activity-text-${activity.id}`}
-                      className="field min-h-56"
-                      value={displayedActivityText(activity, evidences)}
-                      disabled={disabled}
-                      onChange={(event) =>
-                        saveActivity(editActivityText(activity, event.target.value, evidences))
-                      }
-                    />
                   </label>
+                  <textarea
+                    id={`activity-text-${activity.id}`}
+                    className="field min-h-56"
+                    value={displayedActivityText(activity, evidences)}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      saveActivity(editActivityText(activity, event.target.value, evidences))
+                    }
+                  />
                   {!activity.generatedText && (
                     <Button
                       className="mt-3"
@@ -214,14 +222,14 @@ export function MemorialSection({
         <h2 className="text-xl font-semibold">Conclusão</h2>
         <label className="mt-4 block" htmlFor="memorial-conclusion">
           Texto da conclusão
-          <textarea
-            id="memorial-conclusion"
-            className="field min-h-40"
-            value={value.conclusion}
-            disabled={disabled}
-            onChange={(event) => saveMemorial({ ...value, conclusion: event.target.value })}
-          />
         </label>
+        <textarea
+          id="memorial-conclusion"
+          className="field min-h-40"
+          value={value.conclusion}
+          disabled={disabled}
+          onChange={(event) => saveMemorial({ ...value, conclusion: event.target.value })}
+        />
       </section>
     </div>
   );

@@ -6,6 +6,7 @@ import type { ProjectExport } from '@/domain/project';
 import { storageErrorMessage } from '@/storage/project-repository';
 import { ProjectAutosave } from './autosave';
 import { downloadProject } from './project-files';
+import type { ProjectChange } from '@/domain/local-files';
 
 export function useLocalProjects(repository: ProjectRepository) {
   const [projects, setProjects] = useState<LocalProject[]>([]);
@@ -18,6 +19,9 @@ export function useLocalProjects(repository: ProjectRepository) {
   const session = useRef<ProjectAutosave | undefined>(undefined);
   const latest = useRef<ProjectExport | undefined>(undefined);
   const invalidRef = useRef(false);
+  const mutation = useRef<Promise<boolean> | undefined>(undefined);
+  const [formDirty, setFormDirty] = useState(false);
+  const formDirtyRef = useRef(false);
 
   const open = useCallback(
     (record: LocalProject | undefined) => {
@@ -61,7 +65,12 @@ export function useLocalProjects(repository: ProjectRepository) {
     }
     void initialize();
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (session.current?.dirty || invalidRef.current) {
+      if (
+        session.current?.dirty ||
+        invalidRef.current ||
+        mutation.current ||
+        formDirtyRef.current
+      ) {
         event.preventDefault();
         event.returnValue = '';
       }
@@ -96,6 +105,55 @@ export function useLocalProjects(repository: ProjectRepository) {
       setInvalid(
         'Dados inválidos. Corrija o JSON e os campos obrigatórios para salvar. A última versão válida permanece armazenada.',
       );
+    }
+  }
+
+  function editProject(project: ProjectExport) {
+    try {
+      const value = portableProject(JSON.parse(JSON.stringify(project)));
+      latest.current = value;
+      edit(JSON.stringify(value.userData));
+    } catch {
+      invalidRef.current = true;
+      setInvalid('Dados inválidos. A última versão válida permanece armazenada.');
+    }
+  }
+
+  async function changeProject(change: ProjectChange): Promise<boolean> {
+    if (busy || mutation.current) return false;
+    setBusy(true);
+    setError('');
+    const operation = (async () => {
+      try {
+        if (invalidRef.current || !session.current || !(await session.current.flush()))
+          return false;
+        const current = session.current.current;
+        const next = await change(current.project);
+        if (next.files?.length && !repository.updateWithFiles)
+          throw new Error('Este armazenamento não oferece suporte a arquivos.');
+        const record = next.files?.length
+          ? await repository.updateWithFiles!(
+              current.localId,
+              current.revision,
+              next.project,
+              next.files,
+            )
+          : await repository.update(current.localId, current.revision, next.project);
+        open(record);
+        setProjects(await repository.list());
+        return true;
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : storageErrorMessage(cause));
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    })();
+    mutation.current = operation;
+    try {
+      return await operation;
+    } finally {
+      mutation.current = undefined;
     }
   }
 
@@ -148,6 +206,11 @@ export function useLocalProjects(repository: ProjectRepository) {
 
   return {
     flush: async () => {
+      if (formDirtyRef.current) {
+        setError('Salve ou cancele o lançamento antes de navegar.');
+        return false;
+      }
+      if (mutation.current && !(await mutation.current)) return false;
       if (invalidRef.current) {
         setError('Corrija os dados antes de navegar.');
         return false;
@@ -171,6 +234,13 @@ export function useLocalProjects(repository: ProjectRepository) {
     error,
     busy,
     edit,
+    editProject,
+    changeProject,
+    formDirty,
+    setFormDirty: useCallback((dirty: boolean) => {
+      formDirtyRef.current = dirty;
+      setFormDirty(dirty);
+    }, []),
     refresh: () =>
       perform(async () => {
         const selected = await repository.selected();

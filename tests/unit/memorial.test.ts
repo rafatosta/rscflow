@@ -1,3 +1,4 @@
+import { activityProjectView } from '@/domain/project-migration';
 import { describe, expect, it } from 'vitest';
 import type { Activity, Evidence } from '@/domain/models';
 import { projectExportSchema } from '@/domain/project';
@@ -92,7 +93,7 @@ describe('gerador determinístico do memorial', () => {
   });
 
   it('monta capa, sumário e seções em ordem com introdução explicitamente editorial', () => {
-    const project = createDraft('rsc-ii', datasets[0].metadata.regulation.id);
+    const project = activityProjectView(createDraft('rsc-ii', datasets[0].metadata.regulation.id));
     project.userData.teacher.name = 'Docente de teste';
     project.userData.memorial = {
       title: 'Meu Memorial',
@@ -142,7 +143,7 @@ describe('gerador determinístico do memorial', () => {
   });
 
   it('preserva textos gerados, editados e seções no export/import JSON', () => {
-    const project = createDraft('rsc-i', datasets[0].metadata.regulation.id);
+    const project = activityProjectView(createDraft('rsc-i', datasets[0].metadata.regulation.id));
     project.userData.memorial = {
       title: 'Memorial portátil',
       introduction: '',

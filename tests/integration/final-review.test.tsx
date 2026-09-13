@@ -1,3 +1,4 @@
+import { activityProjectView } from '@/domain/project-migration';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -84,7 +85,13 @@ it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos',
   fireEvent.click(screen.getByRole('button', { name: 'Exportar JSON' }));
   expect(exportJson).toHaveBeenCalledOnce();
   fireEvent.click(screen.getByRole('button', { name: 'Gerar PDF' }));
-  await waitFor(() => expect(downloadMemorialPdf).toHaveBeenCalledWith(current.project));
+  await waitFor(() =>
+    expect(downloadMemorialPdf).toHaveBeenCalledWith(
+      activityProjectView(
+        current.project as Exclude<typeof current.project, { schemaVersion: '1.0' }>,
+      ),
+    ),
+  );
 });
 
 it('bloqueia somente o PDF quando há erros de revisão', () => {

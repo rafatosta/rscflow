@@ -89,14 +89,14 @@ export function reviewProject(
           'Formação',
           'info',
           `${userData.education.length} registro(s) de formação incluído(s).`,
-          'education',
+          'profile',
         )
       : finding(
           'education',
           'Formação',
           'warning',
           'Nenhuma formação foi registrada. Confira se essa seção deve permanecer vazia.',
-          'education',
+          'profile',
         ),
   );
   findings.push(
@@ -106,14 +106,14 @@ export function reviewProject(
           'Trajetória',
           'info',
           `${userData.activities.length} atividade(s) incluída(s) na trajetória.`,
-          'activities',
+          'requirements',
         )
       : finding(
           'trajectory',
           'Trajetória',
           'warning',
           'Nenhuma atividade foi registrada. Confira se a trajetória está completa.',
-          'activities',
+          'requirements',
         ),
   );
 
@@ -127,7 +127,7 @@ export function reviewProject(
           'Enquadramentos',
           'warning',
           `${activitiesWithoutCriteria.length} atividade(s) não possui(em) nível e critério informados.`,
-          'activities',
+          'requirements',
         )
       : finding(
           'criteria',
@@ -136,7 +136,7 @@ export function reviewProject(
           userData.activities.length
             ? 'Todas as atividades possuem nível e critério informados.'
             : 'Não há atividades para conferir quanto ao enquadramento.',
-          'activities',
+          'requirements',
         ),
   );
 
@@ -155,7 +155,7 @@ export function reviewProject(
         userData.activities.length || userData.education.length
           ? 'Os registros possuem referências de documentação comprobatória.'
           : 'Não há registros que exijam conferência de documentação.',
-        'activities',
+        'requirements',
       ),
     );
   } else {
@@ -166,7 +166,7 @@ export function reviewProject(
           'Documentação indicada',
           'warning',
           `A atividade “${activity.title}” não possui documento comprobatório informado. Isso pode afetar a avaliação do processo.`,
-          'activities',
+          'requirements',
           `-activity-${activity.id}`,
         ),
       );
@@ -177,7 +177,7 @@ export function reviewProject(
           'Documentação indicada',
           'warning',
           `A formação “${education.title}” não possui referência de documento comprobatório.`,
-          'education',
+          'profile',
           `-education-${education.id}`,
         ),
       );
@@ -190,7 +190,7 @@ export function reviewProject(
         'Pontuação',
         'warning',
         `A pontuação não está disponível: ${scoring.issues.map((issue) => issue.message).join(' ')}`,
-        'scoring',
+        'requirements',
       ),
     );
   else if (scoring.status === 'quantitative-requirements-not-met')
@@ -200,7 +200,7 @@ export function reviewProject(
         'Pontuação',
         'warning',
         `A pontuação calculada é ${scoring.total} e os requisitos quantitativos ainda não foram atingidos.`,
-        'scoring',
+        'requirements',
       ),
     );
   else
@@ -210,7 +210,7 @@ export function reviewProject(
         'Pontuação',
         'info',
         `A pontuação calculada é ${scoring.total} e os requisitos quantitativos foram atingidos.`,
-        'scoring',
+        'requirements',
       ),
     );
 

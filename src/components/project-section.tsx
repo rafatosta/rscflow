@@ -1,26 +1,27 @@
-import { RscSection } from './rsc-section';
-import { ChronologicalView } from './chronological-view';
-import { ProcessOverview } from './process-overview';
-import {
-  activityProjectView,
-  applyActivityProjectEdits,
-  migrateProject,
-} from '@/domain/project-migration';
-import { draftProjectExportSchema } from '@/domain/project';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
-import type { ProjectExport, TypedProjectExport } from '@/domain/project';
-import { completion, linkedDataset, projectScoring } from '@/features/project-shell/project-view';
+import type { FileResolver, SaveProjectChange } from '@/domain/local-files';
+import type { ProjectExport } from '@/domain/project';
+import { activityProjectView, migrateProject } from '@/domain/project-migration';
+import {
+  completion,
+  linkedDataset,
+  projectScoring,
+  levelLabel,
+  documentProject,
+} from '@/features/project-shell/project-view';
 import { projectPath, type Section } from '@/features/project-shell/routes';
-import { CriteriaExplorer } from './criteria-explorer';
+import { RequirementsSection } from './requirements-section';
 import { EducationSection } from './education-section';
-import { FinalExport } from './final-export';
-import { FinalReview } from './final-review';
+import { TeacherProfileForm } from './teacher-profile-form';
 import { MemorialSection } from './memorial-section';
+import { FinalReview } from './final-review';
+import { FinalExport } from './final-export';
 import { PdfPreview } from './pdf-preview';
 import { ScoringDashboard } from './scoring-dashboard';
-import { TeacherProfileForm } from './teacher-profile-form';
-import { TrajectorySection } from './trajectory-section';
+import { ProcessOverview } from './process-overview';
+import { ProjectDocuments } from './project-documents';
 import { Button } from './ui/button';
 
 type Props = {
@@ -30,79 +31,63 @@ type Props = {
   invalid: string;
   busy: boolean;
   edit: (text: string) => void;
+  editProject: (project: ProjectExport) => void;
+  save: SaveProjectChange;
+  resolver?: FileResolver;
+  setFormDirty: (dirty: boolean) => void;
   onExport: () => void;
   onImport: (project: ProjectExport) => void;
 };
-function JsonEditor({
-  draft,
-  edit,
-  busy,
-  invalid,
-}: Pick<Props, 'draft' | 'edit' | 'busy' | 'invalid'>) {
-  return (
-    <div className="space-y-3">
-      <label htmlFor="project-data">Dados editáveis do projeto (JSON)</label>
-      <textarea
-        id="project-data"
-        className="field min-h-80 font-mono text-sm"
-        value={draft}
-        onChange={(event) => edit(event.target.value)}
-        disabled={busy}
-        aria-invalid={Boolean(invalid)}
-        aria-describedby={invalid ? 'data-error' : undefined}
-      />
-      {invalid && (
-        <p id="data-error" role="alert" className="text-rose-200">
-          {invalid}
-        </p>
-      )}
-    </div>
-  );
-}
 
-function ActivityProjectSection(props: Props & { sourceProps?: Props }) {
-  const { record, section, edit, busy, onExport } = props;
+export function ProjectSection(props: Props) {
+  const [preview, setPreview] = useState(false);
+  const { record, section, busy } = props;
   if (record.project.schemaVersion === '1.0')
     return (
-      <div className="panel space-y-5">
-        <h2 className="text-xl font-semibold">Projeto no formato legado</h2>
+      <section className="panel space-y-4">
+        <h2>Projeto experimental antigo</h2>
         <p>
-          Os dados originais são preservados sem conversão automática. Você pode editá-los e
-          exportá-los neste formato.
+          Este formato não é editável na nova interface. Exporte os dados para consulta e crie um
+          novo projeto.
         </p>
-        <JsonEditor {...(props.sourceProps ?? props)} />
-        <Button onClick={onExport} disabled={Boolean(props.invalid)}>
-          Exportar JSON
-        </Button>
-      </div>
+        <Button onClick={props.onExport}>Exportar dados antigos</Button>
+        <Link to="/" className="block text-cyan-300 underline">
+          Meus projetos
+        </Link>
+      </section>
     );
-  const project = record.project as TypedProjectExport;
+  const project = migrateProject(record.project).project;
   const data = project.userData;
-  const update = (patch: Partial<typeof data>) => edit(JSON.stringify({ ...data, ...patch }));
-  const progress = completion(project);
-  const dataset = linkedDataset(project);
+  const view = activityProjectView(project);
+  const editorial = documentProject(project);
+  const projected = { ...record, project: editorial };
+  const update = (patch: Partial<typeof data>) =>
+    props.editProject({ ...project, userData: { ...data, ...patch } });
   const scoring = projectScoring(project);
-
-  if (section === '')
+  const dataset = linkedDataset(project);
+  if (section === '') {
+    const progress = completion(project);
     return (
-      <div className="space-y-6">
-        <section className="panel">
-          <h2 className="text-xl font-semibold">Seu processo de RSC</h2>
-          <p className="mt-3 text-slate-300">
-            {progress.percent}% de preenchimento aproximado. Este indicador organiza o trabalho; não
-            representa pontuação ou elegibilidade.
+      <div className="space-y-5">
+        <section className="panel space-y-3">
+          <h2 className="text-xl font-semibold">{data.title}</h2>
+          <p>
+            Docente: {data.teacher.name || 'Não informado'} ·{' '}
+            {data.request ? levelLabel(data.request.level) : 'RSC não informado'}
           </p>
           <progress
             aria-label="Progresso de preenchimento"
-            className="my-4 h-3 w-full accent-cyan-400"
             value={progress.percent}
             max={100}
+            className="w-full"
           />
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <p>Em elaboração · {progress.percent}% de preenchimento aproximado</p>
+          <p className="text-sm text-slate-300">O preenchimento não representa aprovação do RSC.</p>
+          <ul className="space-y-2">
             {progress.items.map((item) => (
               <li key={item.label}>
                 <Link
-                  className="block rounded border border-slate-600 p-3 hover:bg-slate-800"
+                  className="text-cyan-300 underline"
                   to={projectPath(record.localId, item.section)}
                 >
                   {item.complete ? '✓ ' : '○ '}
@@ -113,168 +98,107 @@ function ActivityProjectSection(props: Props & { sourceProps?: Props }) {
           </ul>
         </section>
         <ScoringDashboard result={scoring} compact />
-        <ProcessOverview record={props.sourceProps?.record ?? record} />
-        <section className="panel">
-          <h2 className="text-xl font-semibold">Regulamento vinculado</h2>
-          <p className="mt-3 break-words">
-            {project.regulation.id} / {project.regulation.version ?? 'versão normativa pendente'}
-          </p>
-          <p className="mt-3 text-amber-200">
-            {scoring.status === 'unavailable'
-              ? scoring.issues.map((issue) => issue.message).join(' ')
-              : 'Dataset disponível para avaliação quantitativa.'}
-          </p>
-        </section>
+        <ProjectDocuments project={project} resolver={props.resolver} compact />
+        <ProcessOverview record={record} />
       </div>
     );
-
-  if (section === 'rsc-i' || section === 'rsc-ii' || section === 'rsc-iii')
-    return (
-      <RscSection
-        level={section}
-        dataset={dataset}
-        scoring={scoring}
-        activities={data.activities}
-        evidences={data.evidence}
-        disabled={busy}
-        onSave={(activities) => update({ activities })}
-      />
-    );
-  if (section === 'timeline')
-    return (
-      <ChronologicalView
-        activities={data.activities}
-        evidences={data.evidence}
-        localId={record.localId}
-      />
-    );
-  if (section === 'evidence')
-    return (
-      <TrajectorySection
-        evidenceOnly
-        activities={data.activities}
-        evidences={data.evidence}
-        criterionRequired={false}
-        disabled={busy}
-        onSave={(patch) => update(patch)}
-      />
-    );
-
+  }
   if (section === 'profile')
     return (
-      <TeacherProfileForm
+      <div className="space-y-5">
+        <TeacherProfileForm
+          project={view}
+          disabled={busy}
+          onSave={(next) =>
+            update({ title: next.title, teacher: next.teacher, request: next.request })
+          }
+        />
+        <EducationSection
+          education={data.education}
+          disabled={busy}
+          onSave={(education) => update({ education })}
+        />
+      </div>
+    );
+  if (section === 'requirements')
+    return (
+      <RequirementsSection
         project={project}
-        disabled={busy}
-        onSave={(userData) => edit(JSON.stringify(userData))}
-      />
-    );
-
-  if (section === 'education')
-    return (
-      <EducationSection
-        education={data.education}
-        disabled={busy}
-        onSave={(education) => update({ education })}
-      />
-    );
-
-  if (section === 'activities')
-    return (
-      <TrajectorySection
-        activities={data.activities}
-        evidences={data.evidence}
         dataset={dataset}
-        criterionRequired={project.schemaVersion === '2.0'}
+        scoring={scoring}
+        save={props.save}
         disabled={busy}
-        onSave={(patch) => update(patch)}
+        setFormDirty={props.setFormDirty}
       />
     );
-
-  if (section === 'criteria')
-    return <CriteriaExplorer dataset={dataset} initialLevel={data.request?.level} />;
-
-  if (section === 'scoring') return <ScoringDashboard result={scoring} />;
-
   if (section === 'memorial')
     return (
-      <>
-        <MemorialSection
-          projectTitle={data.title}
-          memorial={data.memorial}
-          activities={data.activities}
-          evidences={data.evidence}
-          disabled={busy}
-          onSave={(patch) => update(patch)}
-        />
-        <Link
-          className="mt-5 inline-block text-cyan-300 underline"
-          to={projectPath(record.localId, 'preview')}
-        >
-          Ver prévia do memorial
-        </Link>
-      </>
+      <MemorialSection
+        projectTitle={data.title}
+        education={data.education}
+        memorial={data.memorial}
+        activities={editorial.userData.activities}
+        evidences={view.userData.evidence}
+        disabled={busy}
+        onSave={({ memorial, activities }) => {
+          const texts = (id: string) => {
+            const item = activities.find((value) => value.id === id);
+            return item
+              ? {
+                  ...(item.generatedText !== undefined
+                    ? { generatedText: item.generatedText }
+                    : {}),
+                  ...(item.editedText !== undefined ? { editedText: item.editedText } : {}),
+                  ...(item.isManuallyEdited !== undefined
+                    ? { isManuallyEdited: item.isManuallyEdited }
+                    : {}),
+                }
+              : {};
+          };
+          update({
+            memorial,
+            criterionEntries: data.criterionEntries.map((entry) => ({
+              ...entry,
+              occurrences: entry.occurrences.map((item) => ({ ...item, ...texts(item.id) })),
+            })),
+            unassignedOccurrences: data.unassignedOccurrences.map((item) => ({
+              ...item,
+              ...texts(item.id),
+            })),
+          });
+        }}
+      />
     );
-
-  if (section === 'preview') return <PdfPreview record={record} />;
-
-  if (section === 'review') return <FinalReview record={record} scoring={scoring} />;
-
-  if (section === 'export')
+  if (section === 'review')
     return (
-      <>
-        {!props.sourceProps && (
-          <Button
-            disabled={busy || Boolean(props.invalid)}
-            onClick={() => props.onImport(migrateProject(project).project)}
-          >
-            Migrar para critérios e ocorrências em nova cópia
-          </Button>
-        )}
-        {!props.sourceProps && (
-          <p className="my-3 text-sm text-slate-300">
-            A cópia original será preservada. Referências incompletas e textos manuais serão
-            mantidos.
-          </p>
-        )}
+      <div className="space-y-5">
+        <ScoringDashboard result={scoring} compact />
+        <FinalReview record={record} scoring={scoring} />
+        <ProjectDocuments project={project} resolver={props.resolver} />
+        <Button variant="outline" onClick={() => setPreview((value) => !value)}>
+          {preview ? 'Fechar prévia' : 'Visualizar prévia'}
+        </Button>
+        {preview && <PdfPreview record={projected} />}
+      </div>
+    );
+  if (section === 'documents')
+    return (
+      <div className="space-y-5">
         <FinalExport
-          record={record}
+          record={projected}
           scoring={scoring}
           busy={busy}
           invalid={props.invalid}
-          onExportJson={onExport}
+          onExportJson={props.onExport}
           onImport={props.onImport}
         />
-        <section className="panel mt-6">
-          <details>
-            <summary className="cursor-pointer font-medium">Edição avançada dos dados JSON</summary>
-            <div className="mt-4">
-              <JsonEditor {...(props.sourceProps ?? props)} />
-            </div>
-          </details>
-        </section>
-      </>
+        <ProjectDocuments project={project} resolver={props.resolver} />
+        <p className="text-sm text-slate-300">
+          O PDF disponível contém o memorial. Formulários do RSC, consolidação dos comprovantes e
+          backup completo .rscflow ainda não estão disponíveis. A cópia JSON guarda os dados, sem os
+          arquivos anexados.
+        </p>
+      </div>
     );
-
   return null;
-}
-
-export function ProjectSection(props: Props) {
-  if (props.record.project.schemaVersion !== '3.0') return <ActivityProjectSection {...props} />;
-  const original = props.record.project;
-  const view = activityProjectView(original);
-  return (
-    <ActivityProjectSection
-      {...props}
-      sourceProps={props}
-      record={{ ...props.record, project: view }}
-      edit={(text) => {
-        const edited = draftProjectExportSchema.safeParse({ ...view, userData: JSON.parse(text) });
-        if (!edited.success) {
-          props.edit(text);
-          return;
-        }
-        props.edit(JSON.stringify(applyActivityProjectEdits(original, edited.data).userData));
-      }}
-    />
-  );
 }

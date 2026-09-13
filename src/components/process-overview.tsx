@@ -32,16 +32,13 @@ export function ProcessOverview({ record }: { record: LocalProject }) {
   return (
     <section className="panel space-y-4">
       <h2 className="text-xl font-semibold">Comprovantes e backup</h2>
-      <p>
-        Comprovantes cadastrados: {data.evidence.length} referência(s). Os arquivos binários ainda
-        não são armazenados.
-      </p>
+      <p>Comprovantes cadastrados: {data.evidence.length} referência(s).</p>
       <p>
         Pendências: {withoutCriterion} lançamento(s) sem enquadramento completo; {withoutEvidence}{' '}
         sem comprovante associado.
       </p>
-      <Link className="text-cyan-300 underline" to={projectPath(record.localId, 'evidence')}>
-        Gerenciar comprovantes
+      <Link className="text-cyan-300 underline" to={projectPath(record.localId, 'review')}>
+        Conferir documentos na revisão
       </Link>
       <p>
         Último backup JSON:{' '}

@@ -1,3 +1,4 @@
+import { activityProjectView } from '@/domain/project-migration';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -52,5 +53,7 @@ it('navega pela prévia A4, volta ao editor e inicia o download local', async ()
   fireEvent.click(screen.getByRole('button', { name: /Próxima página/ }));
   expect(screen.getByRole('article', { name: 'Página 2' })).toHaveTextContent('Sumário');
   fireEvent.click(screen.getByRole('button', { name: 'Gerar PDF' }));
-  await waitFor(() => expect(downloadMemorialPdf).toHaveBeenCalledWith(project));
+  await waitFor(() =>
+    expect(downloadMemorialPdf).toHaveBeenCalledWith(activityProjectView(project)),
+  );
 });

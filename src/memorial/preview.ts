@@ -23,6 +23,8 @@ export function buildMemorialDocument(project: TypedProjectExport): MemorialDocu
     teacher.siape || teacher.registration ? `SIAPE: ${teacher.siape ?? teacher.registration}` : '',
     teacher.role ? `Cargo: ${teacher.role}` : '',
     teacher.campus ? `Campus de lotação: ${teacher.campus}` : '',
+    teacher.institution ? `Instituição de vínculo: ${teacher.institution}` : '',
+    teacher.employmentStatus ? `Situação funcional: ${teacher.employmentStatus}` : '',
     teacher.email ? `E-mail: ${teacher.email}` : '',
     teacher.phone ? `Telefone: ${teacher.phone}` : '',
     teacher.currentRsc ? `RT/RSC atual: ${teacher.currentRsc}` : '',

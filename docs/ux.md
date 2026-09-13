@@ -1,90 +1,33 @@
 # Experiência de uso
 
-A tela inicial prioriza criar ou continuar um processo de RSC. Cada cartão mostra título, RSC pretendido, última alteração e preenchimento aproximado, além de continuar, duplicar, exportar e excluir. Exclusão exige confirmação em diálogo; cancelar mantém a cópia. Importações sempre criam uma cópia local separada.
+A interface do RSCFlow abstrai anexos, entidades internas e estruturas técnicas. O usuário preenche requisitos e lançamentos. Pontuação, formulários, Memorial e documentos são projeções do mesmo conjunto de dados. As saídas ainda não implementadas não recebem botões de geração fictícia.
 
-A criação pede somente RSC pretendido e regulamento/dataset. Título inicial é um rótulo de interface editável. Nome do docente e enquadramento podem estar ausentes em rascunhos 2.1. O catálogo pendente é identificado como tal e sua versão normativa permanece null.
+Como o projeto ainda não possui versão pública, compatibilidades de formulário e migrações pré-release podem ser removidas quando não tiverem valor arquitetural.
 
-## Mapa da jornada
+O fluxo é Projetos → Visão geral → Dados do docente → Requisitos → Memorial → Revisão → Gerar documentos. Formação integra Dados do docente; pontuação aparece como resultado e documentos são anexados dentro dos lançamentos. Prévia é uma ação da Revisão.
 
-O fluxo principal segue Início → Visão geral → Dados do docente → RSC I/II/III → Comprovantes
-→ Memorial → Revisão → Gerar documentos. Consultas e compatibilidade reúnem Formação, Trajetória,
-Critérios, Pontuação, Prévia e Cadastro anterior. O autosave protege a troca de seção, sem exigir
-sequência rígida. Consulte o mapa de URLs em `docs/frontend.md`.
+## Preenchimento
 
-## Feedback e autosave
+Crie um projeto escolhendo nível pretendido e regulamento. A visão geral mostra identificação, progresso aproximado, pontuação disponível, documentos e pendências. Progresso de cadastro não significa elegibilidade ou concessão de RSC.
 
-Edições válidas entram em uma fila serial após 500 ms sem digitação. O cabeçalho anuncia o estado em
-uma região viva; navegação e operações sobre projetos aguardam uma gravação pendente. Erros de
-validação ficam no campo e não substituem a última cópia válida. Erros do IndexedDB preservam o
-rascunho e oferecem recuperação explícita. O usuário deve aguardar “Salvo localmente” antes de
-fechar a página e usar a exportação JSON para backup e transporte.
+Preencha dados pessoais/funcionais, instituição, requerimento e formação. No núcleo Requisitos, escolha RSC I, II ou III, busque a descrição humana e adicione um lançamento no critério correspondente. O critério não é solicitado novamente. Informe período quando conhecido e quantidade comprovada na unidade exibida. Não há categoria, título obrigatório, fator, peso, limite ou código para preencher.
 
-## Organização e responsividade
+Anexe um arquivo no mesmo formulário ou salve sem ele e resolva a pendência depois. A opção secundária de documentos existentes permite compartilhamento. Se substituir a comprovação por outro conteúdo, desmarque a referência anterior. Excluir um lançamento preserva documentos compartilhados.
 
-Em desktop (a partir de 1024 px), a sidebar fixa apresenta as seções. Em telas menores, o botão de menu abre um Sheet modal com foco contido, fechamento por Escape e retorno ao acionador. O cabeçalho mantém exportação e estado do autosave acessíveis; em telas estreitas, o estado ocupa uma segunda linha. Formulários e cartões se reorganizam sem exigir rolagem horizontal.
+O catálogo de produção está transcrito, mas pendente de validação humana. O registro é provisório; pontos não são presumidos. Divergências internas, inclusive o peso literal 14 de d.5 no RSC II, continuam visíveis e bloqueiam cálculo. Datas não geram contagem normativa de meses por inferência.
 
-Há link para pular ao conteúdo como primeiro controle da ordem de tabulação. Na abertura inicial ele permanece disponível; depois de uma mudança de rota, o foco segue para o título principal, que acompanha o título da página. A seção ativa usa `aria-current`. Estados de salvamento usam região viva atômica e a área principal anuncia quando está ocupada. Inputs têm rótulos e estados vazios explicam a próxima ação disponível.
+## Memorial e revisão
 
-Todos os controles interativos apresentam foco visível. Ações principais têm pelo menos 44 px de altura e ações compactas, 40 px. Formulários abertos por “Adicionar” ou “Editar” levam o foco ao primeiro campo. Dialogs e o Sheet contêm o foco enquanto abertos; ao cancelar uma exclusão ou fechar o menu, o foco retorna ao acionador. Textos, ícones e símbolos acompanham estados e severidades para que o significado não dependa somente da cor.
+Prepare o memorial com os dados cadastrados. Formação e lançamentos alimentam a narrativa cronológica; introdução e conclusão têm texto inicial editável. Edições manuais são preservadas. Quando uma origem muda, confira a indicação e escolha manter ou regenerar o texto.
 
-Na seção Dados do docente, nome completo, CPF, SIAPE, campus de lotação e RSC pretendido aparecem como obrigatórios para concluir a etapa. Os demais campos mostram explicitamente “opcional”. Mensagens de CPF, e-mail, telefone e datas aparecem junto ao campo e são anunciáveis por tecnologia assistiva. A digitação não é interrompida por máscaras automáticas.
+A revisão reúne identificação, enquadramento, documentação, resultado quantitativo, memorial e conclusão, com links para corrigir. ERROR bloqueia PDF; WARNING pede conferência; INFO descreve conteúdo encontrado. Arquivo ausente ou inválido é indicado pela verificação local, sem confundir referência declarada com documento disponível.
 
-Formação apresenta um estado vazio que orienta o primeiro cadastro e, depois, cards do registro mais recente para o mais antigo. Em telas estreitas, campos, detalhes e ações passam para uma coluna sem rolagem horizontal. Tipo, curso ou título, instituição e situação são marcados como obrigatórios; os demais campos são identificados como opcionais. Erros ficam associados ao respectivo controle. Exclusão exige confirmação. A edição mantém o ID; a duplicação cria um novo registro com ID próprio.
+Abra a prévia A4 na revisão e gere o PDF do memorial em Gerar documentos. A geração de formulários RSC, consolidação de anexos e backup completo `.rscflow` pertence a etapas posteriores e permanece indisponível.
 
-Trajetória apresenta busca e filtro por categoria antes da timeline. Atividades com datas são agrupadas pelo ano e aparecem da mais recente para a mais antiga; registros sem período ficam no grupo “Sem data”. Quando nenhum item corresponde aos filtros, uma mensagem anuncia o resultado vazio. O cadastro amplo permanece na própria página e se reorganiza em uma coluna em telas estreitas.
+## Dados locais e recuperação
 
-Atividades mostram quantidade, período, local, função, textos, competências, critério declarado e evidências vinculadas. A tela informa que o critério não é inferido pela categoria. Em catálogo validado, o critério é localizado por termos comuns, código, unidade ou diretriz; a opção expõe nível e contexto antes da escolha. O combobox anuncia expansão, lista e opção ativa, aceita setas, Enter e Escape e permite limpar a escolha. Em catálogo pendente, permanece desabilitado com o motivo visível. Evidências são cadastradas como metadados, com tipo e título obrigatórios, e vinculadas por checkboxes. Exclusões exigem confirmação; a confirmação de uma evidência também explica que seus vínculos serão removidos.
+Autosave funciona em dados do docente, formação e memorial. No lançamento, use Salvar ou Cancelar antes de navegar. Falha de gravação preserva o rascunho; conflito entre abas exige conferir a versão salva. Fechar à força pode perder alterações ainda não gravadas.
 
-Critérios organiza o catálogo em abas RSC I, RSC II e RSC III, abertas inicialmente no nível pretendido. Setas laterais, Home e End movem o foco e ativam as abas. A busca tolera caixa e acentuação, para que termos como “comissão”, “coordenação”, “curso”, “palestra”, “artigo”, “projeto”, “estágio” e “TCC” encontrem as descrições disponíveis sem memorização de códigos. Cada resultado permanece sob sua diretriz e expõe os valores e a proveniência do JSON. A página é somente leitura.
+IndexedDB guarda projetos e anexos neste navegador. Limpar os dados do site pode removê-los. JSON é uma cópia dos dados, sem bytes; depois de importar, anexe novamente o mesmo arquivo para recuperar a disponibilidade. O hash evita duplicação do descritor. A marca do último backup informa que o download foi iniciado, sem garantir gravação no disco.
 
-Pontuação apresenta o resultado em cartões que passam de três colunas para uma coluna em telas estreitas. Os estados usam texto e símbolos além de cor: “Requisitos quantitativos atingidos”, “Requisitos quantitativos ainda não atingidos” ou “Cálculo parcial”. As diretrizes permanecem recolhidas até a pessoa abrir os detalhes; ao atingir o teto, a mensagem “Pontuação máxima da diretriz atingida.” explica por que experiências adicionais não aumentam os pontos. A visão geral repete um resumo compacto e lista pendências com acesso à seção completa pela navegação.
-
-Memorial apresenta um editor por seções, com a apresentação introdutória identificada como opção editorial. Atividades aparecem do passado para o presente na seção correspondente à categoria declarada. O texto-base e o texto editável ficam visíveis no mesmo card, com estado “Texto-base” ou “Editado manualmente”. Toda geração ocorre no navegador e pode ser usada sem conexão.
-
-Depois de uma edição manual, mudanças na atividade ou em suas evidências mostram um alerta sem substituir o texto. “Manter texto atual” conserva a escrita autoral; “Regenerar texto” confirma a substituição pela nova base. A prévia mostra capa, identificação, sumário e todas as seções, inclusive estados vazios claros, sem rotular a introdução como exigência normativa.
-
-Revisão organiza o checklist final nas categorias ERROR, WARNING e INFO, sempre com texto e ícone,
-sem depender apenas de cor. Identificação essencial, RSC pretendido, memorial iniciado e conclusão
-podem gerar erros que bloqueiam o PDF. Ausência de formação, trajetória, enquadramento, referência
-documental ou pontuação disponível gera aviso e permite prosseguir. Cada item leva diretamente à
-seção em que pode ser conferido.
-
-Exportar apresenta o horário do último autosave, o estado resumido da revisão e nomes legíveis para
-PDF e JSON. O PDF fica indisponível enquanto houver erro; o JSON continua acessível para backup do
-projeto válido. A mesma tela permite validar e importar outra cópia JSON como novo projeto local,
-sem substituir a cópia aberta.
-
-Os fluxos principais são verificados em 360 × 800 px, 768 × 1024 px e 1440 × 900 px. Sidebar,
-cartões, grades, formulários, ações e prévia refluem nesses tamanhos sem criar rolagem horizontal na
-página. Conteúdo textual longo pode quebrar dentro do próprio cartão e a prévia A4 reduz sua escala
-visual sem alterar o documento produzido.
-
-## Limites transparentes
-
-O progresso é uma aproximação editorial: cinco grupos com o mesmo peso (identificação, formação, trajetória, enquadramento e texto). Não representa pontuação, elegibilidade ou aprovação. A revisão informa completude e riscos documentais, sem substituir a análise do processo.
-
-Critérios e pontuação mostram o estado real do dataset vinculado. O catálogo pendente não gera opções normativas fictícias nem pontuação zero apresentada como resultado. “Cálculo parcial” descreve a indisponibilidade dos dados necessários e não apresenta um subtotal como definitivo. Nenhuma mensagem usa “RSC aprovado”; o dashboard se limita aos requisitos quantitativos. A prévia A4 representa o PDF produzido localmente, sem convertê-lo em documento oficial ou assinado. Referências de comprovantes contêm metadados, sem anexos binários.
-
-A edição avançada JSON permite preservar e alterar todos os campos dos contratos existentes. Arquivos 1.0 não são reinterpretados em formulários tipados. A continuidade em outro navegador exige exportar/importar a cópia, pois os dados são locais.
-
-## Processo como fluxo principal — etapa 03
-
-O docente escolhe RSC I/II/III, encontra uma descrição por busca textual e cadastra lançamentos
-naquele critério. A lista mostra período, título, quantidade e comprovantes associados. O código
-normativo é informação secundária. Pontuação e teto aparecem por diretriz; a indisponibilidade
-permanece explícita quando não há dados validados. Nenhum anexo é eixo de entrada.
-
-Comprovantes tem seção própria e pode reutilizar uma referência em diversos lançamentos. A
-trajetória é uma consulta cronológica desses mesmos registros. Cadastro anterior é uma entrada
-secundária de compatibilidade, inclusive para registros ainda sem nível ou critério. Textos
-manuais do memorial não são substituídos ao editar lançamentos.
-
-A visão geral apresenta progresso editorial, pontuação dos níveis, requisitos quantitativos,
-comprovantes cadastrados, lançamentos sem enquadramento/comprovação e último backup JSON.
-“Sem alterações” compara conteúdo com o hash da cópia gerada; editar mostra “Há alterações”.
-Um projeto importado ou duplicado começa sem histórico local de backup. O registro de download
-não confirma gravação física e não representa backup de arquivos binários, ainda não suportados.
-
-Novas telas refluem em uma coluna, aceitam descrições longas e mantêm rótulos, foco, confirmações,
-mensagens de erro e operação por teclado. A suíte E2E cobre cadastro por RSC em 360, 768 e 1440 px,
-além da matriz das rotas vazias com axe-core.
+Novos projetos usam 3.0. Leitores portáteis antigos permanecem úteis; ao editar 2.0/2.1, o projeto é convertido para 3.0 no mesmo registro. O formato opaco 1.0 pode ser exportado para consulta, sem formulário experimental. Nenhum dado local é apagado nesta refatoração.

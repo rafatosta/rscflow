@@ -63,4 +63,16 @@ ocorrências ou arquivos, execute `tests/unit/criterion-entry.test.ts` e o E2E
 `tests/e2e/criterion-entry.spec.ts`, além da bateria completa. O round-trip deve preservar
 quantidades, autoria, ordem, referências incompletas, evidências compartilhadas e descritores.
 Não adicione campos normativos ao envelope e não exporte a projeção transitória Activity como se
-fosse o projeto 3.0. O banco permanece v1 até a etapa de armazenamento binário.
+fosse o projeto 3.0. A tabela Dexie `files` está na versão 2 e guarda bytes por cópia local.
+
+## Interface e anexos locais
+
+O fluxo público tem somente Visão geral, Dados do docente, Requisitos, Memorial, Revisão e Gerar
+documentos. Ao alterar um lançamento, mantenha a separação: schema em `domain`, transação de blob
+em `storage`, orquestração em `features/requirements` e apresentação em componentes. JSON portátil
+carrega descritores, nunca bytes. Não introduza cálculo de quantidade a partir de período sem regra
+validada e não use o catálogo pendente para emitir pontuação.
+
+Para qualquer mudança nessa área, execute os testes de requisitos além da bateria completa,
+incluindo Playwright. Teste ausência de bytes após importação, duplicação/exclusão isolada e
+preservação de texto manual quando o lançamento é editado.

@@ -1,4 +1,5 @@
 import type { ProjectExport } from './project';
+import type { FileResolver, LocalFile } from './local-files';
 
 export type LocalProject = {
   localId: string;
@@ -12,6 +13,13 @@ export type SaveState =
   { status: 'saving' } | { status: 'saved' } | { status: 'error'; message: string };
 
 export interface ProjectRepository {
+  fileResolver?(localId: string): FileResolver;
+  updateWithFiles?(
+    localId: string,
+    revision: number,
+    project: ProjectExport,
+    files: LocalFile[],
+  ): Promise<LocalProject>;
   create(project: ProjectExport): Promise<LocalProject>;
   load(localId: string): Promise<LocalProject | undefined>;
   list(): Promise<LocalProject[]>;

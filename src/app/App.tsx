@@ -32,7 +32,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       currentLocation.pathname !== nextLocation.pathname &&
-      (Boolean(work.invalid) || work.saveState.status !== 'saved'),
+      (Boolean(work.invalid) || work.saveState.status !== 'saved' || work.busy || work.formDirty),
   );
   const blockerRef = useRef(blocker);
   blockerRef.current = blocker;
@@ -102,28 +102,22 @@ export function App({ repository }: { repository?: ProjectRepository }) {
           <p className="px-3 pb-2 pt-6 text-xs uppercase tracking-wider text-slate-400">
             Processo de RSC
           </p>
-          {[
-            ...sections.filter(([path]) => primarySections.includes(path)),
-            ...sections.filter(([path]) => !primarySections.includes(path)),
-          ].map(([path, label]) => (
-            <Fragment key={path}>
-              {path === 'education' && (
-                <p className="px-3 pb-2 pt-6 text-xs uppercase tracking-wider text-slate-400">
-                  Consultas e compatibilidade
-                </p>
-              )}
-              <NavLink
-                key={path}
-                end
-                to={projectPath(route.id, path)}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? 'bg-slate-800 text-cyan-200' : ''}`
-                }
-              >
-                {label}
-              </NavLink>
-            </Fragment>
-          ))}
+          {sections
+            .filter(([path]) => primarySections.includes(path))
+            .map(([path, label]) => (
+              <Fragment key={path}>
+                <NavLink
+                  key={path}
+                  end
+                  to={projectPath(route.id, path)}
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'bg-slate-800 text-cyan-200' : ''}`
+                  }
+                >
+                  {label}
+                </NavLink>
+              </Fragment>
+            ))}
         </>
       )}
     </nav>
@@ -262,7 +256,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
                 Voltar aos projetos
               </Link>
             </div>
-          ) : work.busy ? (
+          ) : work.busy && !current ? (
             <p role="status">Carregando projeto…</p>
           ) : !work.projects.some((record) => record.localId === route.id) ? (
             <div className="panel">
@@ -284,6 +278,10 @@ export function App({ repository }: { repository?: ProjectRepository }) {
               invalid={work.invalid}
               busy={work.busy}
               edit={work.edit}
+              editProject={work.editProject}
+              save={work.changeProject}
+              setFormDirty={work.setFormDirty}
+              resolver={(repository ?? defaultRepository).fileResolver?.(current.localId)}
               onExport={work.export}
               onImport={(project) => {
                 void work.create(project).then((record) => {

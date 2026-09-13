@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { activityProjectView } from '@/domain/project-migration';
 import { Download, FileJson, FileSearch } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
@@ -26,7 +27,7 @@ export function FinalExport({
   onExportJson: () => void;
   onImport: (project: ProjectExport) => void;
 }) {
-  const project = record.project as TypedProjectExport;
+  const project = activityProjectView(record.project as TypedProjectExport);
   const review = reviewProject(project, scoring);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');

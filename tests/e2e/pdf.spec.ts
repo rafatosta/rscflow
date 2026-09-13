@@ -8,7 +8,10 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   await page.getByRole('button', { name: 'Criar projeto', exact: true }).click();
   await page.getByRole('link', { name: 'Revisão', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Correções necessárias' })).toBeVisible();
-  await page.getByRole('link', { name: 'Gerar documentos', exact: true }).click();
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: 'Gerar documentos', exact: true })
+    .click();
   await expect(page.getByRole('main').getByRole('button', { name: 'Gerar PDF' })).toBeDisabled();
   await expect(page.getByRole('main').getByRole('button', { name: 'Exportar JSON' })).toBeEnabled();
   await page.getByRole('link', { name: 'Dados do docente', exact: true }).click();
@@ -33,7 +36,7 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   ).toBeVisible();
   await expect(page.getByText(/Nenhuma formação foi registrada/)).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-  await page.getByRole('link', { name: 'Ir para exportação' }).click();
+  await page.getByRole('main').getByRole('link', { name: 'Gerar documentos' }).click();
   await expect(
     page.getByText('Há avisos para conferir, mas eles não impedem a geração do PDF.'),
   ).toBeVisible();
@@ -59,7 +62,8 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.getByRole('link', { name: 'Prévia', exact: true }).click();
+  await page.getByRole('link', { name: 'Revisão', exact: true }).click();
+  await page.getByRole('button', { name: 'Visualizar prévia' }).click();
 
   const article = page.getByRole('article', { name: 'Página 1' });
   await expect(article).toContainText('Lívia Conceição');

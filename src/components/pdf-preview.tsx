@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { activityProjectView } from '@/domain/project-migration';
 import { ChevronLeft, ChevronRight, Download, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
@@ -51,7 +52,10 @@ function PreviewPage({ page }: { page: MemorialPdfLayout['pages'][number] }) {
 }
 
 export function PdfPreview({ record }: { record: LocalProject }) {
-  const project = record.project as TypedProjectExport;
+  const project = useMemo(
+    () => activityProjectView(record.project as TypedProjectExport),
+    [record.project],
+  );
   const review = reviewProject(project, projectScoring(project));
   const [layout, setLayout] = useState<MemorialPdfLayout>();
   const [pageIndex, setPageIndex] = useState(0);

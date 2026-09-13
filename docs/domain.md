@@ -96,11 +96,11 @@ Evidence por `evidenceIds`; evidências podem compartilhar um descritor StoredFi
 rejeita IDs duplicados, vínculos inexistentes e parâmetros normativos copiados para o projeto.
 Arrays de evidências/arquivos podem ficar vazios durante a elaboração.
 
-StoredFile contém id, name, mediaType, size e sha256 opcional. É um descritor portátil, não uma
-prova de presença dos bytes; anexação binária e backup completo são etapas posteriores. Migração
-não transforma fileName legado em um arquivo existente. Nesta etapa, textos gerados/manuais
-continuam na ocorrência e `memorial` conserva sua estrutura anterior; a separação em overrides
-é evolução posterior, preservando autoria desde já.
+StoredFile contém id, name, mediaType, size e sha256 opcional. É um descritor portátil; em uma
+cópia local 3.0, os bytes são guardados por `localId` no IndexedDB e verificados por tamanho e hash.
+Importação JSON não transporta os bytes. Migração não transforma fileName legado em arquivo
+existente. Textos gerados/manuais continuam na ocorrência e `memorial` conserva sua estrutura,
+preservando autoria.
 
 Os comandos em `features/criterion-entries/entries.ts` criam grupos, adicionam e editam ocorrências
 sem mutação e validam referências no projeto completo. Novas edições validam a ordem das datas;

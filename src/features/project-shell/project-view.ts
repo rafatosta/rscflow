@@ -1,5 +1,6 @@
 import { activityProjectView } from '@/domain/project-migration';
-import { draftProjectExportSchema, type ProjectExport } from '@/domain/project';
+import { type ProjectExport } from '@/domain/project';
+import { occurrenceProjectExportSchema } from '@/domain/criterion-entry';
 import { loadRegulations } from '@/data/regulations/load';
 import { rscLevelSchema, type RscLevel } from '@/domain/regulation';
 import { calculateProjectScore } from '@/rules/scoring';
@@ -12,8 +13,8 @@ export const datasets = loadRegulations();
 export function createDraft(level: RscLevel, datasetId: string) {
   const dataset = datasets.find((item) => item.metadata.regulation.id === datasetId);
   if (!dataset) throw new Error('Dataset não encontrado.');
-  return draftProjectExportSchema.parse({
-    schemaVersion: '2.1',
+  return occurrenceProjectExportSchema.parse({
+    schemaVersion: '3.0',
     applicationVersion: packageMetadata.version,
     regulation: { id: datasetId, version: dataset.metadata.version },
     userData: {
@@ -22,7 +23,9 @@ export function createDraft(level: RscLevel, datasetId: string) {
       teacher: { name: '' },
       request: { level },
       education: [],
-      activities: [],
+      criterionEntries: [],
+      unassignedOccurrences: [],
+      storedFiles: [],
       evidence: [],
       memorial: null,
     },
@@ -41,15 +44,15 @@ export function completion(project: ProjectExport) {
       section: 'profile',
       complete: teacherProfileIsComplete(view),
     },
-    { label: 'Formação registrada', section: 'education', complete: data.education.length > 0 },
+    { label: 'Formação registrada', section: 'profile', complete: data.education.length > 0 },
     {
       label: 'Lançamentos registrados',
-      section: view.userData.request?.level ?? 'rsc-i',
+      section: 'requirements',
       complete: data.activities.length > 0,
     },
     {
       label: 'Lançamentos com enquadramento',
-      section: view.userData.request?.level ?? 'rsc-i',
+      section: 'requirements',
       complete:
         data.activities.length > 0 &&
         data.activities.every((item) => item.criterionId && item.selectedLevel),
@@ -87,4 +90,22 @@ export function projectScoring(project: ProjectExport) {
   // 2.1 não migra o arquivo; adapta somente a entrada do cálculo, quando completa.
   const input = project.schemaVersion === '2.1' ? { ...project, schemaVersion: '2.0' } : project;
   return calculateProjectScore(input, dataset);
+}
+
+/** Projeção editorial: descrições atuais do catálogo sem duplicá-las no projeto persistido. */
+export function documentProject(project: Exclude<ProjectExport, { schemaVersion: '1.0' }>) {
+  const view = activityProjectView(project);
+  const dataset = linkedDataset(project);
+  return {
+    ...view,
+    userData: {
+      ...view.userData,
+      activities: view.userData.activities.map((item) => {
+        const criterion = dataset?.levels
+          .flatMap((level) => level.criteria)
+          .find((criterion) => criterion.id === item.criterionId);
+        return criterion ? { ...item, title: `${criterion.description} — ${item.title}` } : item;
+      }),
+    },
+  };
 }

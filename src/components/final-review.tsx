@@ -99,7 +99,7 @@ export function FinalReview({
           </div>
         </dl>
         <Button asChild>
-          <Link to={projectPath(record.localId, 'export')}>Ir para exportação</Link>
+          <Link to={projectPath(record.localId, 'documents')}>Gerar documentos</Link>
         </Button>
       </section>
       <section aria-labelledby="review-findings-title">

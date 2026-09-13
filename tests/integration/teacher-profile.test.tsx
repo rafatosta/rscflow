@@ -48,7 +48,7 @@ it('mostra erros acessíveis dos campos obrigatórios e formatos inválidos', as
   const email = screen.getByLabelText(/^E-mail/);
   fireEvent.change(email, { target: { value: 'inválido' } });
   expect(await screen.findByText('Informe um e-mail válido.')).toHaveAttribute('id', 'email-error');
-  expect(screen.getByText(/Campos com/)).toHaveTextContent('são obrigatórios');
+  expect(screen.getAllByText(/Campos com/)[0]).toHaveTextContent('são obrigatórios');
 });
 
 it('salva, recarrega e permite editar todos os dados posteriormente', async () => {
@@ -72,8 +72,8 @@ it('salva, recarrega e permite editar todos os dados posteriormente', async () =
 
   await waitFor(async () => {
     const saved = await repository.load(record.localId);
-    expect(saved?.project.schemaVersion).toBe('2.1');
-    if (saved?.project.schemaVersion !== '2.1') return;
+    expect(saved?.project.schemaVersion).toBe('3.0');
+    if (saved?.project.schemaVersion !== '3.0') return;
     expect(saved.project.userData.teacher).toMatchObject({
       name: 'Maria da Silva',
       cpf: '52998224725',
@@ -103,7 +103,7 @@ it('salva, recarrega e permite editar todos os dados posteriormente', async () =
   fireEvent.change(screen.getByLabelText(/^Cargo/), { target: { value: 'Docente EBTT' } });
   await waitFor(async () => {
     const saved = await repository.load(record.localId);
-    if (saved?.project.schemaVersion !== '2.1') return;
+    if (saved?.project.schemaVersion !== '3.0') return;
     expect(saved.project.userData.teacher.role).toBe('Docente EBTT');
   });
 });

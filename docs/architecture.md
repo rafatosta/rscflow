@@ -110,23 +110,21 @@ compatível em `domain/project-migration.ts`. O motor aceita 3.0 e converte apen
 para a representação quantitativa já testada. Continua agregando por critério, nunca por grupo,
 e retorna occurrenceId nos campos activityId existentes para preservar consumidores.
 
-A fronteira ProjectSection projeta o projeto 3.0 para os formulários atuais e reconcilia edições
-antes do autosave. Não persiste Activity em paralelo. O memorial/PDF recebem a mesma projeção,
-com ordem e textos preservados; nenhuma regra normativa foi acrescentada em React.
-Os comandos de criação/edição e migração local ficam em features/criterion-entries.
-StoredFile é somente contrato de metadados nesta etapa; FileResolver e persistência de bytes não
-foram introduzidos. A versão do banco e os projetos antigos permanecem compatíveis.
+A fronteira `ProjectSection` atualiza o projeto 3.0 diretamente. Não persiste Activity em paralelo.
+Memorial e PDF recebem a projeção editorial em memória, com ordem e textos preservados; nenhuma
+regra normativa foi acrescentada em React. O formulário é orquestrado em `features/requirements`.
+`StoredFile` tem bytes locais resolvidos por `FileResolver`; descritores continuam portáteis e não
+incluem os bytes no JSON.
 
 ## UX por nível e acompanhamento de backup
 
-As rotas RSC compõem busca de critérios e resultados do motor com o formulário de lançamentos;
-o componente não calcula pontos. O cadastro usa os casos de uso de trajetória e, em envelopes
-3.0, a ponte aplica os resultados às ocorrências sem persistir outra coleção Activity.
-ChronologicalView é uma projeção somente leitura. O gerenciamento de evidências reutiliza o
-componente existente em modo exclusivo de comprovantes, preservando remoção de vínculos.
+Uma única rota de Requisitos compõe abas RSC, busca, resultados e o formulário de lançamentos; o
+componente não calcula pontos. O caso de uso cria ocorrências e evidências diretamente, sem
+cadastro paralelo de trajetória ou tela separada de comprovantes.
 
 `features/local-projects/backup-status.ts` calcula uma impressão SHA-256 do envelope normalizado.
 `LocalProject.lastBackup` contém somente data e hash locais. O repositório grava esses metadados
 em transação, preserva edições concorrentes e ignora conclusões de backups anteriores à marca
-mais recente. Não há novo índice nem mudança estrutural do banco v1. Exportação de JSON continua
-independente da gravação dessa marca: falha de armazenamento não desfaz o download já iniciado.
+mais recente. A tabela `files` foi adicionada no Dexie v2, sem alterar projetos ou preferências.
+Exportação de JSON continua independente da gravação dessa marca: falha de armazenamento não
+desfaz o download já iniciado.

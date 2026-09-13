@@ -1,16 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { occurrenceProjectExportSchema } from '@/domain/criterion-entry';
-import {
-  activityProjectView,
-  applyActivityProjectEdits,
-  migrateProject,
-} from '@/domain/project-migration';
+import { activityProjectView, migrateProject } from '@/domain/project-migration';
 import { draftProjectExportSchema } from '@/domain/project';
 import {
   addOccurrence,
   createCriterionEntry,
   editOccurrence,
-  migrateLocalProject,
 } from '@/features/criterion-entries/entries';
 import { exportProject, importProject } from '@/features/local-projects/project-files';
 import { calculateProjectScore } from '@/rules/scoring';
@@ -122,34 +117,13 @@ describe('domínio de critérios e ocorrências', () => {
     project.userData.evidence[0].fileIds.push('file');
     expect(() => occurrenceProjectExportSchema.parse(project)).toThrow();
   });
-  it('edita pela ponte legada preservando arquivos, grupos vazios e campos legados', () => {
-    const project = migrateProject(fixture().project).project;
-    project.userData.storedFiles = [
-      { id: 'file', name: 'a.pdf', size: 1, mediaType: 'application/pdf' },
-    ];
-    project.userData.evidence[0].fileIds = ['file'];
-    const original = createCriterionEntry(project, {
-      id: 'empty',
-      criterionId: 'empty-criterion',
-      occurrences: [],
-    });
-    const view = activityProjectView(original);
-    view.userData.activities[0].description = 'Editado';
-    delete view.userData.evidence[0].fileName;
-    const edited = applyActivityProjectEdits(original, view);
-    expect(edited.userData.evidence[0].fileIds).toEqual(['file']);
-    expect(edited.userData.evidence[0].fileName).toBe('original.pdf');
-    expect(edited.userData.criterionEntries.some((entry) => entry.id === 'empty')).toBe(true);
-    expect(edited.userData.criterionEntries[0].id).toBe(original.userData.criterionEntries[0].id);
-    expect(edited.userData.criterionEntries[0].occurrences[0].description).toBe('Editado');
-    expect(edited.userData).not.toHaveProperty('activities');
-  });
   it('migra IndexedDB em nova cópia, reabre, duplica e importa sem tocar a origem', async () => {
     const name = `migration-${crypto.randomUUID()}`;
     let repository = new DexieProjectRepository(new ProjectDatabase(name));
     try {
       const source = await repository.create(fixture().project);
-      const migrated = await migrateLocalProject(repository, source.localId);
+      const migration = migrateProject(source.project);
+      const migrated = { ...migration, record: await repository.create(migration.project) };
       expect(migrated.record.localId).not.toBe(source.localId);
       expect(await repository.load(source.localId)).toEqual(source);
       repository.database.close();

@@ -1,3 +1,4 @@
+import { activityProjectView } from '@/domain/project-migration';
 import { describe, expect, it } from 'vitest';
 import { reviewProject } from '@/features/final-review/review';
 import { createDraft, datasets } from '@/features/project-shell/project-view';
@@ -8,7 +9,7 @@ const unavailable = {
 };
 
 function completeBase() {
-  const project = createDraft('rsc-ii', datasets[0].metadata.regulation.id);
+  const project = activityProjectView(createDraft('rsc-ii', datasets[0].metadata.regulation.id));
   project.userData.teacher = {
     name: 'Ana Vitória',
     cpf: '52998224725',
@@ -25,7 +26,7 @@ function completeBase() {
 
 describe('revisão final', () => {
   it('classifica as nove áreas e bloqueia o PDF quando faltam elementos estruturais', () => {
-    const project = createDraft('rsc-i', datasets[0].metadata.regulation.id);
+    const project = activityProjectView(createDraft('rsc-i', datasets[0].metadata.regulation.id));
     project.userData.request = null;
     const review = reviewProject(project, unavailable);
 

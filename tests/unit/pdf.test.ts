@@ -1,3 +1,4 @@
+import { activityProjectView } from '@/domain/project-migration';
 import { PDFDocument } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import { createDraft, datasets } from '@/features/project-shell/project-view';
@@ -8,7 +9,7 @@ import { createMemorialPdfLayout } from '@/pdf/layout';
 import { A4_PAGE } from '@/pdf/model';
 
 function representativeProject() {
-  const project = createDraft('rsc-ii', datasets[0].metadata.regulation.id);
+  const project = activityProjectView(createDraft('rsc-ii', datasets[0].metadata.regulation.id));
   project.userData.title = 'Memorial de José Coração';
   project.userData.teacher = {
     name: 'José Coração',

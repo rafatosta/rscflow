@@ -28,23 +28,13 @@ for (const viewport of viewports) {
     for (const [path, heading] of [
       ['', 'Visão geral'],
       ['profile', 'Dados do docente'],
-      ['rsc-i', 'RSC I'],
-      ['rsc-ii', 'RSC II'],
-      ['rsc-iii', 'RSC III'],
-      ['evidence', 'Comprovantes'],
-      ['timeline', 'Trajetória'],
-      ['education', 'Formação'],
-      ['activities', 'Cadastro anterior'],
-      ['criteria', 'Critérios'],
-      ['scoring', 'Pontuação'],
+      ['requirements', 'Requisitos'],
       ['memorial', 'Memorial'],
-      ['preview', 'Prévia'],
       ['review', 'Revisão'],
-      ['export', 'Gerar documentos'],
+      ['documents', 'Gerar documentos'],
     ]) {
       await page.goto(`${projectUrl}${path ? `/${path}` : ''}`);
       await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
-      if (path === 'preview') await expect(page.getByRole('article')).toBeVisible();
       await expectNoSeriousAxeViolations(page);
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
