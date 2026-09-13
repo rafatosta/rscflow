@@ -3,6 +3,8 @@ import { activityProjectView } from '@/domain/project-migration';
 import { Download, FileJson, FileSearch } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
+import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
+import type { FileResolver } from '@/domain/local-files';
 import type { ProjectExport, TypedProjectExport } from '@/domain/project';
 import type { CalculationResult } from '@/domain/scoring';
 import { reviewProject } from '@/features/final-review/review';
@@ -19,6 +21,8 @@ export function FinalExport({
   invalid,
   onExportJson,
   onImport,
+  evidenceProject,
+  resolver,
 }: {
   record: LocalProject;
   scoring: CalculationResult;
@@ -26,6 +30,8 @@ export function FinalExport({
   invalid: string;
   onExportJson: () => void;
   onImport: (project: ProjectExport) => void;
+  evidenceProject?: OccurrenceProjectExport;
+  resolver?: FileResolver;
 }) {
   const project = activityProjectView(record.project as TypedProjectExport);
   const review = reviewProject(project, scoring);
@@ -37,7 +43,14 @@ export function FinalExport({
     setError('');
     try {
       const { downloadMemorialPdf } = await import('@/pdf/generator');
-      await downloadMemorialPdf(project);
+      const pageMap =
+        evidenceProject && resolver
+          ? await import('@/pdf/evidence-bundle').then(({ createEvidencePageMap }) =>
+              createEvidencePageMap(evidenceProject, resolver),
+            )
+          : undefined;
+      if (pageMap) await downloadMemorialPdf(project, pageMap);
+      else await downloadMemorialPdf(project);
     } catch {
       setError('Não foi possível gerar o PDF. Revise os dados e tente novamente.');
     } finally {

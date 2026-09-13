@@ -44,7 +44,10 @@ A preparação do memorial cria as bases ausentes e preserva narrativas manuais.
 
 Revisão separa ERROR, WARNING e INFO. Apenas erros estruturais bloqueiam o PDF. Prévia e arquivo usam o mesmo layout A4 e processamento local. A prévia memoriza sua projeção para não reiniciar a paginação a cada navegação. A disponibilidade dos anexos verifica tamanho e SHA-256 dos bytes, separadamente da validade dos metadados.
 
-O PDF disponível é o memorial; formulários RSC, PDF consolidado de comprovantes e backup binário `.rscflow` não têm ações simuladas. JSON transporta dados e descritores, sem bytes.
+O PDF disponível é o memorial; suas referências de comprovantes usam o mapa derivado da
+consolidação local e aparecem tanto na prévia quanto no download. Formulários RSC, download do PDF
+consolidado de comprovantes e backup binário `.rscflow` não têm ações simuladas. JSON transporta
+dados e descritores, sem bytes.
 
 ## Acessibilidade
 

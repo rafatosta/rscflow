@@ -6,11 +6,19 @@ import type { LocalProject } from '@/domain/local-project';
 import { PdfPreview } from '@/components/pdf-preview';
 import { createDraft, datasets } from '@/features/project-shell/project-view';
 import { downloadMemorialPdf } from '@/pdf/generator';
+import { createEvidencePageMap } from '@/pdf/evidence-bundle';
+
+const { mappedPages } = vi.hoisted(() => ({
+  mappedPages: { totalPages: 1, evidences: [] },
+}));
 
 vi.mock('@/pdf/generator', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/pdf/generator')>();
   return { ...original, downloadMemorialPdf: vi.fn().mockResolvedValue(undefined) };
 });
+vi.mock('@/pdf/evidence-bundle', () => ({
+  createEvidencePageMap: vi.fn().mockResolvedValue(mappedPages),
+}));
 
 afterEach(() => {
   cleanup();
@@ -39,7 +47,7 @@ it('navega pela prévia A4, volta ao editor e inicia o download local', async ()
   };
   render(
     <MemoryRouter>
-      <PdfPreview record={record} />
+      <PdfPreview record={record} evidenceProject={project} resolver={{ getFile: vi.fn() }} />
     </MemoryRouter>,
   );
 
@@ -54,6 +62,7 @@ it('navega pela prévia A4, volta ao editor e inicia o download local', async ()
   expect(screen.getByRole('article', { name: 'Página 2' })).toHaveTextContent('Sumário');
   fireEvent.click(screen.getByRole('button', { name: 'Gerar PDF' }));
   await waitFor(() =>
-    expect(downloadMemorialPdf).toHaveBeenCalledWith(activityProjectView(project)),
+    expect(createEvidencePageMap).toHaveBeenCalledWith(project, expect.anything()),
   );
+  expect(downloadMemorialPdf).toHaveBeenCalledWith(activityProjectView(project), mappedPages);
 });

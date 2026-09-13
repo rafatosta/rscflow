@@ -3,6 +3,9 @@ import { activityProjectView } from '@/domain/project-migration';
 import { ChevronLeft, ChevronRight, Download, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
+import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
+import type { EvidencePageMap } from '@/domain/evidence-page-map';
+import type { FileResolver } from '@/domain/local-files';
 import type { TypedProjectExport } from '@/domain/project';
 import { reviewProject } from '@/features/final-review/review';
 import { projectPath } from '@/features/project-shell/routes';
@@ -51,13 +54,22 @@ function PreviewPage({ page }: { page: MemorialPdfLayout['pages'][number] }) {
   );
 }
 
-export function PdfPreview({ record }: { record: LocalProject }) {
+export function PdfPreview({
+  record,
+  evidenceProject,
+  resolver,
+}: {
+  record: LocalProject;
+  evidenceProject?: OccurrenceProjectExport;
+  resolver?: FileResolver;
+}) {
   const project = useMemo(
     () => activityProjectView(record.project as TypedProjectExport),
     [record.project],
   );
   const review = reviewProject(project, projectScoring(project));
   const [layout, setLayout] = useState<MemorialPdfLayout>();
+  const [pageMap, setPageMap] = useState<EvidencePageMap>();
   const [pageIndex, setPageIndex] = useState(0);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
@@ -65,12 +77,21 @@ export function PdfPreview({ record }: { record: LocalProject }) {
   useEffect(() => {
     let active = true;
     setLayout(undefined);
+    setPageMap(undefined);
     setPageIndex(0);
     setError('');
-    void import('@/pdf/layout')
-      .then(({ createMemorialPdfLayout }) =>
-        createMemorialPdfLayout(buildMemorialDocument(project)),
-      )
+    void Promise.all([
+      import('@/pdf/layout'),
+      evidenceProject && resolver
+        ? import('@/pdf/evidence-bundle').then(({ createEvidencePageMap }) =>
+            createEvidencePageMap(evidenceProject, resolver),
+          )
+        : undefined,
+    ])
+      .then(([{ createMemorialPdfLayout }, nextPageMap]) => {
+        if (active) setPageMap(nextPageMap);
+        return createMemorialPdfLayout(buildMemorialDocument(project, nextPageMap));
+      })
       .then((nextLayout) => {
         if (active) setLayout(nextLayout);
       })
@@ -80,14 +101,15 @@ export function PdfPreview({ record }: { record: LocalProject }) {
     return () => {
       active = false;
     };
-  }, [project]);
+  }, [evidenceProject, project, resolver]);
 
   async function generate() {
     setGenerating(true);
     setError('');
     try {
       const { downloadMemorialPdf } = await import('@/pdf/generator');
-      await downloadMemorialPdf(project);
+      if (pageMap) await downloadMemorialPdf(project, pageMap);
+      else await downloadMemorialPdf(project);
     } catch {
       setError('Não foi possível gerar o PDF. Revise os dados e tente novamente.');
     } finally {

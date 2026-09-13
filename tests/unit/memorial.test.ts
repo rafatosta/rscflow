@@ -1,6 +1,7 @@
 import { activityProjectView } from '@/domain/project-migration';
 import { describe, expect, it } from 'vitest';
 import type { Activity, Evidence } from '@/domain/models';
+import type { EvidencePageMap } from '@/domain/evidence-page-map';
 import { projectExportSchema } from '@/domain/project';
 import { createDraft, datasets } from '@/features/project-shell/project-view';
 import { exportProject } from '@/features/local-projects/project-files';
@@ -13,6 +14,19 @@ import {
   regenerateActivityText,
 } from '@/memorial/generator';
 import { buildMemorialDocument, buildMemorialPreview } from '@/memorial/preview';
+
+function pageMap(
+  entries: Array<{ evidenceId: string; startPage: number; endPage: number }>,
+): EvidencePageMap {
+  return {
+    totalPages: Math.max(0, ...entries.map((entry) => entry.endPage)),
+    evidences: entries.map((entry) => ({
+      ...entry,
+      files: [],
+      links: [{ level: 'rsc-ii', criterionId: 'b.1', occurrenceId: 'a-1' }],
+    })),
+  };
+}
 
 const evidence: Evidence = {
   id: 'e-1',
@@ -160,5 +174,71 @@ describe('gerador determinístico do memorial', () => {
       editedText: 'Narrativa manual',
       isManuallyEdited: true,
     });
+  });
+
+  it('acrescenta referência de página única ao lançamento relacionado', () => {
+    const project = activityProjectView(createDraft('rsc-ii', datasets[0].metadata.regulation.id));
+    project.userData.activities = [{ ...activity, editedText: 'Narrativa autoral.' }];
+    project.userData.evidence = [evidence];
+    const preview = buildMemorialPreview(
+      project,
+      pageMap([{ evidenceId: 'e-1', startPage: 4, endPage: 4 }]),
+    );
+    expect(preview).toContain(
+      'Narrativa autoral.\nComprovantes no PDF consolidado: Portaria de coordenação (p. 4).',
+    );
+  });
+
+  it('formata intervalo de páginas sem modificar a narrativa do lançamento', () => {
+    const project = activityProjectView(createDraft('rsc-ii', datasets[0].metadata.regulation.id));
+    project.userData.activities = [{ ...activity, editedText: 'Texto preservado.' }];
+    project.userData.evidence = [evidence];
+    const document = buildMemorialDocument(
+      project,
+      pageMap([{ evidenceId: 'e-1', startPage: 2, endPage: 6 }]),
+    );
+    const paragraph = document.find((section) => section.id === 'management')!.paragraphs[0];
+    expect(paragraph).toBe(
+      'Texto preservado.\nComprovantes no PDF consolidado: Portaria de coordenação (pp. 2–6).',
+    );
+    expect(project.userData.activities[0].editedText).toBe('Texto preservado.');
+  });
+
+  it('lista múltiplos comprovantes na ordem recebida do mapa', () => {
+    const project = activityProjectView(createDraft('rsc-ii', datasets[0].metadata.regulation.id));
+    project.userData.activities = [{ ...activity, evidenceIds: ['e-1', 'e-2'] }];
+    project.userData.evidence = [evidence, { id: 'e-2', title: 'Ata do colegiado' }];
+    const preview = buildMemorialPreview(
+      project,
+      pageMap([
+        { evidenceId: 'e-2', startPage: 1, endPage: 2 },
+        { evidenceId: 'e-1', startPage: 3, endPage: 3 },
+      ]),
+    );
+    expect(preview).toContain(
+      'Comprovantes no PDF consolidado: Ata do colegiado (pp. 1–2); Portaria de coordenação (p. 3).',
+    );
+  });
+
+  it('mantém o Memorial inalterado quando não há comprovante relacionado', () => {
+    const project = activityProjectView(createDraft('rsc-ii', datasets[0].metadata.regulation.id));
+    project.userData.activities = [activity];
+    project.userData.evidence = [evidence];
+    const unrelated: EvidencePageMap = {
+      totalPages: 1,
+      evidences: [
+        {
+          evidenceId: 'e-1',
+          startPage: 1,
+          endPage: 1,
+          files: [],
+          links: [{ level: 'rsc-ii', criterionId: 'outro', occurrenceId: 'outro' }],
+        },
+      ],
+    };
+    expect(buildMemorialDocument(project, unrelated)).toEqual(buildMemorialDocument(project));
+    expect(buildMemorialPreview(project, { totalPages: 0, evidences: [] })).not.toContain(
+      'Comprovantes no PDF consolidado:',
+    );
   });
 });

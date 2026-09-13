@@ -114,6 +114,12 @@ dependência do gerador. Ausência, conteúdo inválido ou tipo incompatível pr
 arquivo e impede uma saída parcial. O resolvedor de bytes continua sendo recebido por contrato, sem
 acesso direto ao IndexedDB.
 
+O memorial recebe `EvidencePageMap` como projeção opcional em memória. A montagem semântica localiza
+os comprovantes pelos vínculos de requisito e lançamento presentes no mapa e acrescenta suas
+referências ao respectivo parágrafo, depois do texto autoral ou gerado. Prévia e download passam o
+mesmo mapa à montagem compartilhada; números de página não entram no projeto nem são recalculados
+pela camada de memorial.
+
 ## Ponte incremental do domínio 3.0
 
 Os schemas de critérios/ocorrências estão em `domain/criterion-entry.ts`; migração e projeção

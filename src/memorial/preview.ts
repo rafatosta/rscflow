@@ -1,4 +1,6 @@
 import type { TypedProjectExport } from '@/domain/project';
+import type { EvidencePageMap } from '@/domain/evidence-page-map';
+import type { Activity, Evidence } from '@/domain/models';
 import {
   activityMemorialSection,
   chronologicalActivities,
@@ -14,7 +16,45 @@ export type MemorialDocumentSection = {
   paragraphs: string[];
 };
 
-export function buildMemorialDocument(project: TypedProjectExport): MemorialDocumentSection[] {
+function pageLabel(startPage: number, endPage: number) {
+  return startPage === endPage ? `p. ${startPage}` : `pp. ${startPage}–${endPage}`;
+}
+
+export function activityEvidencePageReferences(
+  activity: Activity,
+  evidences: Evidence[],
+  pageMap?: EvidencePageMap,
+): string | undefined {
+  if (!pageMap) return undefined;
+  const linked = pageMap.evidences.filter(
+    (entry) =>
+      activity.evidenceIds.includes(entry.evidenceId) &&
+      entry.links.some(
+        (link) =>
+          (!activity.selectedLevel || link.level === activity.selectedLevel) &&
+          link.criterionId === activity.criterionId &&
+          link.occurrenceId === activity.id,
+      ),
+  );
+  if (!linked.length) return undefined;
+  return `Comprovantes no PDF consolidado: ${linked
+    .map((entry) => {
+      const title = evidences.find((evidence) => evidence.id === entry.evidenceId)?.title;
+      return `${title ?? entry.evidenceId} (${pageLabel(entry.startPage, entry.endPage)})`;
+    })
+    .join('; ')}.`;
+}
+
+function activityParagraph(activity: Activity, evidences: Evidence[], pageMap?: EvidencePageMap) {
+  const text = displayedActivityText(activity, evidences);
+  const references = activityEvidencePageReferences(activity, evidences, pageMap);
+  return references ? `${text}\n${references}` : text;
+}
+
+export function buildMemorialDocument(
+  project: TypedProjectExport,
+  pageMap?: EvidencePageMap,
+): MemorialDocumentSection[] {
   const data = project.userData;
   const teacher = data.teacher;
   const identification = [
@@ -50,7 +90,7 @@ export function buildMemorialDocument(project: TypedProjectExport): MemorialDocu
       .map((activity, index) => ({
         date: activity.startDate ?? activity.endDate,
         order: data.education.length + index,
-        text: displayedActivityText(activity, data.evidence),
+        text: activityParagraph(activity, data.evidence, pageMap),
       })),
   ].sort((left, right) => {
     if (left.date && right.date && left.date !== right.date)
@@ -64,7 +104,7 @@ export function buildMemorialDocument(project: TypedProjectExport): MemorialDocu
     if (activityMemorialSection(activity) === 'education') continue;
     content
       .get(activityMemorialSection(activity))!
-      .push(displayedActivityText(activity, data.evidence));
+      .push(activityParagraph(activity, data.evidence, pageMap));
   }
   for (const section of memorialSections) {
     const editorial = data.memorial?.sectionTexts?.[section.id]?.trim();
@@ -109,8 +149,11 @@ export function buildMemorialDocument(project: TypedProjectExport): MemorialDocu
   ];
 }
 
-export function buildMemorialPreview(project: TypedProjectExport): string {
-  return buildMemorialDocument(project)
+export function buildMemorialPreview(
+  project: TypedProjectExport,
+  pageMap?: EvidencePageMap,
+): string {
+  return buildMemorialDocument(project, pageMap)
     .flatMap((section) => [section.title, ...section.paragraphs])
     .join('\n\n');
 }

@@ -189,3 +189,14 @@ export async function createEvidenceBundle(
     pageMap: { totalPages: output.getPageCount(), evidences },
   };
 }
+
+/** Obtém o mapa exatamente da consolidação que valida e concatena os arquivos. */
+export async function createEvidencePageMap(
+  project: OccurrenceProjectExport,
+  resolver: FileResolver,
+): Promise<EvidencePageMap> {
+  const result = await createEvidenceBundle(project, resolver);
+  if (result.status === 'error')
+    throw new Error(result.issues.map((issue) => issue.message).join(' '));
+  return result.pageMap;
+}

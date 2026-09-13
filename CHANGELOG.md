@@ -12,6 +12,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Referências derivadas de páginas dos comprovantes nos respectivos lançamentos do Memorial, com a
+  mesma projeção semântica utilizada pela prévia A4 e pelo PDF final.
+
 - Consolidação local dos PDFs de comprovantes por RSC, requisito e lançamento, com suporte a
   múltiplas páginas e arquivos, deduplicação de evidências compartilhadas, mapa de intervalos de
   páginas e diagnósticos de arquivos ausentes, inválidos ou incompatíveis.

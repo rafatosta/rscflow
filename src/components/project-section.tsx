@@ -175,10 +175,13 @@ export function ProjectSection(props: Props) {
         <Button variant="outline" onClick={() => setPreview((value) => !value)}>
           {preview ? 'Fechar prévia' : 'Visualizar prévia'}
         </Button>
-        {preview && <PdfPreview record={projected} />}
+        {preview && (
+          <PdfPreview record={projected} evidenceProject={project} resolver={props.resolver} />
+        )}
       </div>
     );
-  if (section === 'preview') return <PdfPreview record={projected} />;
+  if (section === 'preview')
+    return <PdfPreview record={projected} evidenceProject={project} resolver={props.resolver} />;
   if (section === 'documents')
     return (
       <div className="space-y-5">
@@ -189,6 +192,8 @@ export function ProjectSection(props: Props) {
           invalid={props.invalid}
           onExportJson={props.onExport}
           onImport={props.onImport}
+          evidenceProject={project}
+          resolver={props.resolver}
         />
         <ProjectDocuments project={project} resolver={props.resolver} />
         <p className="text-sm text-slate-300">

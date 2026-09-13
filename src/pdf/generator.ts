@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
 import type { TypedProjectExport } from '@/domain/project';
+import type { EvidencePageMap } from '@/domain/evidence-page-map';
 import { buildMemorialDocument } from '@/memorial/preview';
 import { memorialPdfFilename } from './file-name';
 import { paginateMemorial } from './layout';
@@ -16,11 +17,14 @@ function lineX(line: PdfTextLine) {
   return line.x;
 }
 
-export async function generateMemorialPdf(project: TypedProjectExport): Promise<Uint8Array> {
+export async function generateMemorialPdf(
+  project: TypedProjectExport,
+  pageMap?: EvidencePageMap,
+): Promise<Uint8Array> {
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.TimesRoman);
   const bold = await document.embedFont(StandardFonts.TimesRomanBold);
-  const layout = paginateMemorial(buildMemorialDocument(project), { regular, bold });
+  const layout = paginateMemorial(buildMemorialDocument(project, pageMap), { regular, bold });
 
   document.setTitle(project.userData.memorial?.title || project.userData.title);
   document.setAuthor(project.userData.teacher.name || 'Docente');
@@ -46,8 +50,11 @@ export async function generateMemorialPdf(project: TypedProjectExport): Promise<
   return document.save({ useObjectStreams: false });
 }
 
-export async function downloadMemorialPdf(project: TypedProjectExport): Promise<void> {
-  const bytes = await generateMemorialPdf(project);
+export async function downloadMemorialPdf(
+  project: TypedProjectExport,
+  pageMap?: EvidencePageMap,
+): Promise<void> {
+  const bytes = await generateMemorialPdf(project, pageMap);
   const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
