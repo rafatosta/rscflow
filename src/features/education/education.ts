@@ -1,20 +1,37 @@
 import { z } from 'zod';
 import type { Education } from '@/domain/models';
+import { educationStatusSchema, educationTypeSchema } from '@/domain/vocabularies';
 
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} é obrigatório.`).max(200, `${label} está muito longo.`);
 const optionalText = z.string().trim().max(500, 'O texto está muito longo.');
 const optionalDate = z.union([z.literal(''), z.iso.date('Informe uma data válida.')]);
 
-export const educationFormSchema = z
+export type EducationFormValues = {
+  type: string;
+  title: string;
+  institution: string;
+  area: string;
+  startedAt: string;
+  completedAt: string;
+  status: string;
+  evidenceReference: string;
+  notes: string;
+};
+
+export const educationFormSchema: z.ZodType<EducationFormValues, EducationFormValues> = z
   .object({
-    type: requiredText('Tipo'),
+    type: z.union([z.literal(''), educationTypeSchema]).refine((value) => value !== '', {
+      message: 'Tipo é obrigatório.',
+    }),
     title: requiredText('Curso ou título'),
     institution: requiredText('Instituição'),
     area: optionalText,
     startedAt: optionalDate,
     completedAt: optionalDate,
-    status: requiredText('Situação'),
+    status: z.union([z.literal(''), educationStatusSchema]).refine((value) => value !== '', {
+      message: 'Situação é obrigatória.',
+    }),
     evidenceReference: optionalText,
     notes: z.string().trim().max(2000, 'As observações estão muito longas.'),
   })
@@ -22,8 +39,6 @@ export const educationFormSchema = z
     path: ['completedAt'],
     message: 'A conclusão não pode ser anterior à data inicial.',
   });
-
-export type EducationFormValues = z.input<typeof educationFormSchema>;
 
 export const emptyEducationForm: EducationFormValues = {
   type: '',

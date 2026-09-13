@@ -6,6 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Vocabulários controlados para escolaridade, tipo de formação e situação da formação, com
+  seletores na interface e identificação de valores legados fora das listas.
+
 - Pontuação provisória por requisito e lançamento em catálogo pendente de validação humana, com
   aviso explícito; totais do projeto e critérios com conflito normativo permanecem indisponíveis.
 

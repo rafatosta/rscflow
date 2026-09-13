@@ -12,6 +12,9 @@ Crie um projeto escolhendo nível pretendido e regulamento. A visão geral mostr
 
 Preencha dados pessoais/funcionais, instituição, requerimento e formação. No núcleo Requisitos, escolha RSC I, II ou III, busque a descrição humana e adicione um lançamento no critério correspondente. O critério não é solicitado novamente. Informe período quando conhecido e quantidade comprovada na unidade exibida. Não há categoria, título obrigatório, fator, peso, limite ou código para preencher.
 
+Escolaridade, tipo de formação e situação da formação são escolhidos em listas. Ao editar um projeto
+antigo com valor fora do vocabulário atual, selecione uma opção válida antes de salvar o registro.
+
 Anexe um arquivo no mesmo formulário ou salve sem ele e resolva a pendência depois. A opção secundária de documentos existentes permite compartilhamento. Se substituir a comprovação por outro conteúdo, desmarque a referência anterior. Excluir um lançamento preserva documentos compartilhados.
 
 O catálogo de produção está transcrito, mas pendente de validação humana. A pontuação de cada requisito e lançamento é calculada provisoriamente com os parâmetros transcritos e exibe aviso de que ainda não foi validada. Totais do projeto continuam indisponíveis. Divergências internas, inclusive o peso literal 14 de d.5 no RSC II, continuam visíveis e bloqueiam o cálculo do critério. Datas não geram contagem normativa de meses por inferência.

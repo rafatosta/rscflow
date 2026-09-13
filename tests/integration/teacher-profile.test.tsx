@@ -33,7 +33,12 @@ async function mountProfile() {
 
 it('mostra erros acessíveis dos campos obrigatórios e formatos inválidos', async () => {
   await mountProfile();
-  const name = await screen.findByLabelText(/^Nome completo/);
+  const schooling = await screen.findByLabelText(/^Escolaridade/);
+  expect(schooling.tagName).toBe('SELECT');
+  expect(Array.from((schooling as HTMLSelectElement).options, (option) => option.text)).toContain(
+    'Mestrado',
+  );
+  const name = screen.getByLabelText(/^Nome completo/);
   fireEvent.change(name, { target: { value: 'A' } });
   fireEvent.change(name, { target: { value: '' } });
   const nameError = await screen.findByText('Nome completo é obrigatório.');

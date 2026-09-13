@@ -47,6 +47,8 @@ describe('formação acadêmica', () => {
     ['title', ''],
     ['institution', ''],
     ['status', ''],
+    ['type', 'Tipo livre'],
+    ['status', 'Situação livre'],
     ['startedAt', '10/02/2020'],
     ['completedAt', '2021-02-30'],
   ] as const)('rejeita %s inválido', (field, value) => {

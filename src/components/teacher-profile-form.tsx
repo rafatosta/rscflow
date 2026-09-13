@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch, type FieldError, type UseFormRegister } from 'react-hook-form';
 import type { TypedProjectExport } from '@/domain/project';
+import { schoolingValues } from '@/domain/vocabularies';
 import {
   applyTeacherProfile,
   teacherProfileDraftSchema,
@@ -188,7 +189,25 @@ export function TeacherProfileForm({ project, disabled, onSave }: Props) {
             error={errors.employmentStatus}
             register={register}
           />
-          <Field id="schooling" label="Escolaridade" error={errors.schooling} register={register} />
+          <label className="block" htmlFor="schooling">
+            Escolaridade <span className="text-sm text-slate-400">(opcional)</span>
+            <select id="schooling" className="field" {...register('schooling')}>
+              <option value="">Não informado</option>
+              {project.userData.teacher.schooling &&
+                !schoolingValues.includes(
+                  project.userData.teacher.schooling as (typeof schoolingValues)[number],
+                ) && (
+                  <option value={project.userData.teacher.schooling} disabled>
+                    {project.userData.teacher.schooling} (valor legado — selecione uma opção)
+                  </option>
+                )}
+              {schoolingValues.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
           <Field
             id="admissionDate"
             label="Data de ingresso"

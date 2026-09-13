@@ -27,6 +27,10 @@ Salvar prepara ocorrência, evidência e descritor no caso de uso e grava os byt
 
 Dados do docente, formação e memorial usam autosave. Lançamentos usam confirmação de salvar ou cancelar, com proteção de navegação e fechamento do navegador quando há alterações. A tela permanece montada durante a gravação para preservar nível, busca, foco e rascunho em caso de falha.
 
+Escolaridade, tipo de formação e situação da formação usam seletores alimentados pelos vocabulários
+do domínio. Valores desconhecidos de arquivos antigos são exibidos como legados, sem oferecer texto
+livre nem promover esses valores à lista controlada.
+
 A preparação do memorial cria as bases ausentes e preserva narrativas manuais. Alterações estruturadas anunciam texto desatualizado; manter ou regenerar é explícito. A projeção editorial incorpora a descrição humana do critério e não persiste uma segunda coleção de atividades.
 
 Revisão separa ERROR, WARNING e INFO. Apenas erros estruturais bloqueiam o PDF. Prévia e arquivo usam o mesmo layout A4 e processamento local. A prévia memoriza sua projeção para não reiniciar a paginação a cada navegação. A disponibilidade dos anexos verifica tamanho e SHA-256 dos bytes, separadamente da validade dos metadados.

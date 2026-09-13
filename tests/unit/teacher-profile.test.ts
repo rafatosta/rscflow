@@ -58,6 +58,7 @@ describe('dados do docente', () => {
     ['phone', '1234'],
     ['admissionDate', '31/12/2020'],
     ['effectiveDate', '2026-02-30'],
+    ['schooling', 'Escolaridade livre'],
   ] as const)('rejeita %s inválido', (field, value) => {
     expect(teacherProfileFormSchema.safeParse({ ...completeValues, [field]: value }).success).toBe(
       false,

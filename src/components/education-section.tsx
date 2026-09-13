@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type FieldError, type UseFormRegister } from 'react-hook-form';
 import type { Education } from '@/domain/models';
+import { educationStatusValues, educationTypeValues } from '@/domain/vocabularies';
 import {
   createEducation,
   duplicateEducation,
@@ -69,6 +70,60 @@ function dateLabel(value?: string): string {
   if (!value) return '';
   return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(
     new Date(`${value}T00:00:00Z`),
+  );
+}
+
+function ControlledField({
+  id,
+  label,
+  values,
+  current,
+  register,
+  error,
+}: {
+  id: 'type' | 'status';
+  label: string;
+  values: readonly string[];
+  current?: string;
+  register: UseFormRegister<EducationFormValues>;
+  error?: FieldError;
+}) {
+  const inputId = `education-${id}`;
+  const errorId = `${inputId}-error`;
+  return (
+    <label className="block" htmlFor={inputId}>
+      {label}{' '}
+      <span className="text-cyan-200">
+        <span aria-hidden="true">*</span>
+        <span className="sr-only">(obrigatório)</span>
+      </span>
+      <select
+        id={inputId}
+        className="field"
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : undefined}
+        {...register(id)}
+      >
+        <option value="" disabled>
+          Selecione
+        </option>
+        {current && !values.includes(current) && (
+          <option value={current} disabled>
+            {current} (valor legado — selecione uma opção)
+          </option>
+        )}
+        {values.map((value) => (
+          <option key={value} value={value}>
+            {value}
+          </option>
+        ))}
+      </select>
+      {error && (
+        <span id={errorId} className="mt-1 block text-sm text-rose-200">
+          {error.message}
+        </span>
+      )}
+    </label>
   );
 }
 
@@ -241,11 +296,19 @@ export function EducationSection({ education, disabled, onSave }: Props) {
           >
             <fieldset disabled={disabled} className="grid gap-5 sm:grid-cols-2">
               <legend className="sr-only">Dados da formação</legend>
-              <Field id="type" label="Tipo" required register={register} error={errors.type} />
-              <Field
+              <ControlledField
+                id="type"
+                label="Tipo"
+                values={educationTypeValues}
+                current={editing?.type}
+                register={register}
+                error={errors.type}
+              />
+              <ControlledField
                 id="status"
                 label="Situação da formação"
-                required
+                values={educationStatusValues}
+                current={editing?.status}
                 register={register}
                 error={errors.status}
               />

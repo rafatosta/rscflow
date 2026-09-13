@@ -57,6 +57,19 @@ it('associa erros aos campos e valida o intervalo de datas', async () => {
   await mountEducation();
   fireEvent.click(await screen.findByRole('button', { name: 'Adicionar formação' }));
   const type = screen.getByLabelText(/^Tipo/);
+  expect(type.tagName).toBe('SELECT');
+  expect(screen.getByLabelText(/^Situação da formação/).tagName).toBe('SELECT');
+  expect(Array.from((type as HTMLSelectElement).options, (option) => option.text)).toEqual([
+    'Selecione',
+    'Curso técnico',
+    'Graduação',
+    'Pós-graduação',
+    'Aperfeiçoamento',
+    'Capacitação',
+    'Mestrado',
+    'Doutorado',
+    'Pós-doutorado',
+  ]);
   const typeError = await screen.findByText('Tipo é obrigatório.');
   expect(type).toHaveAttribute('aria-invalid', 'true');
   expect(type).toHaveAttribute('aria-describedby', typeError.id);

@@ -1,11 +1,30 @@
 import { z } from 'zod';
 import type { TypedProjectExport } from '@/domain/project';
+import { schoolingSchema } from '@/domain/vocabularies';
 
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} é obrigatório.`).max(200, `${label} está muito longo.`);
 const optionalText = z.string().trim().max(200, 'O texto está muito longo.');
 const optionalDate = z.union([z.literal(''), z.iso.date('Informe uma data válida.')]);
 const rscSelection = z.union([z.literal(''), z.enum(['rsc-i', 'rsc-ii', 'rsc-iii'])]);
+
+export type TeacherProfileForm = {
+  title: string;
+  name: string;
+  cpf: string;
+  siape: string;
+  role: string;
+  campus: string;
+  institution?: string;
+  employmentStatus?: string;
+  email: string;
+  phone: string;
+  currentRsc: string;
+  schooling: string;
+  admissionDate: string;
+  effectiveDate: string;
+  level: '' | 'rsc-i' | 'rsc-ii' | 'rsc-iii';
+};
 
 function cpfIsValid(value: string): boolean {
   const digits = value.replace(/\D/g, '');
@@ -21,30 +40,31 @@ function cpfIsValid(value: string): boolean {
   return check(9) && check(10);
 }
 
-export const teacherProfileFormSchema = z.object({
-  title: requiredText('Título do projeto'),
-  name: requiredText('Nome completo'),
-  cpf: z.string().trim().refine(cpfIsValid, 'Informe um CPF válido com 11 dígitos.'),
-  siape: requiredText('SIAPE'),
-  role: optionalText,
-  campus: requiredText('Campus de lotação'),
-  institution: optionalText.optional(),
-  employmentStatus: optionalText.optional(),
-  email: z.union([z.literal(''), z.email('Informe um e-mail válido.')]),
-  phone: z
-    .string()
-    .trim()
-    .refine((value) => value === '' || /^\d{10,11}$/.test(value.replace(/\D/g, '')), {
-      message: 'Informe um telefone com DDD e 10 ou 11 dígitos.',
-    }),
-  currentRsc: optionalText,
-  schooling: optionalText,
-  admissionDate: optionalDate,
-  effectiveDate: optionalDate,
-  level: rscSelection.refine((level) => level !== '', 'Selecione o RSC pretendido.'),
-});
+export const teacherProfileFormSchema: z.ZodType<TeacherProfileForm, TeacherProfileForm> = z.object(
+  {
+    title: requiredText('Título do projeto'),
+    name: requiredText('Nome completo'),
+    cpf: z.string().trim().refine(cpfIsValid, 'Informe um CPF válido com 11 dígitos.'),
+    siape: requiredText('SIAPE'),
+    role: optionalText,
+    campus: requiredText('Campus de lotação'),
+    institution: optionalText.optional(),
+    employmentStatus: optionalText.optional(),
+    email: z.union([z.literal(''), z.email('Informe um e-mail válido.')]),
+    phone: z
+      .string()
+      .trim()
+      .refine((value) => value === '' || /^\d{10,11}$/.test(value.replace(/\D/g, '')), {
+        message: 'Informe um telefone com DDD e 10 ou 11 dígitos.',
+      }),
+    currentRsc: optionalText,
+    schooling: z.union([z.literal(''), schoolingSchema]),
+    admissionDate: optionalDate,
+    effectiveDate: optionalDate,
+    level: rscSelection.refine((level) => level !== '', 'Selecione o RSC pretendido.'),
+  },
+);
 
-export type TeacherProfileForm = z.input<typeof teacherProfileFormSchema>;
 export const teacherProfileDraftSchema = z.object({
   title: z.string(),
   name: z.string(),
