@@ -36,6 +36,14 @@ export function projectJsonFilename(project: ProjectExport): string {
   return `rscflow-${readableFileStem(title, 'projeto')}.json`;
 }
 
+export function restorableBackupFilename(project: ProjectExport): string {
+  const title =
+    project.schemaVersion === '1.0'
+      ? 'projeto-legado'
+      : project.userData.teacher.name || project.userData.title;
+  return `backup-rsc-${readableFileStem(title, 'projeto')}.rscflow`;
+}
+
 export async function importProject(file: Pick<File, 'text'>, repository: ProjectRepository) {
   const result = await validateProjectFile(file);
   if (!result.success) return result;

@@ -13,6 +13,8 @@ import {
 import { projectPath } from '@/features/project-shell/routes';
 import type { RscLevel } from '@/domain/regulation';
 import { ProjectImport } from './project-import';
+import { RestorableBackupImport } from './restorable-backup-import';
+import type { RestorableBackup } from '@/features/local-projects/restorable-backup';
 import { Button } from './ui/button';
 
 export function ProjectHome({
@@ -24,6 +26,7 @@ export function ProjectHome({
   onDelete,
   onExport,
   onRefresh,
+  onRestore,
 }: {
   projects: LocalProject[];
   active?: LocalProject;
@@ -33,6 +36,7 @@ export function ProjectHome({
   onDelete: (record: LocalProject) => void;
   onExport: (record: LocalProject) => void;
   onRefresh: () => void;
+  onRestore?: (backup: RestorableBackup) => void;
 }) {
   const [error, setError] = useState('');
   function create(event: FormEvent<HTMLFormElement>) {
@@ -166,6 +170,7 @@ export function ProjectHome({
       <section className="panel" aria-label="Importar projeto">
         <h2 className="section-title">Verificar arquivo de projeto</h2>
         <ProjectImport disabled={busy} onImport={onCreate} />
+        {onRestore && <RestorableBackupImport disabled={busy} onRestore={onRestore} />}
       </section>
     </div>
   );

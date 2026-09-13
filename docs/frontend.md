@@ -56,8 +56,8 @@ provisória ou indisponível da pontuação é apresentada no documento. O PDF c
 ausentes, inválidos ou incompatíveis e aviso quando não há comprovantes vinculados. Apenas o
 Memorial depende da conclusão e da estrutura editorial; formulários dependem da identificação
 e do nível solicitado. Estados e limitações aparecem no cartão de cada artefato. O backup
-binário `.rscflow` ainda não tem ação própria. JSON transporta dados e
-descritores, sem bytes.
+restaurável `.rscflow` preserva dados e bytes, enquanto o JSON portátil continua transportando
+somente dados e descritores.
 
 A ação “Gerar pacote final” usa uma única fotografia do projeto, consolida os comprovantes antes dos
 documentos que contêm referências e disponibiliza um ZIP somente após o sucesso integral. O pacote

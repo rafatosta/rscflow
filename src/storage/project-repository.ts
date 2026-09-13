@@ -39,6 +39,43 @@ export class DexieProjectRepository implements ProjectRepository {
     return record;
   }
 
+  async createWithFiles(input: ProjectExport, files: LocalFile[]): Promise<LocalProject> {
+    const project = portableProject(input);
+    if (project.schemaVersion !== '3.0' && files.length)
+      throw new ProjectStorageError('Formato de projeto incompatível com arquivos.');
+    const descriptors =
+      project.schemaVersion === '3.0'
+        ? new Set(project.userData.storedFiles.map((file) => file.id))
+        : new Set<string>();
+    if (
+      files.length !== descriptors.size ||
+      files.some((file) => !descriptors.has(file.id)) ||
+      new Set(files.map((file) => file.id)).size !== files.length
+    )
+      throw new ProjectStorageError('Arquivo sem referência ou duplicado no backup.');
+    if (project.schemaVersion === '3.0')
+      for (const file of files)
+        await verifiedFile(
+          project.userData.storedFiles.find((descriptor) => descriptor.id === file.id),
+          file.blob,
+        );
+    const now = new Date().toISOString();
+    const record = {
+      localId: crypto.randomUUID(),
+      revision: 1,
+      createdAt: now,
+      updatedAt: now,
+      project,
+    };
+    await this.database.transaction('rw', this.database.projects, this.database.files, async () => {
+      await this.database.projects.add(record);
+      await this.database.files.bulkPut(
+        files.map((file) => ({ ...file, localId: record.localId })),
+      );
+    });
+    return record;
+  }
+
   async load(localId: string): Promise<LocalProject | undefined> {
     const record = await this.database.projects.get(localId);
     return record ? { ...record, project: portableProject(record.project) } : undefined;

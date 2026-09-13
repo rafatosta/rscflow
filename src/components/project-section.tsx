@@ -23,6 +23,7 @@ import { ScoringDashboard } from './scoring-dashboard';
 import { ProcessOverview } from './process-overview';
 import { ProjectDocuments } from './project-documents';
 import { Button } from './ui/button';
+import type { RestorableBackup } from '@/features/local-projects/restorable-backup';
 
 type Props = {
   record: LocalProject;
@@ -37,6 +38,7 @@ type Props = {
   setFormDirty: (dirty: boolean) => void;
   onExport: () => void;
   onImport: (project: ProjectExport) => void;
+  onRestore: (backup: RestorableBackup) => void;
 };
 
 export function ProjectSection(props: Props) {
@@ -192,6 +194,8 @@ export function ProjectSection(props: Props) {
           invalid={props.invalid}
           onExportJson={props.onExport}
           onImport={props.onImport}
+          onRestore={props.onRestore}
+          backupProject={project}
           evidenceProject={project}
           resolver={props.resolver}
           dataset={dataset}
@@ -199,8 +203,8 @@ export function ProjectSection(props: Props) {
         <ProjectDocuments project={project} resolver={props.resolver} save={props.save} />
         <p className="text-sm text-slate-300">
           Os PDFs do memorial e dos formulários normativos são derivados do projeto. O PDF
-          consolidado dos comprovantes também está disponível. O backup completo .rscflow ainda não
-          tem download próprio. A cópia JSON guarda os dados, sem os arquivos anexados.
+          consolidado dos comprovantes e o backup restaurável .rscflow também estão disponíveis. A
+          cópia JSON guarda os dados, sem os arquivos anexados.
         </p>
       </div>
     );

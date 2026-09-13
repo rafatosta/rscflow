@@ -10,7 +10,10 @@ import type { CalculationResult } from '@/domain/scoring';
 import type { Regulation } from '@/domain/regulation';
 import type { ProcessArtifactStatus } from '@/features/final-documents/generate-all';
 import { reviewProject } from '@/features/final-review/review';
-import { projectJsonFilename } from '@/features/local-projects/project-files';
+import {
+  projectJsonFilename,
+  restorableBackupFilename,
+} from '@/features/local-projects/project-files';
 import { projectPath } from '@/features/project-shell/routes';
 import {
   evidenceBundlePdfFilename,
@@ -24,6 +27,11 @@ import {
   type EvidencePreparation,
 } from '@/features/final-documents/prepare';
 import { ProjectImport } from './project-import';
+import { RestorableBackupImport } from './restorable-backup-import';
+import {
+  createRestorableBackup,
+  type RestorableBackup,
+} from '@/features/local-projects/restorable-backup';
 import { Button } from './ui/button';
 
 export function FinalExport({
@@ -36,6 +44,8 @@ export function FinalExport({
   evidenceProject,
   resolver,
   dataset,
+  onRestore,
+  backupProject,
 }: {
   record: LocalProject;
   scoring: CalculationResult;
@@ -46,12 +56,14 @@ export function FinalExport({
   evidenceProject?: OccurrenceProjectExport;
   resolver?: FileResolver;
   dataset?: Regulation;
+  onRestore?: (backup: RestorableBackup) => void;
+  backupProject?: ProjectExport;
 }) {
   const project = activityProjectView(record.project as TypedProjectExport);
   const review = reviewProject(project, scoring);
-  const [generating, setGenerating] = useState<'all' | 'memorial' | 'forms' | 'evidence' | null>(
-    null,
-  );
+  const [generating, setGenerating] = useState<
+    'all' | 'memorial' | 'forms' | 'evidence' | 'backup' | null
+  >(null);
   const [jointStatuses, setJointStatuses] = useState<ProcessArtifactStatus[]>([]);
   const [error, setError] = useState('');
   const [referenceWarning, setReferenceWarning] = useState('');
@@ -101,6 +113,23 @@ export function FinalExport({
       downloadPdfBytes(result.bytes, evidenceBundlePdfFilename(project));
     } catch {
       setError('Não foi possível gerar o PDF dos comprovantes. Verifique os arquivos locais.');
+    } finally {
+      setGenerating(null);
+    }
+  }
+
+  async function generateBackup() {
+    setGenerating('backup');
+    setError('');
+    try {
+      const source = backupProject ?? record.project;
+      const bytes = await createRestorableBackup(source, resolver);
+      const { downloadBytes } = await import('@/pdf/download');
+      downloadBytes(bytes, restorableBackupFilename(source), 'application/zip');
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : 'Não foi possível gerar o backup restaurável.',
+      );
     } finally {
       setGenerating(null);
     }
@@ -403,6 +432,26 @@ export function FinalExport({
               Exportar JSON
             </Button>
           </article>
+          <article className="subpanel p-5">
+            <FileJson className="text-cyan-300" aria-hidden="true" />
+            <h3 className="mt-3 subsection-title">Backup restaurável</h3>
+            <p className="mt-2 text-sm text-slate-300">
+              Preserva projeto e comprovantes. É diferente do JSON portátil e do pacote final.
+            </p>
+            <p className="mt-2 break-all text-sm text-slate-300">
+              Nome sugerido:{' '}
+              <code>{restorableBackupFilename(backupProject ?? record.project)}</code>
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => void generateBackup()}
+              disabled={Boolean(invalid) || busy || Boolean(generating)}
+            >
+              <Download className="mr-2" size={17} aria-hidden="true" />
+              {generating === 'backup' ? 'Gerando backup…' : 'Gerar backup .rscflow'}
+            </Button>
+          </article>
         </div>
       </section>
 
@@ -414,6 +463,7 @@ export function FinalExport({
           A importação cria outro projeto local e preserva este projeto.
         </p>
         <ProjectImport disabled={busy} onImport={onImport} />
+        {onRestore && <RestorableBackupImport disabled={busy} onRestore={onRestore} />}
       </section>
     </div>
   );

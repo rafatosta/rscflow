@@ -19,6 +19,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Backup restaurável `.rscflow` com projeto versionado, manifesto de integridade e todos os
+  comprovantes binários, restaurado em nova cópia por transação atômica sem alterar o JSON portátil.
+
 - Pacote final ZIP determinístico com Memorial, formulários normativos e comprovantes em PDFs
   separados, criado somente a partir do resultado completo da geração conjunta.
 

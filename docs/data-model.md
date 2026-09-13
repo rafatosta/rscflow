@@ -48,6 +48,13 @@ Dados pessoais, formação e memorial usam fila serial com debounce de 500 ms. O
 
 `lastBackup` guarda data e fingerprint SHA-256 da última geração de JSON, sem mudar revisão editorial nem integrar exportação. Importação e duplicação não herdam a marca. A marca não certifica disponibilidade dos bytes nem conclusão do download.
 
+O backup restaurável `.rscflow` é um ZIP armazenado sem compressão com `manifest.json`,
+`project.json` e uma entrada binária para cada `StoredFile`. O manifesto usa versão própria 1.0 e
+repete id, nome, tipo, tamanho e SHA-256 de cada arquivo, além do hash do projeto. A restauração
+aceita os schemas de projeto já suportados, exige correspondência exata entre descritores,
+manifesto e entradas, rejeita conteúdo extra, ausente ou alterado e grava projeto e blobs em uma
+única transação. Esse contêiner não altera o contrato do JSON portátil.
+
 ## Catálogos
 
 Datasets usam schema 1.0 independente do projeto. Os três níveis de produção seguem pendentes: RSC I tem 8 diretrizes/48 critérios; II, 7/36; III, 7/53. Parâmetros e proveniência permanecem nos JSONs. `provenance.issue` registra conflito e impede validação. A resolução é a única fonte oficial; o campo legado nullable de planilha não é requisito de certificação.

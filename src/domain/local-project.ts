@@ -21,6 +21,7 @@ export interface ProjectRepository {
     files: LocalFile[],
   ): Promise<LocalProject>;
   create(project: ProjectExport): Promise<LocalProject>;
+  createWithFiles?(project: ProjectExport, files: LocalFile[]): Promise<LocalProject>;
   load(localId: string): Promise<LocalProject | undefined>;
   list(): Promise<LocalProject[]>;
   update(localId: string, revision: number, project: ProjectExport): Promise<LocalProject>;

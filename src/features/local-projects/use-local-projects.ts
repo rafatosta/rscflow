@@ -7,6 +7,7 @@ import { storageErrorMessage } from '@/storage/project-repository';
 import { ProjectAutosave } from './autosave';
 import { downloadProject } from './project-files';
 import type { ProjectChange } from '@/domain/local-files';
+import type { RestorableBackup } from './restorable-backup';
 
 export function useLocalProjects(repository: ProjectRepository) {
   const [projects, setProjects] = useState<LocalProject[]>([]);
@@ -256,6 +257,14 @@ export function useLocalProjects(repository: ProjectRepository) {
     create: (project: ProjectExport) =>
       perform(async () => {
         const record = await repository.create(project);
+        await activate(record);
+        return record;
+      }),
+    restore: (backup: RestorableBackup) =>
+      perform(async () => {
+        if (!repository.createWithFiles)
+          throw new Error('Este armazenamento não oferece restauração de arquivos.');
+        const record = await repository.createWithFiles(backup.project, backup.files);
         await activate(record);
         return record;
       }),

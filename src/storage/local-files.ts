@@ -1,6 +1,19 @@
 import type { StoredFile } from '@/domain/criterion-entry';
 export async function sha256(blob: Blob): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+  const bytes =
+    typeof blob.arrayBuffer === 'function'
+      ? await blob.arrayBuffer()
+      : await new Promise<ArrayBuffer>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () =>
+            reader.result instanceof ArrayBuffer
+              ? resolve(reader.result)
+              : reject(new Error('Não foi possível ler o arquivo.'));
+          reader.onerror = () =>
+            reject(reader.error ?? new Error('Não foi possível ler o arquivo.'));
+          reader.readAsArrayBuffer(blob);
+        });
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 export async function verifiedFile(descriptor: StoredFile | undefined, blob: Blob | undefined) {

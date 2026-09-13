@@ -153,6 +153,11 @@ mais recente. A tabela `files` foi adicionada no Dexie v2, sem alterar projetos 
 Exportação de JSON continua independente da gravação dessa marca: falha de armazenamento não
 desfaz o download já iniciado.
 
+O backup restaurável em `features/local-projects/restorable-backup.ts` encapsula o envelope e os
+blobs em `.rscflow`, com manifesto versionado e hashes. A leitura valida todo o contêiner antes de
+entregar dados ao repositório; `createWithFiles` grava a nova cópia e seus arquivos na mesma
+transação Dexie. O JSON portátil e o pacote de documentos mantêm contratos independentes.
+
 A preparação de comprovantes em `features/final-documents/prepare.ts` reutiliza o plano e o
 gerador existentes. A tela verifica a disponibilidade por projeto/resolvedor, descarta resultados
 antigos e prepara novamente os arquivos ao gerar cada artefato. O download do consolidado usa os

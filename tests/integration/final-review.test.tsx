@@ -317,6 +317,14 @@ it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos',
   expect(screen.getByText(/11\/09\/2026/)).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Exportar JSON' }));
   expect(exportJson).toHaveBeenCalledOnce();
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar backup .rscflow' }));
+  await waitFor(() =>
+    expect(downloadBytes).toHaveBeenCalledWith(
+      expect.any(Uint8Array),
+      'backup-rsc-joana-conceicao.rscflow',
+      'application/zip',
+    ),
+  );
   fireEvent.click(screen.getByRole('button', { name: 'Gerar PDF' }));
   await waitFor(() =>
     expect(downloadMemorialPdf).toHaveBeenCalledWith(

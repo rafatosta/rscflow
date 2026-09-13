@@ -248,6 +248,11 @@ export function App({ repository }: { repository?: ProjectRepository }) {
               onDelete={setDeleting}
               onExport={work.exportRecord}
               onRefresh={() => void work.refresh()}
+              onRestore={(backup) => {
+                void work.restore(backup).then((record) => {
+                  if (record) void navigate(projectPath(record.localId));
+                });
+              }}
             />
           ) : route.kind === 'missing' ? (
             <div className="panel">
@@ -285,6 +290,11 @@ export function App({ repository }: { repository?: ProjectRepository }) {
               onExport={work.export}
               onImport={(project) => {
                 void work.create(project).then((record) => {
+                  if (record) void navigate(projectPath(record.localId));
+                });
+              }}
+              onRestore={(backup) => {
+                void work.restore(backup).then((record) => {
                   if (record) void navigate(projectPath(record.localId));
                 });
               }}

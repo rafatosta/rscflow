@@ -29,8 +29,8 @@ npm run dev
 ```
 
 O navegador armazena projetos no IndexedDB. Limpar os dados do site ou usar uma sessão privada pode
-removê-los; exporte o JSON como cópia portátil. O PDF e o JSON são montados e baixados no próprio
-navegador.
+removê-los; exporte o `.rscflow` para preservar dados e comprovantes ou o JSON como cópia portátil
+sem binários. Os documentos e backups são montados e baixados no próprio navegador.
 
 ## Funcionalidades
 
@@ -40,11 +40,12 @@ navegador.
 - motor determinístico com limites de item, diretriz e nível e requisitos quantitativos 60/36;
 - memorial determinístico com edição autoral preservada;
 - prévia A4 na revisão, PDF local, checklist final e correções por seção;
+- backup restaurável `.rscflow`, separado do JSON portátil e do pacote final de documentos;
 - rotas responsivas, navegação por teclado e verificações automatizadas com axe-core.
 
 Os envelopes portáteis `1.0`, `2.0`, `2.1` e `3.0` são aceitos. Novos projetos usam 3.0; editar
 2.0/2.1 converte a cópia ao formato de ocorrências. O formato 1.0 permanece exportável para
-consulta. JSON não inclui bytes dos documentos. Validação estrutural de um arquivo não certifica
+consulta. JSON não inclui bytes dos documentos; o backup `.rscflow` inclui. Validação estrutural de um arquivo não certifica
 sua referência normativa nem sua pontuação.
 
 ## Exemplo demonstrativo
