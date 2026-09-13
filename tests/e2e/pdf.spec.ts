@@ -62,8 +62,8 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.getByRole('link', { name: 'Revisão', exact: true }).click();
-  await page.getByRole('button', { name: 'Visualizar prévia' }).click();
+  await page.getByRole('link', { name: 'Prévia do memorial', exact: true }).click();
+  await expect(page).toHaveURL(/\/preview$/);
 
   const article = page.getByRole('article', { name: 'Página 1' });
   await expect(article).toContainText('Lívia Conceição');

@@ -181,6 +181,7 @@ export function ProjectSection(props: Props) {
         {preview && <PdfPreview record={projected} />}
       </div>
     );
+  if (section === 'preview') return <PdfPreview record={projected} />;
   if (section === 'documents')
     return (
       <div className="space-y-5">

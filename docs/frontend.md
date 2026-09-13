@@ -1,6 +1,6 @@
 # Frontend
 
-O shell React Router oferece seis seções, com a sessão local acima das rotas. As URLs identificam cópias no IndexedDB, não recursos de uma API.
+O shell React Router oferece sete seções, com a sessão local acima das rotas. As URLs identificam cópias no IndexedDB, não recursos de uma API.
 
 | Rota                        | Conteúdo                                                                                  |
 | --------------------------- | ----------------------------------------------------------------------------------------- |
@@ -10,6 +10,7 @@ O shell React Router oferece seis seções, com a sessão local acima das rotas.
 | `/project/:id/requirements` | Abas RSC I/II/III, busca, diretrizes, critérios e lançamentos com arquivo opcional        |
 | `/project/:id/memorial`     | Texto determinístico, formação e narrativas cronológicas editáveis                        |
 | `/project/:id/review`       | Checklist por severidade, pontuação, disponibilidade dos arquivos e ação de prévia A4     |
+| `/project/:id/preview`      | Prévia A4 paginada do memorial, acessível pela Revisão e pelo menu principal              |
 | `/project/:id/documents`    | PDF do memorial, cópia JSON, importação e documentos locais                               |
 
 Rotas anteriores de formação, trajetória, critérios, pontuação, comprovantes, RSCs separados, prévia, exportação e edição técnica foram removidas. Endereços desconhecidos mostram uma página de recuperação. A hospedagem estática precisa de fallback para `index.html`.

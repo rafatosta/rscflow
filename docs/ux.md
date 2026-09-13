@@ -4,7 +4,7 @@ A interface do RSCFlow abstrai anexos, entidades internas e estruturas técnicas
 
 Como o projeto ainda não possui versão pública, compatibilidades de formulário e migrações pré-release podem ser removidas quando não tiverem valor arquitetural.
 
-O fluxo é Projetos → Visão geral → Dados do docente → Requisitos → Memorial → Revisão → Gerar documentos. Formação integra Dados do docente; pontuação aparece como resultado e documentos são anexados dentro dos lançamentos. Prévia é uma ação da Revisão.
+O fluxo é Projetos → Visão geral → Dados do docente → Requisitos → Memorial → Revisão → Prévia do memorial → Gerar documentos. Formação integra Dados do docente; pontuação aparece como resultado e documentos são anexados dentro dos lançamentos. A prévia pode ser aberta pelo menu principal ou pela ação da Revisão.
 
 ## Preenchimento
 

@@ -8,6 +8,8 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 - Temas claro, escuro e sincronizado com o sistema, com preferências locais para texto ampliado,
   contraste reforçado e redução de movimentos, sem alterar a estrutura das telas.
+- Prévia A4 do memorial disponível também como item do menu principal, mantendo o acesso pela
+  Revisão.
 
 - Recomendação consultiva de capacidade por etapa integrada ao protocolo de tarefas na atualização
   incremental do ARRP, sem dependência de nomes específicos de modelos.

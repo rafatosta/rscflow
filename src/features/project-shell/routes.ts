@@ -4,6 +4,7 @@ export const sections = [
   ['requirements', 'Requisitos'],
   ['memorial', 'Memorial'],
   ['review', 'Revisão'],
+  ['preview', 'Prévia do memorial'],
   ['documents', 'Gerar documentos'],
 ] as const;
 export type Section = (typeof sections)[number][0];
@@ -30,5 +31,6 @@ export const primarySections: readonly Section[] = [
   'requirements',
   'memorial',
   'review',
+  'preview',
   'documents',
 ];
