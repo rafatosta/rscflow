@@ -1,7 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
-import { createEvidenceBundle } from '@/pdf/evidence-bundle';
+import { createEvidenceBundle, createEvidenceBundlePlan } from '@/pdf/evidence-bundle';
 
 async function pdf(pages: number) {
   const document = await PDFDocument.create();
@@ -79,33 +79,65 @@ describe('consolidação dos comprovantes', () => {
     expect(result.status).toBe('success');
     if (result.status !== 'success') return;
     expect((await PDFDocument.load(result.bytes)).getPageCount()).toBe(7);
-    expect(result.pageMap).toEqual([
+    expect(result.pageMap).toEqual({
+      totalPages: 7,
+      evidences: [
+        {
+          evidenceId: 'first',
+          startPage: 1,
+          endPage: 2,
+          files: [{ fileId: 'first-file', startPage: 1, endPage: 2 }],
+          links: [{ level: 'rsc-i', criterionId: 'rsc-i-a-2', occurrenceId: 'launch-a' }],
+        },
+        {
+          evidenceId: 'shared',
+          startPage: 3,
+          endPage: 3,
+          files: [{ fileId: 'shared-file', startPage: 3, endPage: 3 }],
+          links: [
+            { level: 'rsc-i', criterionId: 'rsc-i-a-2', occurrenceId: 'launch-a' },
+            { level: 'rsc-i', criterionId: 'rsc-i-a-10', occurrenceId: 'launch-2' },
+          ],
+        },
+        {
+          evidenceId: 'second',
+          startPage: 4,
+          endPage: 7,
+          files: [
+            { fileId: 'second-a', startPage: 4, endPage: 4 },
+            { fileId: 'second-b', startPage: 5, endPage: 7 },
+          ],
+          links: [{ level: 'rsc-i', criterionId: 'rsc-i-a-2', occurrenceId: 'launch-b' }],
+        },
+      ],
+    });
+  });
+
+  it('expõe o plano usado pelo PDF e pelo mapa sem depender dos bytes', () => {
+    expect(
+      createEvidenceBundlePlan(fixture()).map(({ evidenceId, files, links }) => ({
+        evidenceId,
+        fileIds: files.map((file) => file.id),
+        links,
+      })),
+    ).toEqual([
       {
         evidenceId: 'first',
-        startPage: 1,
-        endPage: 2,
-        files: [{ fileId: 'first-file', startPage: 1, endPage: 2 }],
-        associations: [{ level: 'rsc-i', criterionId: 'rsc-i-a-2', occurrenceId: 'launch-a' }],
+        fileIds: ['first-file'],
+        links: [{ level: 'rsc-i', criterionId: 'rsc-i-a-2', occurrenceId: 'launch-a' }],
       },
       {
         evidenceId: 'shared',
-        startPage: 3,
-        endPage: 3,
-        files: [{ fileId: 'shared-file', startPage: 3, endPage: 3 }],
-        associations: [
+        fileIds: ['shared-file'],
+        links: [
           { level: 'rsc-i', criterionId: 'rsc-i-a-2', occurrenceId: 'launch-a' },
           { level: 'rsc-i', criterionId: 'rsc-i-a-10', occurrenceId: 'launch-2' },
         ],
       },
       {
         evidenceId: 'second',
-        startPage: 4,
-        endPage: 7,
-        files: [
-          { fileId: 'second-a', startPage: 4, endPage: 4 },
-          { fileId: 'second-b', startPage: 5, endPage: 7 },
-        ],
-        associations: [{ level: 'rsc-i', criterionId: 'rsc-i-a-2', occurrenceId: 'launch-b' }],
+        fileIds: ['second-a', 'second-b'],
+        links: [{ level: 'rsc-i', criterionId: 'rsc-i-a-2', occurrenceId: 'launch-b' }],
       },
     ]);
   });

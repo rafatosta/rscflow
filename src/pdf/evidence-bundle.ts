@@ -1,26 +1,18 @@
 import type { OccurrenceProjectExport, StoredFile } from '@/domain/criterion-entry';
+import type {
+  EvidenceFilePageRange,
+  EvidencePageEntry,
+  EvidencePageLink,
+  EvidencePageMap,
+} from '@/domain/evidence-page-map';
 import type { FileResolver } from '@/domain/local-files';
 import type { RscLevel } from '@/domain/regulation';
 import { PDFDocument } from 'pdf-lib';
 
-export type EvidenceAssociation = {
-  level: RscLevel;
-  criterionId: string;
-  occurrenceId: string;
-};
-
-export type EvidenceFilePageRange = {
-  fileId: string;
-  startPage: number;
-  endPage: number;
-};
-
-export type EvidencePageRange = {
+export type EvidenceBundleItem = {
   evidenceId: string;
-  startPage: number;
-  endPage: number;
-  files: EvidenceFilePageRange[];
-  associations: EvidenceAssociation[];
+  files: StoredFile[];
+  links: EvidencePageLink[];
 };
 
 export type EvidenceBundleIssue = {
@@ -31,7 +23,7 @@ export type EvidenceBundleIssue = {
 };
 
 export type EvidenceBundleResult =
-  | { status: 'success'; bytes: Uint8Array; pageMap: EvidencePageRange[] }
+  | { status: 'success'; bytes: Uint8Array; pageMap: EvidencePageMap }
   | { status: 'error'; issues: EvidenceBundleIssue[] };
 
 const levelOrder: Record<RscLevel, number> = { 'rsc-i': 0, 'rsc-ii': 1, 'rsc-iii': 2 };
@@ -58,7 +50,7 @@ function compareNatural(left: string, right: string) {
   return 0;
 }
 
-function compareAssociation(left: EvidenceAssociation, right: EvidenceAssociation) {
+function compareLink(left: EvidencePageLink, right: EvidencePageLink) {
   return (
     levelOrder[left.level] - levelOrder[right.level] ||
     compareNatural(left.criterionId, right.criterionId) ||
@@ -66,14 +58,14 @@ function compareAssociation(left: EvidenceAssociation, right: EvidenceAssociatio
   );
 }
 
-function orderedAssociations(project: OccurrenceProjectExport) {
+function orderedLinks(project: OccurrenceProjectExport) {
   return project.userData.criterionEntries
     .flatMap((entry) => {
       if (!entry.selectedLevel) return [];
       return entry.occurrences.flatMap((occurrence) =>
         occurrence.evidenceIds.map((evidenceId) => ({
           evidenceId,
-          association: {
+          link: {
             level: entry.selectedLevel!,
             criterionId: entry.criterionId,
             occurrenceId: occurrence.id,
@@ -84,11 +76,34 @@ function orderedAssociations(project: OccurrenceProjectExport) {
     })
     .sort(
       (left, right) =>
-        levelOrder[left.association.level] - levelOrder[right.association.level] ||
-        compareNatural(left.association.criterionId, right.association.criterionId) ||
+        levelOrder[left.link.level] - levelOrder[right.link.level] ||
+        compareNatural(left.link.criterionId, right.link.criterionId) ||
         left.occurrenceOrder - right.occurrenceOrder ||
-        compareNatural(left.association.occurrenceId, right.association.occurrenceId),
+        compareNatural(left.link.occurrenceId, right.link.occurrenceId),
     );
+}
+
+/** Define uma única sequência para a concatenação e para o mapa de páginas derivado. */
+export function createEvidenceBundlePlan(project: OccurrenceProjectExport): EvidenceBundleItem[] {
+  const evidence = new Map(project.userData.evidence.map((item) => [item.id, item] as const));
+  const files = new Map(project.userData.storedFiles.map((item) => [item.id, item] as const));
+  const plan = new Map<string, EvidenceBundleItem>();
+  for (const item of orderedLinks(project)) {
+    const existing = plan.get(item.evidenceId);
+    if (existing) {
+      if (!existing.links.some((link) => compareLink(link, item.link) === 0))
+        existing.links.push(item.link);
+      continue;
+    }
+    const proof = evidence.get(item.evidenceId);
+    if (!proof) continue;
+    plan.set(item.evidenceId, {
+      evidenceId: item.evidenceId,
+      files: proof.fileIds.flatMap((fileId) => (files.has(fileId) ? [files.get(fileId)!] : [])),
+      links: [item.link],
+    });
+  }
+  return [...plan.values()];
 }
 
 function issueFor(error: unknown, evidenceId: string, descriptor: StoredFile): EvidenceBundleIssue {
@@ -107,35 +122,24 @@ export async function createEvidenceBundle(
   project: OccurrenceProjectExport,
   resolver: FileResolver,
 ): Promise<EvidenceBundleResult> {
-  const evidence = new Map(project.userData.evidence.map((item) => [item.id, item] as const));
-  const files = new Map(project.userData.storedFiles.map((item) => [item.id, item] as const));
-  const associations = orderedAssociations(project);
-  const grouped = new Map<string, EvidenceAssociation[]>();
-  for (const item of associations) {
-    const current = grouped.get(item.evidenceId) ?? [];
-    if (!current.some((association) => compareAssociation(association, item.association) === 0))
-      current.push(item.association);
-    grouped.set(item.evidenceId, current);
-  }
-
-  const loaded: { evidenceId: string; descriptor: StoredFile; document: PDFDocument }[] = [];
+  const plan = createEvidenceBundlePlan(project);
+  const loaded = new Map<string, { descriptor: StoredFile; document: PDFDocument }[]>();
   const issues: EvidenceBundleIssue[] = [];
-  for (const evidenceId of grouped.keys()) {
-    const proof = evidence.get(evidenceId)!;
-    if (!proof.fileIds.length) {
+  for (const item of plan) {
+    if (!item.files.length) {
       issues.push({
         code: 'missing-file',
-        evidenceId,
+        evidenceId: item.evidenceId,
         message: 'O comprovante não possui arquivo associado.',
       });
       continue;
     }
-    for (const fileId of proof.fileIds) {
-      const descriptor = files.get(fileId)!;
+    for (const descriptor of item.files) {
+      const fileId = descriptor.id;
       if (descriptor.mediaType.toLowerCase() !== 'application/pdf') {
         issues.push({
           code: 'unsupported-file',
-          evidenceId,
+          evidenceId: item.evidenceId,
           fileId,
           message: `O arquivo "${descriptor.name}" não é PDF.`,
         });
@@ -145,41 +149,43 @@ export async function createEvidenceBundle(
         const file = await resolver.getFile(fileId);
         const document = await PDFDocument.load(await file.arrayBuffer());
         if (document.getPageCount() === 0) throw new Error('O PDF não possui páginas.');
-        loaded.push({
-          evidenceId,
-          descriptor,
-          document,
-        });
+        const current = loaded.get(item.evidenceId) ?? [];
+        current.push({ descriptor, document });
+        loaded.set(item.evidenceId, current);
       } catch (error) {
-        issues.push(issueFor(error, evidenceId, descriptor));
+        issues.push(issueFor(error, item.evidenceId, descriptor));
       }
     }
   }
   if (issues.length) return { status: 'error', issues };
 
   const output = await PDFDocument.create();
-  const pageMap: EvidencePageRange[] = [];
-  for (const [evidenceId, proofAssociations] of grouped) {
+  const evidences: EvidencePageEntry[] = [];
+  for (const item of plan) {
     const startPage = output.getPageCount() + 1;
     const fileRanges: EvidenceFilePageRange[] = [];
-    for (const item of loaded.filter((file) => file.evidenceId === evidenceId)) {
+    for (const file of loaded.get(item.evidenceId) ?? []) {
       const fileStartPage = output.getPageCount() + 1;
-      const pages = await output.copyPages(item.document, item.document.getPageIndices());
+      const pages = await output.copyPages(file.document, file.document.getPageIndices());
       pages.forEach((page) => output.addPage(page));
       fileRanges.push({
-        fileId: item.descriptor.id,
+        fileId: file.descriptor.id,
         startPage: fileStartPage,
         endPage: output.getPageCount(),
       });
     }
     if (fileRanges.length)
-      pageMap.push({
-        evidenceId,
+      evidences.push({
+        evidenceId: item.evidenceId,
         startPage,
         endPage: output.getPageCount(),
         files: fileRanges,
-        associations: proofAssociations,
+        links: item.links,
       });
   }
-  return { status: 'success', bytes: await output.save(), pageMap };
+  return {
+    status: 'success',
+    bytes: await output.save(),
+    pageMap: { totalPages: output.getPageCount(), evidences },
+  };
 }
