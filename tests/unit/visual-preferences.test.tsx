@@ -56,7 +56,7 @@ describe('preferências visuais', () => {
     expect(document.documentElement).toHaveAttribute('data-contrast', 'high');
     expect(document.documentElement).toHaveAttribute('data-motion', 'reduced');
     expect(document.documentElement).toHaveAttribute('data-text-size', 'large');
-    expect(document.documentElement.style.colorScheme).toBe('light');
+    expect(document.documentElement.style.colorScheme).toBe('');
   });
 
   it('aplica e persiste as escolhas feitas no controle', async () => {

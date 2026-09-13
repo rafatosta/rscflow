@@ -53,7 +53,9 @@ Sidebar em desktop e Sheet com foco contido em telas menores; link de salto, tí
 O controle Aparência no cabeçalho oferece tema claro, escuro ou sincronizado com o sistema, texto
 ampliado, contraste reforçado e redução de movimentos. As escolhas são guardadas no `localStorage`
 do navegador e aplicadas antes da montagem da interface; não integram nem alteram os projetos.
-O painel fecha quando o foco ou a interação segue para fora do controle.
+O painel fecha quando o foco ou a interação segue para fora do controle. A troca de tema atualiza
+somente os tokens visuais da aplicação, sem solicitar ao renderer uma mudança dinâmica do esquema
+nativo de cores.
 
 ## Padrões visuais
 

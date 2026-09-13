@@ -48,5 +48,4 @@ export function applyVisualPreferences(
   root.dataset.contrast = preferences.highContrast ? 'high' : 'normal';
   root.dataset.motion = preferences.reducedMotion ? 'reduced' : 'normal';
   root.dataset.textSize = preferences.textSize;
-  root.style.colorScheme = root.dataset.theme;
 }

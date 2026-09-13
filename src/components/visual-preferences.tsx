@@ -49,13 +49,7 @@ export function VisualPreferencesControl() {
     setPreferences((current) => ({ ...current, ...change }));
 
   return (
-    <details
-      ref={details}
-      className="visual-preferences relative"
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
-      }}
-    >
+    <details ref={details} className="visual-preferences relative">
       <summary
         aria-label="Aparência"
         className="button-base button-outline cursor-pointer list-none px-3 py-2"

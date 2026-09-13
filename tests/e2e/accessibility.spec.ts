@@ -87,3 +87,34 @@ test('preferências visuais são aplicadas e preservadas após recarregar', asyn
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expectNoSeriousAxeViolations(page);
 });
+
+test('alterna temas na tela de requisitos e mantém o tema após recarregar', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('RSC pretendido').selectOption('rsc-ii');
+  await page.getByRole('button', { name: 'Criar projeto', exact: true }).click();
+  await page.getByRole('link', { name: 'Requisitos', exact: true }).click();
+  const systemTheme = await page.evaluate(() =>
+    matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+  );
+
+  for (const [label, theme] of [
+    ['Claro', 'light'],
+    ['Escuro', 'dark'],
+    ['Sistema', systemTheme],
+    ['Claro', 'light'],
+  ] as const) {
+    const option = page.getByLabel(label, { exact: true });
+    await page.locator('details.visual-preferences').evaluate((element) => {
+      if (element instanceof HTMLDetailsElement) element.open = true;
+    });
+    await option.evaluate((element) => {
+      if (element instanceof HTMLInputElement) element.click();
+    });
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  }
+
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Requisitos' })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expectNoSeriousAxeViolations(page);
+});
