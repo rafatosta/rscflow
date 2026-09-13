@@ -36,14 +36,14 @@ export function VisualPreferencesControl() {
     <details className="visual-preferences relative">
       <summary
         aria-label="Aparência"
-        className="inline-flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-md border border-slate-500 px-3 py-2 text-sm font-medium hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+        className="button-base button-outline cursor-pointer list-none px-3 py-2"
       >
         <SlidersHorizontal size={18} aria-hidden="true" />
         <span aria-hidden="true" className="hidden sm:inline">
           Aparência
         </span>
       </summary>
-      <div className="absolute right-0 top-full z-30 mt-2 w-72 space-y-5 rounded-xl border border-slate-600 bg-slate-900 p-5 text-slate-50 shadow-xl">
+      <div className="dialog-surface absolute right-0 top-full z-30 mt-2 w-72 space-y-5 p-5">
         <fieldset>
           <legend className="mb-2 font-semibold">Tema</legend>
           <div className="grid grid-cols-3 gap-2">

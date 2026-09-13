@@ -114,7 +114,7 @@ export function EducationSection({ education, disabled, onSave }: Props) {
       <section className="panel space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold">Formação, aperfeiçoamento e titulação</h2>
+            <h2 className="section-title">Formação, aperfeiçoamento e titulação</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">
               Registros com datas aparecem do mais recente para o mais antigo.
             </p>
@@ -135,7 +135,7 @@ export function EducationSection({ education, disabled, onSave }: Props) {
         </div>
 
         {!ordered.length && (
-          <div className="rounded border border-dashed border-slate-600 p-5 text-slate-300">
+          <div className="empty-state">
             <p className="font-medium text-slate-100">Nenhuma formação registrada.</p>
             <p className="mt-2">Preencha o formulário para adicionar o primeiro registro.</p>
           </div>
@@ -143,12 +143,12 @@ export function EducationSection({ education, disabled, onSave }: Props) {
 
         <ol className="grid gap-4">
           {ordered.map((item) => (
-            <li key={item.id} className="rounded-lg border border-slate-600 p-4">
+            <li key={item.id} className="subpanel">
               <article className="space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm text-cyan-200">{item.type || 'Tipo não informado'}</p>
-                    <h3 className="break-words text-lg font-semibold">{item.title}</h3>
+                    <h3 className="break-words subsection-title">{item.title}</h3>
                     <p className="break-words text-slate-300">{item.institution}</p>
                   </div>
                   <span className="rounded-full border border-slate-600 px-3 py-1 text-sm">
@@ -227,7 +227,7 @@ export function EducationSection({ education, disabled, onSave }: Props) {
 
       {formOpen && (
         <section className="panel">
-          <h2 className="text-xl font-semibold">
+          <h2 className="section-title">
             {editing ? `Editar ${editing.title}` : 'Adicionar formação'}
           </h2>
           <p id="education-required" className="mt-2 text-sm text-slate-300">

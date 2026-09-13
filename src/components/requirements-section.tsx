@@ -171,7 +171,7 @@ export function RequirementsSection({
                   : scoring.directives.find((item) => item.directiveId === directive.id);
               return (
                 <section key={directive.id} className="panel space-y-4">
-                  <h2 className="text-xl font-semibold break-words">{directive.title}</h2>
+                  <h2 className="section-title break-words">{directive.title}</h2>
                   <p>
                     {score?.score.toLocaleString('pt-BR') ?? '—'} / {directive.maxScore} pontos
                   </p>
@@ -197,7 +197,7 @@ export function RequirementsSection({
                     return (
                       <article
                         key={criterion.id}
-                        className="rounded border border-slate-600 p-4 space-y-3 break-words"
+                        className="subpanel space-y-3 break-words"
                         aria-label={criterion.description}
                       >
                         <h3 className="font-semibold text-lg">{criterion.description}</h3>
@@ -395,9 +395,7 @@ function RequirementEditor({
         }
       })}
     >
-      <h2 className="text-xl font-semibold">
-        {occurrence ? 'Editar lançamento' : 'Adicionar lançamento'}
-      </h2>
+      <h2 className="section-title">{occurrence ? 'Editar lançamento' : 'Adicionar lançamento'}</h2>
       <p className="font-semibold break-words">{criterion.description}</p>
       <p>
         Unidade: {criterion.unit} · Valor por unidade: {criterion.factor} · Peso: {criterion.weight}{' '}

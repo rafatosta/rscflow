@@ -3,6 +3,7 @@ import {
   validateProjectFile,
   type ProjectFileResult,
 } from '@/features/project-import/validate-project-file';
+import { Button } from './ui/button';
 
 export function ProjectImport({
   onImport,
@@ -44,7 +45,7 @@ export function ProjectImport({
           accept=".json,application/json"
           aria-describedby="file-help"
           onChange={selectFile}
-          className="mt-3 block w-full min-w-0 rounded-md border border-slate-500 p-3 text-sm file:mr-3 file:rounded file:border-0 file:bg-cyan-300 file:px-3 file:py-2 file:font-medium file:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+          className="file-field"
         />
       </div>
       <p className="text-sm leading-6 text-amber-200">
@@ -54,8 +55,8 @@ export function ProjectImport({
       <div role="status" aria-live="polite" aria-atomic="true">
         {loading && <p>Lendo arquivo…</p>}
         {result?.success && (
-          <div className="rounded-lg border border-slate-600 p-5">
-            <h2 className="text-lg font-semibold text-cyan-300">Estrutura válida</h2>
+          <div className="subpanel p-5">
+            <h2 className="subsection-title text-cyan-300">Estrutura válida</h2>
             <dl className="mt-4 space-y-3 break-words">
               <div>
                 <dt className="text-slate-300">Versão do esquema</dt>
@@ -75,20 +76,20 @@ export function ProjectImport({
               </div>
             </dl>
             {onImport && (
-              <button
+              <Button
                 type="button"
                 disabled={disabled}
                 onClick={() => onImport(result.project)}
-                className="mt-4 rounded bg-cyan-300 px-4 py-2 font-medium text-slate-950 disabled:opacity-50"
+                className="mt-4"
               >
                 Importar como novo projeto
-              </button>
+              </Button>
             )}
           </div>
         )}
       </div>
       {result && !result.success && (
-        <div role="alert" className="rounded-lg border border-rose-300 p-5 text-rose-200">
+        <div role="alert" className="notice border-rose-300 p-5 text-rose-200">
           <h2 className="font-semibold">Não foi possível validar a estrutura</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5">
             {result.errors.map((error) => (

@@ -100,7 +100,7 @@ export function PdfPreview({ record }: { record: LocalProject }) {
     <section className="space-y-5">
       <div className="panel space-y-4">
         <div>
-          <h2 className="text-xl font-semibold">Pré-visualização A4</h2>
+          <h2 className="section-title">Pré-visualização A4</h2>
           <p className="mt-2 text-sm text-slate-300">
             Confira capa, sumário, seções e paginação antes de baixar o arquivo para o SEI.
           </p>
@@ -121,9 +121,9 @@ export function PdfPreview({ record }: { record: LocalProject }) {
           </Button>
         </div>
         {review.blocksPdf && (
-          <p className="rounded border border-rose-500 p-3 text-rose-200">
+          <p className="notice border-rose-500 p-3 text-rose-200">
             Corrija os itens ERROR antes de gerar o PDF final.{' '}
-            <Link className="text-cyan-300 underline" to={projectPath(record.localId, 'review')}>
+            <Link className="text-link" to={projectPath(record.localId, 'review')}>
               Abrir revisão
             </Link>
           </p>

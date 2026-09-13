@@ -31,13 +31,13 @@ export function ProcessOverview({ record }: { record: LocalProject }) {
   const withoutEvidence = data.activities.filter((item) => !item.evidenceIds.length).length;
   return (
     <section className="panel space-y-4">
-      <h2 className="text-xl font-semibold">Comprovantes e backup</h2>
+      <h2 className="section-title">Comprovantes e backup</h2>
       <p>Comprovantes cadastrados: {data.evidence.length} referência(s).</p>
       <p>
         Pendências: {withoutCriterion} lançamento(s) sem enquadramento completo; {withoutEvidence}{' '}
         sem comprovante associado.
       </p>
-      <Link className="text-cyan-300 underline" to={projectPath(record.localId, 'review')}>
+      <Link className="text-link" to={projectPath(record.localId, 'review')}>
         Conferir documentos na revisão
       </Link>
       <p>

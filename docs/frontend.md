@@ -40,3 +40,11 @@ Sidebar em desktop e Sheet com foco contido em telas menores; link de salto, tí
 O controle Aparência no cabeçalho oferece tema claro, escuro ou sincronizado com o sistema, texto
 ampliado, contraste reforçado e redução de movimentos. As escolhas são guardadas no `localStorage`
 do navegador e aplicadas antes da montagem da interface; não integram nem alteram os projetos.
+
+## Padrões visuais
+
+A interface usa tokens compartilhados de página, superfície, contorno, texto e destaque para que os
+temas mantenham a mesma hierarquia. Painéis, cartões internos, títulos de seção, links, campos,
+botões, avisos, métricas e superfícies sobrepostas têm classes semânticas comuns em
+`src/app/globals.css`. Componentes preservam sua composição funcional e não definem uma paleta
+própria para estruturas equivalentes.

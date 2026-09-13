@@ -52,7 +52,7 @@ export function ProjectHome({
         exporte uma cópia para guardar ou levar a outro computador.
       </p>
       <section aria-label="Novo projeto" className="panel">
-        <h2 className="mb-4 text-xl font-semibold">Novo projeto</h2>
+        <h2 className="mb-4 section-title">Novo projeto</h2>
         <form
           onSubmit={create}
           className="grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-[1fr_2fr_auto]"
@@ -92,13 +92,13 @@ export function ProjectHome({
       </section>
       <section aria-label="Projetos locais" className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Projetos locais</h2>
+          <h2 className="section-title">Projetos locais</h2>
           <Button variant="outline" disabled={busy} onClick={onRefresh}>
             Atualizar lista
           </Button>
         </div>
         {active && (
-          <Link className="text-cyan-300 underline" to={projectPath(active.localId)}>
+          <Link className="text-link" to={projectPath(active.localId)}>
             Continuar último projeto
           </Link>
         )}
@@ -119,9 +119,7 @@ export function ProjectHome({
                 className="panel min-w-0"
                 aria-label={projectTitle(record.project)}
               >
-                <h3 className="break-words text-lg font-semibold">
-                  {projectTitle(record.project)}
-                </h3>
+                <h3 className="break-words subsection-title">{projectTitle(record.project)}</h3>
                 <p className="mt-2 text-sm text-cyan-200">
                   {record.project.schemaVersion === '1.0'
                     ? 'Formato legado'
@@ -166,7 +164,7 @@ export function ProjectHome({
         </div>
       </section>
       <section className="panel" aria-label="Importar projeto">
-        <h2 className="text-xl font-semibold">Verificar arquivo de projeto</h2>
+        <h2 className="section-title">Verificar arquivo de projeto</h2>
         <ProjectImport disabled={busy} onImport={onCreate} />
       </section>
     </div>

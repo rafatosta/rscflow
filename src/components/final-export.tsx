@@ -49,13 +49,13 @@ export function FinalExport({
     <div className="space-y-6">
       <section className="panel space-y-5">
         <div>
-          <h2 className="text-xl font-semibold">Arquivos finais e cópia portátil</h2>
+          <h2 className="section-title">Arquivos finais e cópia portátil</h2>
           <p className="mt-2 text-slate-300">
             Os arquivos são preparados neste navegador e não são enviados para nenhum serviço.
           </p>
         </div>
         <dl className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded border border-slate-600 p-4">
+          <div className="subpanel">
             <dt className="text-sm text-slate-300">Último autosave</dt>
             <dd className="mt-1">
               <time dateTime={record.updatedAt}>
@@ -63,7 +63,7 @@ export function FinalExport({
               </time>
             </dd>
           </div>
-          <div className="rounded border border-slate-600 p-4">
+          <div className="subpanel">
             <dt className="text-sm text-slate-300">Revisão</dt>
             <dd className="mt-1">
               {review.counts.error} erro(s) e {review.counts.warning} aviso(s)
@@ -72,13 +72,13 @@ export function FinalExport({
         </dl>
 
         {review.blocksPdf && (
-          <div role="alert" className="rounded border border-rose-500 bg-rose-950/30 p-4">
+          <div role="alert" className="notice border-rose-500 bg-rose-950/30">
             <p className="font-semibold text-rose-200">PDF final bloqueado</p>
             <p className="mt-1 text-slate-200">
               Corrija os itens ERROR da revisão. O JSON continua disponível como cópia portátil.
             </p>
             <Link
-              className="mt-2 inline-block text-cyan-300 underline"
+              className="mt-2 inline-block text-link"
               to={projectPath(record.localId, 'review')}
             >
               Ver checklist de revisão
@@ -86,7 +86,7 @@ export function FinalExport({
           </div>
         )}
         {!review.blocksPdf && review.counts.warning > 0 && (
-          <p className="rounded border border-amber-500 bg-amber-950/20 p-4 text-amber-100">
+          <p className="notice border-amber-500 bg-amber-950/20 text-amber-100">
             Há avisos para conferir, mas eles não impedem a geração do PDF.
           </p>
         )}
@@ -97,9 +97,9 @@ export function FinalExport({
         )}
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <article className="rounded-lg border border-slate-600 p-5">
+          <article className="subpanel p-5">
             <FileSearch className="text-cyan-300" aria-hidden="true" />
-            <h3 className="mt-3 text-lg font-semibold">Memorial em PDF</h3>
+            <h3 className="mt-3 subsection-title">Memorial em PDF</h3>
             <p className="mt-2 break-all text-sm text-slate-300">
               Nome sugerido: <code>{memorialPdfFilename(project)}</code>
             </p>
@@ -112,9 +112,9 @@ export function FinalExport({
               {generating ? 'Gerando PDF…' : 'Gerar PDF'}
             </Button>
           </article>
-          <article className="rounded-lg border border-slate-600 p-5">
+          <article className="subpanel p-5">
             <FileJson className="text-cyan-300" aria-hidden="true" />
-            <h3 className="mt-3 text-lg font-semibold">Projeto em JSON</h3>
+            <h3 className="mt-3 subsection-title">Projeto em JSON</h3>
             <p className="mt-2 break-all text-sm text-slate-300">
               Nome sugerido: <code>{projectJsonFilename(project)}</code>
             </p>
@@ -132,7 +132,7 @@ export function FinalExport({
       </section>
 
       <section className="panel" aria-labelledby="import-another-title">
-        <h2 id="import-another-title" className="text-xl font-semibold">
+        <h2 id="import-another-title" className="section-title">
           Importar outra cópia JSON
         </h2>
         <p className="mt-2 text-slate-300">

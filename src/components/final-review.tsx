@@ -32,7 +32,7 @@ function Finding({ finding, localId }: { finding: ReviewFinding; localId: string
   const presentation = severityPresentation[finding.severity];
   const Icon = presentation.icon;
   return (
-    <li className={`rounded-lg border p-4 ${presentation.className}`}>
+    <li className={`notice ${presentation.className}`}>
       <div className="flex items-start gap-3">
         <Icon className={`mt-0.5 shrink-0 ${presentation.text}`} size={20} aria-hidden="true" />
         <div className="min-w-0 flex-1">
@@ -44,7 +44,7 @@ function Finding({ finding, localId }: { finding: ReviewFinding; localId: string
           </div>
           <p className="mt-2 leading-6 text-slate-200">{finding.message}</p>
           <Link
-            className="mt-3 inline-block text-sm text-cyan-300 underline"
+            className="mt-3 inline-block text-sm text-link"
             to={projectPath(localId, finding.section)}
           >
             Revisar {finding.label.toLowerCase()}
@@ -74,7 +74,7 @@ export function FinalReview({
             <CheckCircle2 className="mt-1 shrink-0 text-emerald-300" aria-hidden="true" />
           )}
           <div>
-            <h2 id="review-summary-title" className="text-xl font-semibold">
+            <h2 id="review-summary-title" className="section-title">
               {review.blocksPdf ? 'Correções necessárias' : 'Documento pronto para exportação'}
             </h2>
             <p className="mt-2 text-slate-300">
@@ -85,15 +85,15 @@ export function FinalReview({
           </div>
         </div>
         <dl className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded border border-rose-600 p-3">
+          <div className="metric border-rose-600">
             <dt className="text-sm text-rose-200">ERROR</dt>
             <dd className="text-2xl font-semibold">{review.counts.error}</dd>
           </div>
-          <div className="rounded border border-amber-600 p-3">
+          <div className="metric border-amber-600">
             <dt className="text-sm text-amber-200">WARNING</dt>
             <dd className="text-2xl font-semibold">{review.counts.warning}</dd>
           </div>
-          <div className="rounded border border-cyan-700 p-3">
+          <div className="metric border-cyan-700">
             <dt className="text-sm text-cyan-200">INFO</dt>
             <dd className="text-2xl font-semibold">{review.counts.info}</dd>
           </div>
@@ -103,7 +103,7 @@ export function FinalReview({
         </Button>
       </section>
       <section aria-labelledby="review-findings-title">
-        <h2 id="review-findings-title" className="mb-4 text-xl font-semibold">
+        <h2 id="review-findings-title" className="mb-4 section-title">
           Checklist final
         </h2>
         <ul className="space-y-3">

@@ -26,7 +26,7 @@ function LevelCards({ result }: { result: CalculationResult }) {
             ? undefined
             : result.levels.find((item) => item.level === level);
         return (
-          <article className="rounded-lg border border-slate-600 p-4" key={level}>
+          <article className="subpanel" key={level}>
             <h3 className="font-medium text-slate-300">{levelLabel(level)}</h3>
             <p className="mt-2 text-2xl font-semibold">
               {score ? numberLabel(score.score) : '—'} /{' '}
@@ -49,7 +49,7 @@ function UsedItems({ criteria }: { criteria: CriterionScore[] }) {
   return (
     <ul className="mt-3 space-y-2">
       {used.map((criterion) => (
-        <li className="rounded border border-slate-700 p-3" key={criterion.criterionId}>
+        <li className="subpanel p-3" key={criterion.criterionId}>
           <p className="font-medium">
             {criterion.code} — {criterion.description}
           </p>
@@ -80,7 +80,7 @@ export function ScoringDashboard({
         className="panel space-y-4"
         aria-labelledby={compact ? 'score-summary' : 'score-title'}
       >
-        <h2 id={compact ? 'score-summary' : 'score-title'} className="text-xl font-semibold">
+        <h2 id={compact ? 'score-summary' : 'score-title'} className="section-title">
           {compact ? 'Resumo da pontuação' : 'Resultado quantitativo'}
         </h2>
         <p role="status" className="font-medium text-amber-200">
@@ -90,7 +90,7 @@ export function ScoringDashboard({
         {!compact && (
           <>
             <LevelCards result={result} />
-            <div className="rounded-lg border border-slate-600 p-4">
+            <div className="subpanel">
               <h3 className="text-sm text-slate-400">Total geral</h3>
               <p className="mt-1 text-3xl font-semibold">—</p>
             </div>
@@ -134,7 +134,7 @@ export function ScoringDashboard({
       aria-labelledby={compact ? 'score-summary' : 'score-title'}
     >
       <div>
-        <h2 id={compact ? 'score-summary' : 'score-title'} className="text-xl font-semibold">
+        <h2 id={compact ? 'score-summary' : 'score-title'} className="section-title">
           {compact ? 'Resumo da pontuação' : 'Resultado quantitativo'}
         </h2>
         <p
@@ -155,7 +155,7 @@ export function ScoringDashboard({
       </div>
 
       <LevelCards result={result} />
-      <div className="grid gap-4 rounded-lg border border-slate-600 p-4 sm:grid-cols-3">
+      <div className="grid gap-4 subpanel sm:grid-cols-3">
         <div>
           <h3 className="text-sm text-slate-400">Total geral</h3>
           <p className="mt-1 text-3xl font-semibold">{numberLabel(result.total)}</p>
@@ -172,16 +172,13 @@ export function ScoringDashboard({
       {!compact && (
         <>
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold">Pontuação por diretriz</h3>
+            <h3 className="subsection-title">Pontuação por diretriz</h3>
             {result.directives.map((directive) => {
               const criteria = result.criteria.filter(
                 (criterion) => criterion.directiveId === directive.directiveId,
               );
               return (
-                <details
-                  className="rounded-lg border border-slate-600 p-4 open:bg-slate-900"
-                  key={directive.directiveId}
-                >
+                <details className="subpanel open:bg-slate-900" key={directive.directiveId}>
                   <summary className="cursor-pointer font-medium">
                     {levelLabel(directive.level)} · {directive.title} —{' '}
                     {numberLabel(directive.score)} / {numberLabel(directive.maxScore)}

@@ -3,23 +3,20 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '@/utils/cn';
 
-const buttonVariants = cva(
-  'inline-flex min-h-11 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:pointer-events-none disabled:opacity-50',
-  {
-    variants: {
-      variant: {
-        default: 'bg-cyan-500 text-slate-950 hover:bg-cyan-400',
-        outline: 'border border-slate-500 bg-transparent hover:bg-slate-800',
-      },
-      size: {
-        default: 'px-4 py-2',
-        sm: 'min-h-10 rounded-md px-3 py-1.5',
-        lg: 'px-8 py-2.5',
-      },
+const buttonVariants = cva('button-base', {
+  variants: {
+    variant: {
+      default: 'button-primary',
+      outline: 'button-outline',
     },
-    defaultVariants: { variant: 'default', size: 'default' },
+    size: {
+      default: 'px-4 py-2.5',
+      sm: 'min-h-10 px-3 py-1.5',
+      lg: 'px-8 py-3',
+    },
   },
-);
+  defaultVariants: { variant: 'default', size: 'default' },
+});
 
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {

@@ -93,7 +93,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
       <NavLink
         to="/"
         end
-        className={({ isActive }) => `nav-link ${isActive ? 'bg-slate-800 text-cyan-200' : ''}`}
+        className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}
       >
         <FolderOpen size={18} aria-hidden="true" />
         Meus projetos
@@ -111,9 +111,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
                   key={path}
                   end
                   to={projectPath(route.id, path)}
-                  className={({ isActive }) =>
-                    `nav-link ${isActive ? 'bg-slate-800 text-cyan-200' : ''}`
-                  }
+                  className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}
                 >
                   {label}
                 </NavLink>
@@ -125,7 +123,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50">
+    <div className="app-shell min-h-screen">
       <a
         href="#main-content"
         onClick={(event) => {
@@ -136,7 +134,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
       >
         Ir para o conteúdo
       </a>
-      <aside className="fixed inset-y-0 left-0 hidden w-64 overflow-y-auto border-r border-slate-700 bg-slate-900 p-5 lg:block">
+      <aside className="app-sidebar fixed inset-y-0 left-0 hidden w-64 overflow-y-auto p-5 lg:block">
         <div className="mb-8 flex items-center gap-3 text-lg font-semibold text-cyan-200">
           <FileText aria-hidden="true" />
           RSCFlow
@@ -147,7 +145,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
         </p>
       </aside>
       <div className="min-w-0 lg:pl-64">
-        <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-slate-700 bg-slate-950/95 px-4 py-3 backdrop-blur sm:px-8">
+        <header className="app-header sticky top-0 z-20 flex flex-wrap items-center gap-3 px-4 py-3 backdrop-blur sm:px-8">
           <div className="lg:hidden">
             <Sheet
               title="Navegação"

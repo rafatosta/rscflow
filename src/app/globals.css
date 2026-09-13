@@ -9,6 +9,28 @@
     --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
     --radius: 0.5rem;
+    --page: 2 6 23;
+    --surface: 15 23 42;
+    --surface-raised: 30 41 59;
+    --line: 51 65 85;
+    --line-strong: 100 116 139;
+    --ink: 248 250 252;
+    --ink-muted: 203 213 225;
+    --ink-subtle: 148 163 184;
+    --accent: 34 211 238;
+    --focus: 103 232 249;
+  }
+  html[data-theme='light'] {
+    --page: 248 250 252;
+    --surface: 255 255 255;
+    --surface-raised: 241 245 249;
+    --line: 203 213 225;
+    --line-strong: 100 116 139;
+    --ink: 15 23 42;
+    --ink-muted: 51 65 85;
+    --ink-subtle: 71 85 105;
+    --accent: 7 89 133;
+    --focus: 8 145 178;
   }
   html[data-text-size='large'] {
     font-size: 112.5%;
@@ -17,8 +39,28 @@
     @apply border-slate-200;
   }
   body {
-    @apply m-0 bg-white text-slate-950 antialiased;
+    @apply m-0 antialiased;
+    background: rgb(var(--page));
+    color: rgb(var(--ink));
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  label {
+    @apply text-sm font-medium;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: rgb(var(--accent));
+  }
+  progress {
+    height: 0.625rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    accent-color: rgb(var(--accent));
   }
   :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
     @apply outline outline-2 outline-offset-2 outline-cyan-300;
@@ -125,14 +167,130 @@
 }
 
 @layer components {
+  .app-shell {
+    background:
+      radial-gradient(circle at 85% 0%, rgb(var(--accent) / 0.07), transparent 26rem),
+      rgb(var(--page));
+    color: rgb(var(--ink));
+  }
+  .app-sidebar {
+    border-right: 1px solid rgb(var(--line));
+    background: rgb(var(--surface) / 0.98);
+    color: rgb(var(--ink));
+  }
+  .app-header {
+    border-bottom: 1px solid rgb(var(--line));
+    background: rgb(var(--page) / 0.9);
+    box-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
+  }
   .field {
-    @apply mt-1 block w-full min-w-0 rounded-md border border-slate-500 bg-slate-950 p-2.5 text-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300;
+    @apply mt-1.5 block min-h-11 w-full min-w-0 rounded-lg border px-3 py-2.5 transition-colors;
+    border-color: rgb(var(--line-strong));
+    background: rgb(var(--page));
+    color: rgb(var(--ink));
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08);
+  }
+  .field:hover:not(:disabled) {
+    border-color: rgb(var(--accent));
+  }
+  .field:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+  .field::placeholder {
+    color: rgb(var(--ink-subtle));
   }
   .panel {
-    @apply min-w-0 rounded-xl border border-slate-700 bg-slate-900 p-5 sm:p-6;
+    @apply min-w-0 rounded-2xl border p-5 sm:p-6;
+    border-color: rgb(var(--line));
+    background: rgb(var(--surface));
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.08);
+  }
+  .dialog-surface {
+    @apply rounded-2xl border shadow-2xl;
+    border-color: rgb(var(--line));
+    background: rgb(var(--surface));
+    color: rgb(var(--ink));
+  }
+  .button-base {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-transparent text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 disabled:pointer-events-none;
+    --tw-ring-offset-color: rgb(var(--page));
+  }
+  .button-base:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .button-base:disabled {
+    border-color: rgb(var(--line));
+    background: rgb(var(--surface-raised));
+    color: rgb(var(--ink-subtle));
+    box-shadow: none;
+  }
+  .button-primary {
+    background: rgb(34 211 238);
+    color: rgb(8 47 73);
+    box-shadow: 0 6px 16px rgb(8 145 178 / 0.18);
+  }
+  .button-primary:hover {
+    background: rgb(103 232 249);
+  }
+  .button-outline {
+    border-color: rgb(var(--line-strong));
+    background: rgb(var(--surface) / 0.45);
+    color: rgb(var(--ink));
+  }
+  .button-outline:hover {
+    border-color: rgb(var(--accent));
+    background: rgb(var(--surface-raised));
   }
   .nav-link {
-    @apply flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-slate-200 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300;
+    @apply flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-medium transition-colors;
+    color: rgb(var(--ink-muted));
+  }
+  .nav-link:hover {
+    background: rgb(var(--surface-raised));
+    color: rgb(var(--ink));
+  }
+  .nav-link-active {
+    border-color: rgb(var(--accent) / 0.3);
+    background: rgb(var(--accent) / 0.12);
+    color: rgb(var(--accent));
+  }
+  .text-link {
+    @apply rounded-sm font-medium underline decoration-1 underline-offset-4;
+    color: rgb(var(--accent));
+  }
+  .text-link:hover {
+    text-decoration-thickness: 2px;
+  }
+  .section-title {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  .subsection-title {
+    @apply text-lg font-semibold tracking-tight;
+  }
+  .subpanel {
+    @apply rounded-xl border p-4;
+    border-color: rgb(var(--line));
+    background: rgb(var(--surface-raised) / 0.45);
+  }
+  .empty-state {
+    @apply rounded-xl border border-dashed p-5;
+    border-color: rgb(var(--line-strong));
+    background: rgb(var(--surface-raised) / 0.25);
+    color: rgb(var(--ink-muted));
+  }
+  .notice {
+    @apply rounded-xl border p-4;
+  }
+  .metric {
+    @apply rounded-xl border p-3;
+    background: rgb(var(--surface-raised) / 0.35);
+  }
+  .file-field {
+    @apply mt-3 block min-h-11 w-full min-w-0 rounded-lg border p-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-cyan-300 file:px-3 file:py-2 file:font-semibold file:text-slate-950;
+    border-color: rgb(var(--line-strong));
+    background: rgb(var(--page));
+    color: rgb(var(--ink));
   }
   .a4-page {
     container-type: inline-size;

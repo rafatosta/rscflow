@@ -51,7 +51,7 @@ export function ProjectSection(props: Props) {
           novo projeto.
         </p>
         <Button onClick={props.onExport}>Exportar dados antigos</Button>
-        <Link to="/" className="block text-cyan-300 underline">
+        <Link to="/" className="block text-link">
           Meus projetos
         </Link>
       </section>
@@ -70,7 +70,7 @@ export function ProjectSection(props: Props) {
     return (
       <div className="space-y-5">
         <section className="panel space-y-3">
-          <h2 className="text-xl font-semibold">{data.title}</h2>
+          <h2 className="section-title">{data.title}</h2>
           <p>
             Docente: {data.teacher.name || 'Não informado'} ·{' '}
             {data.request ? levelLabel(data.request.level) : 'RSC não informado'}
@@ -86,10 +86,7 @@ export function ProjectSection(props: Props) {
           <ul className="space-y-2">
             {progress.items.map((item) => (
               <li key={item.label}>
-                <Link
-                  className="text-cyan-300 underline"
-                  to={projectPath(record.localId, item.section)}
-                >
+                <Link className="text-link" to={projectPath(record.localId, item.section)}>
                   {item.complete ? '✓ ' : '○ '}
                   {item.label}
                 </Link>

@@ -92,7 +92,7 @@ export function TeacherProfileForm({ project, disabled, onSave }: Props) {
   return (
     <section className="panel space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Dados pessoais e funcionais</h2>
+        <h2 className="section-title">Dados pessoais e funcionais</h2>
         <p id="required-fields" className="mt-2 text-sm leading-6 text-slate-300">
           Campos com <span aria-hidden="true">*</span> são obrigatórios para concluir esta seção.
           Alterações válidas são salvas automaticamente.
@@ -140,7 +140,7 @@ export function TeacherProfileForm({ project, disabled, onSave }: Props) {
           />
           <Field id="role" label="Cargo" error={errors.role} register={register} />
           <div className="sm:col-span-2">
-            <h3 className="text-lg font-semibold">Instituição de vínculo</h3>
+            <h3 className="subsection-title">Instituição de vínculo</h3>
           </div>
           <Field
             id="institution"
@@ -180,7 +180,7 @@ export function TeacherProfileForm({ project, disabled, onSave }: Props) {
             register={register}
           />
           <div className="sm:col-span-2">
-            <h3 className="text-lg font-semibold">Requerimento</h3>
+            <h3 className="subsection-title">Requerimento</h3>
           </div>
           <Field
             id="employmentStatus"

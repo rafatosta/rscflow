@@ -6,6 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Padrões visuais compartilhados para superfícies, títulos, cartões, campos, botões, links, avisos
+  e sobreposições, preservando os fluxos e a organização funcional existentes.
+
 - Temas claro, escuro e sincronizado com o sistema, com preferências locais para texto ampliado,
   contraste reforçado e redução de movimentos, sem alterar a estrutura das telas.
 - Prévia A4 do memorial disponível também como item do menu principal, mantendo o acesso pela

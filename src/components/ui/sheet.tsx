@@ -22,7 +22,7 @@ export function Sheet({
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 left-0 z-50 w-80 max-w-[90vw] overflow-y-auto border-r border-slate-700 bg-slate-900 p-5 text-slate-50 shadow-xl"
+          className="dialog-surface fixed inset-y-0 left-0 z-50 w-80 max-w-[90vw] overflow-y-auto rounded-none border-y-0 border-l-0 p-5"
         >
           <div className="mb-6 flex items-center justify-between gap-4">
             <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>

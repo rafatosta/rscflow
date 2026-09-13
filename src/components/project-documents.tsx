@@ -41,7 +41,7 @@ export function ProjectDocuments({
   }, [files, resolver, revision]);
   return (
     <section className="panel space-y-3">
-      <h2 className="text-xl font-semibold">Documentos comprobatórios</h2>
+      <h2 className="section-title">Documentos comprobatórios</h2>
       <p role="status">
         {Object.values(checks).filter((value) => value === 'Disponível').length} de {files.length}{' '}
         arquivos disponíveis{Object.keys(checks).length < files.length ? ' · Verificando…' : ''}
@@ -56,7 +56,7 @@ export function ProjectDocuments({
           </Button>
           <ul className="space-y-3">
             {files.map((file) => (
-              <li key={file.id} className="rounded border border-slate-600 p-3 break-words">
+              <li key={file.id} className="subpanel p-3 break-words">
                 <p>
                   {file.name} · {file.size} bytes
                 </p>

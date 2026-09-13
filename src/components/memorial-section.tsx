@@ -63,7 +63,7 @@ export function MemorialSection({
     <div className="space-y-6">
       <section className="panel space-y-5">
         <div>
-          <h2 className="text-xl font-semibold">Editor do Memorial Descritivo</h2>
+          <h2 className="section-title">Editor do Memorial Descritivo</h2>
           <p className="mt-2 text-sm leading-6 text-slate-300">
             Os textos-base são gerados localmente a partir dos dados cadastrados. Você pode editar
             todo o conteúdo antes da prévia.
@@ -118,7 +118,7 @@ export function MemorialSection({
         return (
           <section className="panel space-y-4" key={section.id} aria-labelledby={section.id}>
             <div>
-              <h2 id={section.id} className="text-xl font-semibold">
+              <h2 id={section.id} className="section-title">
                 {section.title}
               </h2>
               <p className="mt-1 text-sm text-slate-400">
@@ -145,7 +145,7 @@ export function MemorialSection({
               const generated = generateActivityText(activity, evidences);
               const outdated = activityTextIsOutdated(activity, evidences);
               return (
-                <article className="rounded-lg border border-slate-600 p-4" key={activity.id}>
+                <article className="subpanel" key={activity.id}>
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h3 className="font-semibold">{activity.title}</h3>
                     <span className="text-sm text-slate-300">
@@ -153,10 +153,7 @@ export function MemorialSection({
                     </span>
                   </div>
                   {outdated && (
-                    <div
-                      className="mt-3 rounded border border-amber-500 p-3 text-amber-100"
-                      role="alert"
-                    >
+                    <div className="notice mt-3 border-amber-500 p-3 text-amber-100" role="alert">
                       <p>Os dados estruturados mudaram depois da última geração.</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button
@@ -219,7 +216,7 @@ export function MemorialSection({
       })}
 
       <section className="panel">
-        <h2 className="text-xl font-semibold">Conclusão</h2>
+        <h2 className="section-title">Conclusão</h2>
         <label className="mt-4 block" htmlFor="memorial-conclusion">
           Texto da conclusão
         </label>
