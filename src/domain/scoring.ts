@@ -1,4 +1,6 @@
+import type { Evidence } from './models';
 import type { RscLevel } from './regulation';
+import type { StoredFile } from './criterion-entry';
 
 export type CalculationIssue = {
   code:
@@ -9,6 +11,7 @@ export type CalculationIssue = {
     | 'regulation-mismatch'
     | 'missing-request'
     | 'invalid-selection'
+    | 'normative-conflict'
     | 'numeric-range';
   message: string;
   activityId?: string;
@@ -55,14 +58,48 @@ export type ScoringPolicySummary = {
   minimumRequestedLevel: number;
   requestedLevel?: RscLevel;
 };
+export type NormativeValidation = {
+  status: 'validated' | 'provisional';
+  message?: string;
+};
+export type RequirementProof = Evidence & { files: StoredFile[] };
+export type RequirementLaunch = {
+  id: string;
+  title: string;
+  quantity: number;
+  proofs: RequirementProof[];
+};
+/**
+ * Projeção derivada do projeto e do catálogo. Não é persistida nem substitui o motor de cálculo.
+ * `calculatedScore` ainda não aplica o teto da quantidade; `consideredScore` já o respeita.
+ */
+export type RequirementProjection = {
+  level: RscLevel;
+  criterionId: string;
+  code: string;
+  description: string;
+  unit: string;
+  launches: RequirementLaunch[];
+  quantity: number;
+  consideredQuantity: number;
+  pointsPerUnit: number;
+  weight: number;
+  calculatedScore: number;
+  maximumQuantity: number;
+  directiveMaximumScore: number;
+  consideredScore: number;
+  validation: NormativeValidation;
+};
 export type CalculationResult =
   | { status: 'unavailable'; issues: CalculationIssue[]; policy?: ScoringPolicySummary }
   | {
       status: 'quantitative-requirements-met' | 'quantitative-requirements-not-met';
-      regulation: { id: string; version: string };
+      regulation: { id: string; version: string | null };
       policy: ScoringPolicySummary & { requestedLevel: RscLevel };
+      validation: NormativeValidation;
       activities: ActivityScore[];
       criteria: CriterionScore[];
+      requirementProjection: RequirementProjection[];
       directives: DirectiveScore[];
       levels: LevelScore[];
       rawTotal: number;

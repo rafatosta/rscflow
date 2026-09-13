@@ -15,6 +15,8 @@ The application is layered to keep legal/normative decisions auditable and indep
 
 React components may present outcomes but must never contain normative criteria or scoring logic.
 
+`calculateProjectScore` também entrega a projeção por requisito consumida pela interface. Ela reúne pontuação e vínculos documentais sem duplicar a resolução de critérios, tetos ou parâmetros do catálogo em componentes, memorial ou futuros geradores.
+
 ## Dependências entre camadas
 
 | Camada             | Pode depender de                                                                  | Não pode depender de                                      |

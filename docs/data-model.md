@@ -14,6 +14,8 @@
 
 `activityProjectView` continua sendo uma projeção transitória para regras, memorial e PDF. O antigo adaptador de reconciliação dos formulários foi removido: a interface atualiza 3.0 diretamente. A exportação usa o envelope real, nunca a projeção.
 
+Quando o cálculo está disponível, `CalculationResult.requirementProjection` consolida cada requisito com seus lançamentos, evidências e descritores de arquivo, quantidade informada e considerada, fator, peso, pontuação antes/depois do teto do item, teto da diretriz e estado de validação. É uma visão derivada para interface e futuros artefatos; não replica parâmetros normativos nem grava resultados no projeto.
+
 Docente aceita `institution` e `employmentStatus` opcionais, além dos campos pessoais/funcionais existentes. Lançamentos recebem critério e nível do contexto; datas são ISO, quantidade finita não negativa, descrição opcional. Nenhuma constante normativa é copiada para o projeto. Validação estrutural não certifica enquadramento normativo.
 
 ## IndexedDB v2

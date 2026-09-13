@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { migrateProject } from '@/domain/project-migration';
 import { calculateActivity, calculateProjectScore, roundFinalScore } from '@/rules/scoring';
-import { loadIfbaRegulation } from '@/data/regulations/load';
 import { scoringFixture } from '../fixtures/scoring';
 
 function successful(result: ReturnType<typeof calculateProjectScore>) {
@@ -214,13 +214,15 @@ describe('motor de pontuação', () => {
     expect(result.levels.map((level) => level.score)).toEqual([0, 14, 46]);
     expect(result.total).toBe(60);
   });
-  it('bloqueia dataset pendente sem oferecer total enganoso', () => {
-    const result = calculateProjectScore(scoringFixture().project, loadIfbaRegulation());
-    expect(result).toMatchObject({ status: 'unavailable', issues: [{ code: 'pending-dataset' }] });
+  it('mantém a projeção calculável como provisória com catálogo pendente', () => {
+    const { dataset, project } = scoringFixture();
+    dataset.metadata.status = 'pending-official-validation';
+    const result = successful(calculateProjectScore(project, dataset));
     expect(result).toMatchObject({
+      validation: { status: 'provisional' },
       policy: { maximumLevelScore: 100, minimumTotal: 60, minimumRequestedLevel: 36 },
     });
-    expect(result).not.toHaveProperty('total');
+    expect(result.total).toBe(60);
   });
   it('bloqueia política ausente ou pendente', () => {
     const { dataset, project } = scoringFixture();
@@ -232,6 +234,45 @@ describe('motor de pontuação', () => {
     delete dataset.metadata.scoring;
     expect(calculateProjectScore(project, dataset).status).toBe('unavailable');
     expect(roundFinalScore(1, undefined).status).toBe('unavailable');
+  });
+  it('consolida por requisito lançamentos, limites, pontuação e comprovantes', () => {
+    const { dataset, project } = scoringFixture();
+    const occurrenceProject = migrateProject(project).project;
+    occurrenceProject.userData.criterionEntries[0].occurrences[0].evidenceIds = ['proof'];
+    occurrenceProject.userData.evidence = [
+      { id: 'proof', title: 'Comprovante', fileIds: ['file'] },
+    ];
+    occurrenceProject.userData.storedFiles = [
+      {
+        id: 'file',
+        name: 'comprovante.pdf',
+        mediaType: 'application/pdf',
+        size: 1,
+        sha256: 'a'.repeat(64),
+      },
+    ];
+
+    const result = successful(calculateProjectScore(occurrenceProject, dataset));
+    expect(result.requirementProjection[0]).toMatchObject({
+      level: 'rsc-i',
+      criterionId: 'rsc-i-a-1',
+      quantity: 36,
+      consideredQuantity: 36,
+      pointsPerUnit: 1,
+      weight: 1,
+      calculatedScore: 36,
+      maximumQuantity: 100,
+      directiveMaximumScore: 100,
+      consideredScore: 36,
+      validation: { status: 'validated' },
+      launches: [
+        {
+          id: 'activity-0',
+          quantity: 36,
+          proofs: [{ id: 'proof', files: [{ id: 'file', name: 'comprovante.pdf' }] }],
+        },
+      ],
+    });
   });
   it.each([
     { factor: -1 },

@@ -12,6 +12,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Projeção derivada por requisito na pontuação do projeto, com lançamentos, comprovantes,
+  quantidades, limites, valores calculados e estado de validação normativa.
+
 - Projeto demonstrativo inteiramente fictício de RSC III, com formação, lançamentos dos três
   níveis, memorial, descritores e oito comprovantes PDF locais sem validade.
 

@@ -1,7 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, it } from 'vitest';
 import { ScoringDashboard } from '@/components/scoring-dashboard';
-import { loadIfbaRegulation } from '@/data/regulations/load';
 import { calculateProjectScore } from '@/rules/scoring';
 import { scoringFixture } from '../fixtures/scoring';
 
@@ -91,18 +90,20 @@ it('distingue requisitos ainda não atingidos por texto e símbolo', () => {
   expect(screen.getAllByText('○', { selector: '[aria-hidden="true"]' }).length).toBeGreaterThan(0);
 });
 
-it('mostra cálculo parcial sem transformar ausência normativa em zero', () => {
-  const { project } = scoringFixture();
-  render(<ScoringDashboard result={calculateProjectScore(project, loadIfbaRegulation())} />);
-  expect(screen.getByText('Cálculo parcial')).toBeVisible();
+it('identifica pontuação provisória sem ocultar os valores calculados', () => {
+  const { dataset, project } = scoringFixture();
+  dataset.metadata.status = 'pending-official-validation';
+  render(<ScoringDashboard result={calculateProjectScore(project, dataset)} />);
+  expect(
+    screen.getByText('Pontuação provisória, ainda não validada por conferência humana.'),
+  ).toBeVisible();
   expect(screen.getByText('Mínimo total: 60')).toBeVisible();
-  expect(screen.getByText('Mínimo no nível pretendido: 36')).toBeVisible();
+  expect(screen.getByText('Mínimo em RSC I: 36 / 36')).toBeVisible();
   expect(screen.getByRole('heading', { name: 'Total geral' }).nextElementSibling).toHaveTextContent(
-    '—',
+    '60',
   );
   for (const level of ['RSC I', 'RSC II', 'RSC III'])
     expect(screen.getByRole('heading', { name: level }).nextElementSibling).toHaveTextContent(
-      '— / 100',
+      /\d+ \/ 100/,
     );
-  expect(screen.getByText(/Pontuações ausentes não são tratadas como zero/)).toBeVisible();
 });

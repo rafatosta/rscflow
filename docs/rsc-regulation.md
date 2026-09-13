@@ -52,14 +52,15 @@ Os JSONs em `src/data/regulations/ifba-189-2026/` são a representação normati
 aplicação e foram transcritos dos Anexos IV, V e VI da Resolução nº 189/2026. RSC I contém 8
 diretrizes e 48 critérios; RSC II, 7 e 36; RSC III, 7 e 53. Permanecem pendentes de validação humana
 final, com versão normativa null. A conferência estrutural e da política de cálculo não promove o
-catálogo a validado; o motor consolidado retorna `unavailable`, sem total.
+catálogo a validado; o motor mantém o resultado como provisório.
 
-Decisão do mantenedor em 13/09/2026: a pendência de validação humana não bloqueia a pontuação
-isolada de requisitos e lançamentos. `calculateRequirementScore` usa os parâmetros transcritos,
-consolida as quantidades do requisito com aritmética decimal e aplica o limite do item, fator e peso,
-sem os tetos da diretriz ou do nível. A interface marca o resultado como provisório e ainda não
-validado. Não se altera o status ou a versão do catálogo, nem se liberam totais do projeto. Conflitos
-normativos explícitos continuam bloqueados, sem resolver a ambiguidade por inferência.
+Decisão do mantenedor em 13/09/2026, consolidada para o projeto: a pendência de validação humana
+não bloqueia a pontuação de requisitos e lançamentos. `calculateRequirementScore` usa os parâmetros
+transcritos, consolida as quantidades do requisito com aritmética decimal e aplica o limite do item,
+fator e peso. A projeção consolidada aplica também os tetos já definidos
+para diretriz e nível, preservando a aritmética do motor. A interface marca o resultado como
+provisório e ainda não validado. Não se altera o status ou a versão do catálogo. Conflitos normativos
+explícitos continuam bloqueados, sem resolver a ambiguidade por inferência.
 
 O explorador de critérios lê diretamente níveis, diretrizes, critérios e proveniência. A busca e a
 apresentação não mantêm cópias de fator, unidade, peso, quantidade máxima, descrição ou teto. Assim,

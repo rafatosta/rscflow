@@ -193,11 +193,23 @@ export function RequirementsSection({
                           entry.criterionId === criterion.id && entry.selectedLevel === level,
                       )
                       .flatMap((entry) => entry.occurrences);
-                    const points = requirementPoints(
-                      dataset!,
-                      criterion,
-                      entries.map((entry) => entry.quantity),
-                    );
+                    const projection =
+                      scoring.status === 'unavailable'
+                        ? undefined
+                        : scoring.requirementProjection.find(
+                            (item) => item.criterionId === criterion.id && item.level === level,
+                          );
+                    const points = projection
+                      ? {
+                          status: 'available' as const,
+                          score: projection.consideredScore,
+                          unvalidated: projection.validation.status === 'provisional',
+                        }
+                      : requirementPoints(
+                          dataset!,
+                          criterion,
+                          entries.map((entry) => entry.quantity),
+                        );
                     return (
                       <article
                         key={criterion.id}
@@ -234,15 +246,25 @@ export function RequirementsSection({
                           </div>
                           <div className="requirement-metric">
                             <dt>Valor por unidade</dt>
-                            <dd>{criterion.factor.toLocaleString('pt-BR')}</dd>
+                            <dd>
+                              {(projection?.pointsPerUnit ?? criterion.factor).toLocaleString(
+                                'pt-BR',
+                              )}
+                            </dd>
                           </div>
                           <div className="requirement-metric">
                             <dt>Peso</dt>
-                            <dd>{criterion.weight.toLocaleString('pt-BR')}</dd>
+                            <dd>
+                              {(projection?.weight ?? criterion.weight).toLocaleString('pt-BR')}
+                            </dd>
                           </div>
                           <div className="requirement-metric">
                             <dt>Máximo considerado</dt>
-                            <dd>{criterion.maxQuantity.toLocaleString('pt-BR')}</dd>
+                            <dd>
+                              {(
+                                projection?.maximumQuantity ?? criterion.maxQuantity
+                              ).toLocaleString('pt-BR')}
+                            </dd>
                           </div>
                         </dl>
                         {criterion.provenance.issue && (

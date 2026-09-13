@@ -71,9 +71,25 @@ describe('integridade da transcrição pendente dos Anexos IV, V e VI', () => {
         },
       }),
     ).toMatchObject({ status: 'unavailable' });
-    expect(calculateProjectScore(scoringFixture().project, dataset)).toMatchObject({
+    const { dataset: projectDataset, project } = scoringFixture();
+    const directive = dataset.levels[1].directives.find(
+      (item) => item.id === criterion!.directiveId,
+    );
+    projectDataset.metadata.status = 'pending-official-validation';
+    projectDataset.levels[1].status = 'pending-official-validation';
+    projectDataset.levels[1].directives[0] = structuredClone(directive!);
+    projectDataset.levels[1].criteria[0] = {
+      ...structuredClone(criterion!),
+      directiveId: directive!.id,
+    };
+    project.userData.activities[1] = {
+      ...project.userData.activities[1],
+      criterionId: criterion!.id,
+      selectedLevel: 'rsc-ii',
+    };
+    expect(calculateProjectScore(project, projectDataset)).toMatchObject({
       status: 'unavailable',
-      issues: [{ code: 'pending-dataset' }],
+      issues: [{ code: 'normative-conflict' }],
     });
   });
 });

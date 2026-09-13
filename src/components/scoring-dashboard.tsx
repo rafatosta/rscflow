@@ -137,6 +137,12 @@ export function ScoringDashboard({
         <h2 id={compact ? 'score-summary' : 'score-title'} className="section-title">
           {compact ? 'Resumo da pontuação' : 'Resultado quantitativo'}
         </h2>
+        {result.validation.status === 'provisional' && (
+          <p role="status" className="mt-2 font-medium text-amber-200">
+            <span aria-hidden="true">○ </span>
+            {result.validation.message}
+          </p>
+        )}
         <p
           role="status"
           className={`mt-2 font-medium ${

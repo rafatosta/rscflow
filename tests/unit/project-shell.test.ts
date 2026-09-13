@@ -33,7 +33,7 @@ describe('rotas e rascunhos do shell', () => {
     expect(parseRoute('/')).toEqual({ kind: 'home' });
     expect(parseRoute(projectPath('id com espaço'))).toMatchObject({ id: 'id com espaço' });
   });
-  it('cria apenas com nível/dataset e mantém pendência explícita no round-trip', () => {
+  it('cria apenas com nível/dataset e mantém rascunho incompleto no round-trip', () => {
     const draft = createDraft('rsc-ii', datasets[0].metadata.regulation.id);
     expect(draft).toMatchObject({
       schemaVersion: '3.0',
@@ -43,7 +43,7 @@ describe('rotas e rascunhos do shell', () => {
     expect(projectExportSchema.parse(JSON.parse(exportProject(draft)))).toEqual(draft);
     expect(projectScoring(draft)).toMatchObject({
       status: 'unavailable',
-      issues: [{ code: 'pending-dataset' }],
+      issues: [{ code: 'invalid-project' }],
     });
     expect(() => createDraft('rsc-i', 'inexistente')).toThrow();
   });

@@ -1,4 +1,5 @@
-import { occurrenceProjectExportSchema } from '@/domain/criterion-entry';
+import { occurrenceProjectExportSchema, type StoredFile } from '@/domain/criterion-entry';
+import type { Evidence } from '@/domain/models';
 import { activityProjectView } from '@/domain/project-migration';
 import { currentProjectExportSchema } from '@/domain/project';
 import {
@@ -14,6 +15,9 @@ import type {
   CriterionScore,
   DirectiveScore,
   LevelScore,
+  NormativeValidation,
+  RequirementLaunch,
+  RequirementProjection,
   ScoringPolicySummary,
 } from '@/domain/scoring';
 import { Decimal } from './decimal';
@@ -110,6 +114,33 @@ export function roundFinalScore(
   }
 }
 
+function validation(datasetStatus: string): NormativeValidation {
+  return datasetStatus === 'validated'
+    ? { status: 'validated' }
+    : {
+        status: 'provisional',
+        message: 'Pontuação provisória, ainda não validada por conferência humana.',
+      };
+}
+
+function launchProofs(
+  activity: { evidenceIds: string[] },
+  evidence: Map<string, Evidence & { fileIds?: string[] }>,
+  files: Map<string, StoredFile>,
+) {
+  return activity.evidenceIds.flatMap((id) => {
+    const item = evidence.get(id);
+    if (!item) return [];
+    const { fileIds = [], ...proof } = item;
+    return [
+      {
+        ...proof,
+        files: fileIds.flatMap((fileId) => (files.has(fileId) ? [files.get(fileId)!] : [])),
+      },
+    ];
+  });
+}
+
 /** Cálculo derivado e puro: não grava resultados nem altera projeto/dataset. */
 export function calculateProjectScore(
   projectInput: unknown,
@@ -120,9 +151,7 @@ export function calculateProjectScore(
     return unavailable('invalid-dataset', 'Dataset estruturalmente inválido.');
   const dataset = datasetResult.data;
   const policy = dataset.metadata.scoring;
-  const policyAvailable = Boolean(
-    policy && policy.provenance.status === 'validated' && policy.provenance.validatedBy,
-  );
+  const policyAvailable = Boolean(policy);
   const policySummary: ScoringPolicySummary | undefined = policyAvailable
     ? {
         maximumLevelScore: policy!.maximumLevelScore,
@@ -130,12 +159,6 @@ export function calculateProjectScore(
         minimumRequestedLevel: policy!.minimumRequestedLevel,
       }
     : undefined;
-  if (dataset.metadata.status !== 'validated')
-    return unavailable(
-      'pending-dataset',
-      'Dataset normativo pendente de validação.',
-      policySummary,
-    );
   if (!policy || policy.provenance.status !== 'validated' || !policy.provenance.validatedBy)
     return unavailable('pending-policy', 'Política de cálculo pendente de validação.');
   const occurrenceInput = occurrenceProjectExportSchema.safeParse(projectInput);
@@ -150,6 +173,15 @@ export function calculateProjectScore(
       policySummary,
     );
   const project = projectResult.data;
+  const occurrenceProject = occurrenceProjectExportSchema.safeParse(projectInput);
+  const sourceEvidence = new Map(project.userData.evidence.map((item) => [item.id, item] as const));
+  if (occurrenceProject.success)
+    occurrenceProject.data.userData.evidence.forEach((item) => sourceEvidence.set(item.id, item));
+  const sourceFiles = new Map(
+    occurrenceProject.success
+      ? occurrenceProject.data.userData.storedFiles.map((item) => [item.id, item] as const)
+      : [],
+  );
   if (
     project.regulation.id !== dataset.metadata.regulation.id ||
     project.regulation.version !== dataset.metadata.version
@@ -164,11 +196,18 @@ export function calculateProjectScore(
   const issues: CalculationIssue[] = [];
   for (const activity of project.userData.activities) {
     const level = dataset.levels.find((item) => item.section === activity.selectedLevel);
-    if (!level?.criteria.some((criterion) => criterion.id === activity.criterionId))
+    const criterion = level?.criteria.find((item) => item.id === activity.criterionId);
+    if (!criterion)
       issues.push({
         code: 'invalid-selection',
         activityId: activity.id,
         message: 'Escolha um único nível e um critério pertencente a ele.',
+      });
+    else if (criterion.provenance.issue)
+      issues.push({
+        code: 'normative-conflict',
+        activityId: activity.id,
+        message: 'O requisito selecionado possui conflito normativo pendente de validação.',
       });
   }
   if (issues.length) return { status: 'unavailable', issues };
@@ -176,6 +215,7 @@ export function calculateProjectScore(
   try {
     const activities: ActivityScore[] = [];
     const criteria: CriterionScore[] = [];
+    const requirementProjection: RequirementProjection[] = [];
     const directives: DirectiveScore[] = [];
     const levels: LevelScore[] = [];
     const exactLevels = new Map<string, Decimal>();
@@ -196,6 +236,7 @@ export function calculateProjectScore(
         // O máximo é compartilhado entre todas as atividades do mesmo item.
         const submitted = sum(matches.map((activity) => number(activity.quantity)));
         const counted = submitted.min(number(criterion.maxQuantity));
+        const calculated = weighted(submitted, criterion);
         const score = weighted(counted, criterion);
         exactCriteria.set(criterion.id, score);
         criteria.push({
@@ -208,6 +249,30 @@ export function calculateProjectScore(
           submittedQuantity: submitted.toNumber(),
           countedQuantity: counted.toNumber(),
           score: score.toNumber(),
+        });
+        const directive = level.directives.find((item) => item.id === criterion.directiveId)!;
+        const launches: RequirementLaunch[] = matches.map((activity) => ({
+          id: activity.id,
+          title: activity.title,
+          quantity: activity.quantity,
+          proofs: launchProofs(activity, sourceEvidence, sourceFiles),
+        }));
+        requirementProjection.push({
+          level: level.section,
+          criterionId: criterion.id,
+          code: criterion.code,
+          description: criterion.description,
+          unit: criterion.unit,
+          launches,
+          quantity: submitted.toNumber(),
+          consideredQuantity: counted.toNumber(),
+          pointsPerUnit: criterion.factor,
+          weight: criterion.weight,
+          calculatedScore: calculated.toNumber(),
+          maximumQuantity: criterion.maxQuantity,
+          directiveMaximumScore: directive.maxScore,
+          consideredScore: score.toNumber(),
+          validation: validation(dataset.metadata.status),
         });
       }
       const exactDirectives: Decimal[] = [];
@@ -264,8 +329,10 @@ export function calculateProjectScore(
           : 'quantitative-requirements-not-met',
       regulation: { ...project.regulation },
       policy: completePolicySummary,
+      validation: validation(dataset.metadata.status),
       activities,
       criteria,
+      requirementProjection,
       directives,
       levels,
       rawTotal: rawTotal.toNumber(),
