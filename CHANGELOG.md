@@ -12,6 +12,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Projeto demonstrativo inteiramente fictício de RSC III, com formação, lançamentos dos três
+  níveis, memorial, descritores e oito comprovantes PDF locais sem validade.
+
 - Vocabulários controlados para escolaridade, tipo de formação e situação da formação, com
   seletores na interface e identificação de valores legados fora das listas.
 

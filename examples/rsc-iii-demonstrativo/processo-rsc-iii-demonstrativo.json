@@ -1,0 +1,454 @@
+{
+  "schemaVersion": "3.0",
+  "applicationVersion": "0.1.0",
+  "regulation": {
+    "id": "ifba-189-2026",
+    "version": null
+  },
+  "userData": {
+    "id": "demo-rsc-iii-marina-duarte",
+    "title": "Demonstração fictícia - Processo RSC III",
+    "teacher": {
+      "name": "Marina Duarte",
+      "cpf": "52998224725",
+      "siape": "1234567",
+      "role": "Professora de Ensino Básico, Técnico e Tecnológico",
+      "campus": "Campus Salvador",
+      "institution": "Instituto Federal da Bahia - demonstração fictícia",
+      "employmentStatus": "Ativa",
+      "email": "marina.duarte.exemplo@rscflow.local",
+      "phone": "71999990000",
+      "currentRsc": "RSC II",
+      "schooling": "Doutorado",
+      "admissionDate": "2012-03-01"
+    },
+    "request": {
+      "level": "rsc-iii",
+      "requestedAt": "2026-02-10",
+      "effectiveDate": "2026-03-01"
+    },
+    "education": [
+      {
+        "id": "education-graduacao",
+        "type": "Graduação",
+        "title": "Bacharelado em Engenharia de Controle e Automação",
+        "institution": "Universidade Fictícia do Litoral",
+        "area": "Engenharia e tecnologia",
+        "startedAt": "2003-02-10",
+        "completedAt": "2007-12-20",
+        "status": "Concluído",
+        "evidenceReference": "Diploma fictício mencionado somente para demonstração.",
+        "notes": "Registro inteiramente fictício para percorrer o formulário de formação.",
+        "createdAt": "2026-01-10T12:00:00.000Z",
+        "updatedAt": "2026-01-10T12:00:00.000Z"
+      },
+      {
+        "id": "education-mestrado",
+        "type": "Mestrado",
+        "title": "Mestrado em Educação Profissional e Tecnológica",
+        "institution": "Instituto de Pesquisa Fictício",
+        "area": "Educação profissional",
+        "startedAt": "2009-03-02",
+        "completedAt": "2011-07-15",
+        "status": "Concluído",
+        "evidenceReference": "Dissertação fictícia indicada para teste de referência documental.",
+        "notes": "Dados sem valor acadêmico, administrativo ou probatório.",
+        "createdAt": "2026-01-10T12:00:00.000Z",
+        "updatedAt": "2026-01-10T12:00:00.000Z"
+      },
+      {
+        "id": "education-doutorado",
+        "type": "Doutorado",
+        "title": "Doutorado em Sistemas de Automação",
+        "institution": "Universidade Demonstrativa Brasileira",
+        "area": "Automação aplicada ao ensino",
+        "startedAt": "2014-03-03",
+        "completedAt": "2018-12-18",
+        "status": "Concluído",
+        "evidenceReference": "Diploma fictício para demonstrar a revisão de formação.",
+        "notes": "Sem validade ou relação com pessoa, instituição ou curso real.",
+        "createdAt": "2026-01-10T12:00:00.000Z",
+        "updatedAt": "2026-01-10T12:00:00.000Z"
+      }
+    ],
+    "criterionEntries": [
+      {
+        "id": "entry-rsc-i-a-1",
+        "criterionId": "rsc-i-a-1",
+        "selectedLevel": "rsc-i",
+        "occurrences": [
+          {
+            "id": "occurrence-rsc-i-a-1",
+            "title": "Direção fictícia da Escola Técnica Horizonte",
+            "category": "Gestão",
+            "institution": "Escola Técnica Horizonte - demonstração fictícia",
+            "department": "Direção",
+            "role": "Diretora",
+            "description": "Exercício fictício de direção escolar para demonstrar lançamento de meses.",
+            "results": "Organização fictícia de rotinas pedagógicas e administrativas.",
+            "competencies": ["Gestão educacional", "Planejamento institucional"],
+            "quantity": 12,
+            "period": {
+              "start": "2018-01-01",
+              "end": "2018-12-31"
+            },
+            "order": 0,
+            "evidenceIds": ["evidence-rsc-i-a-1"],
+            "createdAt": "2026-01-10T12:00:00.000Z",
+            "updatedAt": "2026-01-10T12:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "entry-rsc-i-c-1",
+        "criterionId": "rsc-i-c-1",
+        "selectedLevel": "rsc-i",
+        "occurrences": [
+          {
+            "id": "occurrence-rsc-i-c-1",
+            "title": "Curso FIC fictício de Introdução à Automação",
+            "category": "Ensino",
+            "institution": "Campus Salvador - demonstração fictícia",
+            "department": "Formação inicial e continuada",
+            "role": "Docente",
+            "description": "Oferta fictícia de curso FIC para testar quantidade em horas.",
+            "results": "Material didático demonstrativo produzido para o exemplo.",
+            "competencies": ["Docência", "Planejamento de curso"],
+            "quantity": 40,
+            "period": {
+              "start": "2020-02-10",
+              "end": "2020-06-20"
+            },
+            "order": 1,
+            "evidenceIds": ["evidence-rsc-i-c-1"],
+            "createdAt": "2026-01-10T12:00:00.000Z",
+            "updatedAt": "2026-01-10T12:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "entry-rsc-ii-a-1",
+        "criterionId": "rsc-ii-a-1",
+        "selectedLevel": "rsc-ii",
+        "occurrences": [
+          {
+            "id": "occurrence-rsc-ii-a-1",
+            "title": "Orientação fictícia de TCC técnico",
+            "category": "Ensino",
+            "institution": "Campus Salvador - demonstração fictícia",
+            "department": "Curso técnico integrado",
+            "role": "Orientadora",
+            "description": "Duas orientações fictícias concluídas para testar lançamento no RSC II.",
+            "results": "Dois trabalhos demonstrativos registrados no cenário local.",
+            "competencies": ["Orientação acadêmica", "Acompanhamento discente"],
+            "quantity": 2,
+            "period": {
+              "start": "2021-03-01",
+              "end": "2021-12-15"
+            },
+            "order": 2,
+            "evidenceIds": ["evidence-rsc-ii-a-1"],
+            "createdAt": "2026-01-10T12:00:00.000Z",
+            "updatedAt": "2026-01-10T12:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "entry-rsc-ii-d-1",
+        "criterionId": "rsc-ii-d-1",
+        "selectedLevel": "rsc-ii",
+        "occurrences": [
+          {
+            "id": "occurrence-rsc-ii-d-1",
+            "title": "Coordenação fictícia de projeto de extensão",
+            "category": "Extensão",
+            "institution": "Campus Salvador - demonstração fictícia",
+            "department": "Extensão",
+            "role": "Coordenadora",
+            "description": "Coordenação fictícia da Oficina Aberta de Robótica.",
+            "results": "Atividade demonstrativa para testar memorial e comprovantes.",
+            "competencies": ["Coordenação de projeto", "Extensão tecnológica"],
+            "quantity": 1,
+            "period": {
+              "start": "2022-04-01",
+              "end": "2022-11-30"
+            },
+            "order": 3,
+            "evidenceIds": ["evidence-rsc-ii-d-1"],
+            "createdAt": "2026-01-10T12:00:00.000Z",
+            "updatedAt": "2026-01-10T12:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "entry-rsc-iii-a-1",
+        "criterionId": "rsc-iii-a-1",
+        "selectedLevel": "rsc-iii",
+        "occurrences": [
+          {
+            "id": "occurrence-rsc-iii-a-1",
+            "title": "Protótipo fictício de bancada didática",
+            "category": "Produção",
+            "institution": "Campus Salvador - demonstração fictícia",
+            "department": "Laboratório de automação",
+            "role": "Autora e coordenadora",
+            "description": "Elaboração fictícia de bancada didática para atividades de automação.",
+            "results": "Protótipo demonstrativo utilizado apenas neste cenário de teste.",
+            "competencies": ["Prototipagem", "Inovação aplicada ao ensino"],
+            "quantity": 1,
+            "period": {
+              "start": "2023-02-01",
+              "end": "2023-12-15"
+            },
+            "order": 4,
+            "evidenceIds": ["evidence-rsc-iii-a-1"],
+            "createdAt": "2026-01-10T12:00:00.000Z",
+            "updatedAt": "2026-01-10T12:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "entry-rsc-iii-b-1",
+        "criterionId": "rsc-iii-b-1",
+        "selectedLevel": "rsc-iii",
+        "occurrences": [
+          {
+            "id": "occurrence-rsc-iii-b-1",
+            "title": "Elaboração fictícia de PPC",
+            "category": "Ensino",
+            "institution": "Campus Salvador - demonstração fictícia",
+            "department": "Diretoria de ensino",
+            "role": "Membro de comissão",
+            "description": "Participação fictícia na elaboração de PPC de Tecnologias Industriais.",
+            "results": "Versão demonstrativa usada somente para percorrer o memorial.",
+            "competencies": ["Projeto pedagógico", "Trabalho em comissão"],
+            "quantity": 1,
+            "period": {
+              "start": "2023-08-01",
+              "end": "2023-12-20"
+            },
+            "order": 5,
+            "evidenceIds": ["evidence-rsc-iii-b-1"],
+            "createdAt": "2026-01-10T12:00:00.000Z",
+            "updatedAt": "2026-01-10T12:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "entry-rsc-iii-c-1",
+        "criterionId": "rsc-iii-c-1",
+        "selectedLevel": "rsc-iii",
+        "occurrences": [
+          {
+            "id": "occurrence-rsc-iii-c-1",
+            "title": "Captação fictícia de recursos internos",
+            "category": "Pesquisa",
+            "institution": "Campus Salvador - demonstração fictícia",
+            "department": "Pesquisa e inovação",
+            "role": "Coordenadora proponente",
+            "description": "Captação fictícia para o projeto Laboratório Móvel de Ciências.",
+            "results": "Proposta demonstrativa de financiamento interno.",
+            "competencies": ["Elaboração de projetos", "Captação de recursos"],
+            "quantity": 1,
+            "period": {
+              "start": "2024-03-01",
+              "end": "2024-09-30"
+            },
+            "order": 6,
+            "evidenceIds": ["evidence-rsc-iii-c-1"],
+            "createdAt": "2026-01-10T12:00:00.000Z",
+            "updatedAt": "2026-01-10T12:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "entry-rsc-iii-d-1",
+        "criterionId": "rsc-iii-d-1",
+        "selectedLevel": "rsc-iii",
+        "occurrences": [
+          {
+            "id": "occurrence-rsc-iii-d-1",
+            "title": "Captação fictícia em parceria institucional",
+            "category": "Extensão",
+            "institution": "Campus Salvador - demonstração fictícia",
+            "department": "Extensão e parcerias",
+            "role": "Coordenadora de parceria",
+            "description": "Captação fictícia em parceria para a Rede Escola Maker.",
+            "results": "Plano de trabalho demonstrativo sem execução real.",
+            "competencies": ["Articulação institucional", "Gestão de parcerias"],
+            "quantity": 1,
+            "period": {
+              "start": "2025-02-01",
+              "end": "2025-10-30"
+            },
+            "order": 7,
+            "evidenceIds": ["evidence-rsc-iii-d-1"],
+            "createdAt": "2026-01-10T12:00:00.000Z",
+            "updatedAt": "2026-01-10T12:00:00.000Z"
+          }
+        ]
+      }
+    ],
+    "unassignedOccurrences": [],
+    "evidence": [
+      {
+        "id": "evidence-rsc-i-a-1",
+        "type": "Comprovante fictício - sem validade",
+        "title": "Gestão escolar fictícia - RSC I a.1",
+        "identifier": "DEMO-RSC-I-A1",
+        "issuer": "RSCFlow - demonstração fictícia",
+        "date": "2018-12-31",
+        "processReference": "Demonstração local",
+        "notes": "Arquivo correspondente na pasta comprovantes.",
+        "fileIds": ["file-rsc-i-a-1"]
+      },
+      {
+        "id": "evidence-rsc-i-c-1",
+        "type": "Comprovante fictício - sem validade",
+        "title": "Curso FIC fictício - RSC I c.1",
+        "identifier": "DEMO-RSC-I-C1",
+        "issuer": "RSCFlow - demonstração fictícia",
+        "date": "2020-06-20",
+        "processReference": "Demonstração local",
+        "notes": "Arquivo correspondente na pasta comprovantes.",
+        "fileIds": ["file-rsc-i-c-1"]
+      },
+      {
+        "id": "evidence-rsc-ii-a-1",
+        "type": "Comprovante fictício - sem validade",
+        "title": "Orientação fictícia de TCC - RSC II a.1",
+        "identifier": "DEMO-RSC-II-A1",
+        "issuer": "RSCFlow - demonstração fictícia",
+        "date": "2021-12-15",
+        "processReference": "Demonstração local",
+        "notes": "Arquivo correspondente na pasta comprovantes.",
+        "fileIds": ["file-rsc-ii-a-1"]
+      },
+      {
+        "id": "evidence-rsc-ii-d-1",
+        "type": "Comprovante fictício - sem validade",
+        "title": "Projeto de extensão fictício - RSC II d.1",
+        "identifier": "DEMO-RSC-II-D1",
+        "issuer": "RSCFlow - demonstração fictícia",
+        "date": "2022-11-30",
+        "processReference": "Demonstração local",
+        "notes": "Arquivo correspondente na pasta comprovantes.",
+        "fileIds": ["file-rsc-ii-d-1"]
+      },
+      {
+        "id": "evidence-rsc-iii-a-1",
+        "type": "Comprovante fictício - sem validade",
+        "title": "Protótipo fictício - RSC III a.1",
+        "identifier": "DEMO-RSC-III-A1",
+        "issuer": "RSCFlow - demonstração fictícia",
+        "date": "2023-12-15",
+        "processReference": "Demonstração local",
+        "notes": "Arquivo correspondente na pasta comprovantes.",
+        "fileIds": ["file-rsc-iii-a-1"]
+      },
+      {
+        "id": "evidence-rsc-iii-b-1",
+        "type": "Comprovante fictício - sem validade",
+        "title": "PPC fictício - RSC III b.1",
+        "identifier": "DEMO-RSC-III-B1",
+        "issuer": "RSCFlow - demonstração fictícia",
+        "date": "2023-12-20",
+        "processReference": "Demonstração local",
+        "notes": "Arquivo correspondente na pasta comprovantes.",
+        "fileIds": ["file-rsc-iii-b-1"]
+      },
+      {
+        "id": "evidence-rsc-iii-c-1",
+        "type": "Comprovante fictício - sem validade",
+        "title": "Captação interna fictícia - RSC III c.1",
+        "identifier": "DEMO-RSC-III-C1",
+        "issuer": "RSCFlow - demonstração fictícia",
+        "date": "2024-09-30",
+        "processReference": "Demonstração local",
+        "notes": "Arquivo correspondente na pasta comprovantes.",
+        "fileIds": ["file-rsc-iii-c-1"]
+      },
+      {
+        "id": "evidence-rsc-iii-d-1",
+        "type": "Comprovante fictício - sem validade",
+        "title": "Captação em parceria fictícia - RSC III d.1",
+        "identifier": "DEMO-RSC-III-D1",
+        "issuer": "RSCFlow - demonstração fictícia",
+        "date": "2025-10-30",
+        "processReference": "Demonstração local",
+        "notes": "Arquivo correspondente na pasta comprovantes.",
+        "fileIds": ["file-rsc-iii-d-1"]
+      }
+    ],
+    "storedFiles": [
+      {
+        "id": "file-rsc-i-a-1",
+        "name": "01-rsc-i-a1-gestao-escolar.pdf",
+        "mediaType": "application/pdf",
+        "size": 2607,
+        "sha256": "fa19b086dc48437c0f979cd613fa3806001111c1e662a373ca46b927152aef21"
+      },
+      {
+        "id": "file-rsc-i-c-1",
+        "name": "02-rsc-i-c1-curso-fic.pdf",
+        "mediaType": "application/pdf",
+        "size": 2618,
+        "sha256": "88e2dd8ee79701ef09d755c377effb48bbe6b497233d0dc0e376f1a4306a4dc7"
+      },
+      {
+        "id": "file-rsc-ii-a-1",
+        "name": "03-rsc-ii-a1-orientacao-tcc.pdf",
+        "mediaType": "application/pdf",
+        "size": 2612,
+        "sha256": "d937a0ec66d37cdd93f1640caa3fd60f86c6f7a5bc8246ed71ffbbb010fe754b"
+      },
+      {
+        "id": "file-rsc-ii-d-1",
+        "name": "04-rsc-ii-d1-projeto-extensao.pdf",
+        "mediaType": "application/pdf",
+        "size": 2667,
+        "sha256": "aaa3b338d0134a67029c4f730f96be5f82f28c34b292d54ffba3c4a888ee55d1"
+      },
+      {
+        "id": "file-rsc-iii-a-1",
+        "name": "05-rsc-iii-a1-prototipo.pdf",
+        "mediaType": "application/pdf",
+        "size": 2667,
+        "sha256": "b2ee67b52837113498ec8a0893447faa7f65036bcc2993841f9c29f965b7c790"
+      },
+      {
+        "id": "file-rsc-iii-b-1",
+        "name": "06-rsc-iii-b1-ppc.pdf",
+        "mediaType": "application/pdf",
+        "size": 2621,
+        "sha256": "e75bbf524567d21784a3231f1a57211d7ea56083b9f49cbf36c700f6ae0857bd"
+      },
+      {
+        "id": "file-rsc-iii-c-1",
+        "name": "07-rsc-iii-c1-captacao-propria.pdf",
+        "mediaType": "application/pdf",
+        "size": 2652,
+        "sha256": "8405c682af69f07b664952e6b747b90744423808bc084a3bd313ea02342cc911"
+      },
+      {
+        "id": "file-rsc-iii-d-1",
+        "name": "08-rsc-iii-d1-captacao-parceria.pdf",
+        "mediaType": "application/pdf",
+        "size": 2647,
+        "sha256": "3ad34c6d002c60582545dbeb1bc491bbea3a7ed4a00c218f71f1176b041ace20"
+      }
+    ],
+    "memorial": {
+      "title": "Memorial descritivo - demonstração fictícia de RSC III",
+      "introduction": "Este memorial é inteiramente fictício e serve apenas para demonstrar a organização editorial, a prévia A4 e a geração local de PDF no RSCFlow.",
+      "conclusion": "As informações, documentos e lançamentos deste processo são fictícios, não possuem validade e não devem ser utilizados para qualquer finalidade administrativa ou probatória.",
+      "sectionTexts": {
+        "education": "A formação fictícia foi incluída para demonstrar a composição cronológica do memorial.",
+        "teaching": "Os lançamentos de ensino deste exemplo ilustram a projeção de atividades no memorial.",
+        "production": "Os registros de produção e inovação são cenários fictícios destinados a testes locais.",
+        "community": "Os exemplos de extensão descrevem apenas situações simuladas.",
+        "management": "O registro de gestão foi criado exclusivamente para percorrer o fluxo do RSC I."
+      }
+    }
+  }
+}

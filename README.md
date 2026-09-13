@@ -47,6 +47,13 @@ Os envelopes portáteis `1.0`, `2.0`, `2.1` e `3.0` são aceitos. Novos projetos
 consulta. JSON não inclui bytes dos documentos. Validação estrutural de um arquivo não certifica
 sua referência normativa nem sua pontuação.
 
+## Exemplo demonstrativo
+
+O repositório inclui um [processo fictício completo de RSC III](examples/rsc-iii-demonstrativo/)
+com formação, lançamentos nos três níveis e oito PDFs sem validade. O guia do diretório explica a
+importação do JSON e a anexação local dos comprovantes, necessária porque o contrato portátil não
+transporta bytes.
+
 ## Arquitetura e manutenção
 
 O [plano de refatoração de 11/09/2026](docs/maintainers/history/plano-refatoracao.md) foi preservado
