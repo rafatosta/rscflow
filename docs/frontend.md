@@ -59,6 +59,11 @@ e do nível solicitado. Estados e limitações aparecem no cartão de cada artef
 binário `.rscflow` ainda não tem ação própria. JSON transporta dados e
 descritores, sem bytes.
 
+A ação “Gerar todos” usa uma única fotografia do projeto, consolida os comprovantes antes dos
+documentos que contêm referências e inicia os três downloads somente após o sucesso integral. Uma
+falha mantém o conjunto indisponível e apresenta separadamente quais etapas produziram bytes, quais
+falharam e quais não foram iniciadas.
+
 ## Acessibilidade
 
 Sidebar em desktop e Sheet com foco contido em telas menores; link de salto, título focável após navegação, labels, erros associados, abas por teclado e estado textual além de cor. Formulários usam uma coluna no mobile. A prévia A4 reduz sua escala sem alterar a paginação. Testes axe e reflow cobrem mobile, tablet e desktop.

@@ -11,8 +11,12 @@ import { downloadNormativeFormsPdf } from '@/pdf/normative-forms';
 import * as preparation from '@/features/final-documents/prepare';
 import { downloadPdfBytes } from '@/pdf/download';
 import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
+import { generateProcessArtifacts } from '@/features/final-documents/generate-all';
 
 vi.mock('@/pdf/download', () => ({ downloadPdfBytes: vi.fn() }));
+vi.mock('@/features/final-documents/generate-all', () => ({
+  generateProcessArtifacts: vi.fn(),
+}));
 
 vi.mock('@/pdf/generator', () => ({ downloadMemorialPdf: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('@/pdf/normative-forms', async (importOriginal) => {
@@ -125,6 +129,110 @@ it('gera cada artefato com o projeto atual e revalida comprovantes após altera�
         }),
       }),
     ),
+  );
+});
+
+it('só disponibiliza os três downloads quando a geração conjunta termina com sucesso', async () => {
+  const pageMap = { totalPages: 2, evidences: [] };
+  vi.spyOn(preparation, 'prepareEvidenceArtifacts').mockResolvedValue({
+    status: 'success',
+    bytes: new Uint8Array([1]),
+    pageMap,
+  });
+  vi.mocked(generateProcessArtifacts).mockResolvedValue({
+    status: 'success',
+    statuses: [
+      { artifact: 'evidence', status: 'produced' },
+      { artifact: 'memorial', status: 'produced' },
+      { artifact: 'forms', status: 'produced' },
+    ],
+    artifacts: {
+      evidence: new Uint8Array([1]),
+      memorial: new Uint8Array([2]),
+      forms: new Uint8Array([3]),
+      pageMap,
+    },
+  });
+  const current = record(true);
+  const resolver = { getFile: vi.fn() };
+  render(
+    <MemoryRouter>
+      <FinalExport
+        record={current}
+        scoring={scoring}
+        busy={false}
+        invalid=""
+        onExportJson={vi.fn()}
+        onImport={vi.fn()}
+        dataset={datasets[0]}
+        evidenceProject={current.project as OccurrenceProjectExport}
+        resolver={resolver}
+      />
+    </MemoryRouter>,
+  );
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Gerar todos' })).toBeEnabled());
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar todos' }));
+  await waitFor(() => expect(downloadPdfBytes).toHaveBeenCalledTimes(3));
+  expect(screen.getByRole('list', { name: 'Resultado da geração conjunta' })).toHaveTextContent(
+    'Comprovantes: produzido',
+  );
+  expect(generateProcessArtifacts).toHaveBeenCalledWith(
+    expect.objectContaining({
+      project: expect.objectContaining({
+        userData: expect.objectContaining({
+          teacher: expect.objectContaining({ name: 'Joana Conceição' }),
+        }),
+      }),
+      evidenceProject: current.project,
+      regulation: datasets[0],
+      scoring,
+      resolver,
+    }),
+  );
+});
+
+it('não baixa resultado parcial quando a geração conjunta falha', async () => {
+  const pageMap = { totalPages: 1, evidences: [] };
+  vi.spyOn(preparation, 'prepareEvidenceArtifacts').mockResolvedValue({
+    status: 'success',
+    bytes: new Uint8Array([1]),
+    pageMap,
+  });
+  vi.mocked(generateProcessArtifacts).mockResolvedValue({
+    status: 'error',
+    statuses: [
+      { artifact: 'evidence', status: 'produced' },
+      { artifact: 'memorial', status: 'produced' },
+      { artifact: 'forms', status: 'failed', message: 'Falha no formulário.' },
+    ],
+  });
+  const current = record(true);
+  const resolver = { getFile: vi.fn() };
+  render(
+    <MemoryRouter>
+      <FinalExport
+        record={current}
+        scoring={scoring}
+        busy={false}
+        invalid=""
+        onExportJson={vi.fn()}
+        onImport={vi.fn()}
+        dataset={datasets[0]}
+        evidenceProject={current.project as OccurrenceProjectExport}
+        resolver={resolver}
+      />
+    </MemoryRouter>,
+  );
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Gerar todos' })).toBeEnabled());
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar todos' }));
+  await waitFor(() =>
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Nenhum conjunto final foi disponibilizado',
+    ),
+  );
+  expect(downloadPdfBytes).not.toHaveBeenCalled();
+  expect(screen.getByRole('list', { name: 'Resultado da geração conjunta' })).toHaveTextContent(
+    'Formulários: falhou - Falha no formulário.',
   );
 });
 

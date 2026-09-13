@@ -8,6 +8,7 @@ import type { FileResolver } from '@/domain/local-files';
 import type { ProjectExport, TypedProjectExport } from '@/domain/project';
 import type { CalculationResult } from '@/domain/scoring';
 import type { Regulation } from '@/domain/regulation';
+import type { ProcessArtifactStatus } from '@/features/final-documents/generate-all';
 import { reviewProject } from '@/features/final-review/review';
 import { projectJsonFilename } from '@/features/local-projects/project-files';
 import { projectPath } from '@/features/project-shell/routes';
@@ -47,7 +48,10 @@ export function FinalExport({
 }) {
   const project = activityProjectView(record.project as TypedProjectExport);
   const review = reviewProject(project, scoring);
-  const [generating, setGenerating] = useState<'memorial' | 'forms' | 'evidence' | null>(null);
+  const [generating, setGenerating] = useState<'all' | 'memorial' | 'forms' | 'evidence' | null>(
+    null,
+  );
+  const [jointStatuses, setJointStatuses] = useState<ProcessArtifactStatus[]>([]);
   const [error, setError] = useState('');
   const [referenceWarning, setReferenceWarning] = useState('');
 
@@ -96,6 +100,38 @@ export function FinalExport({
       downloadPdfBytes(result.bytes, evidenceBundlePdfFilename(project));
     } catch {
       setError('Não foi possível gerar o PDF dos comprovantes. Verifique os arquivos locais.');
+    } finally {
+      setGenerating(null);
+    }
+  }
+
+  async function generateAll() {
+    if (!dataset || !evidenceProject || !resolver) return;
+    setGenerating('all');
+    setError('');
+    setJointStatuses([]);
+    try {
+      const { generateProcessArtifacts } = await import('@/features/final-documents/generate-all');
+      const result = await generateProcessArtifacts({
+        project,
+        evidenceProject,
+        regulation: dataset,
+        scoring,
+        resolver,
+      });
+      setJointStatuses(result.statuses);
+      if (result.status === 'error') {
+        setError(
+          'A geração conjunta não foi concluída. Nenhum conjunto final foi disponibilizado.',
+        );
+        return;
+      }
+      const { downloadPdfBytes } = await import('@/pdf/download');
+      downloadPdfBytes(result.artifacts.evidence, evidenceBundlePdfFilename(project));
+      downloadPdfBytes(result.artifacts.memorial, memorialPdfFilename(project));
+      downloadPdfBytes(result.artifacts.forms, normativeFormsPdfFilename(project));
+    } catch {
+      setError('Não foi possível concluir a geração conjunta dos documentos.');
     } finally {
       setGenerating(null);
     }
@@ -201,6 +237,52 @@ export function FinalExport({
             {referenceWarning}
           </p>
         )}
+
+        <article className="subpanel p-5">
+          <Download className="text-cyan-300" aria-hidden="true" />
+          <h3 className="mt-3 subsection-title">Gerar todos os documentos</h3>
+          <p className="mt-2 text-sm text-slate-300">
+            Consolida os comprovantes e usa o mesmo mapa de páginas no Memorial e nos formulários.
+            Os downloads só são iniciados quando o conjunto inteiro está pronto.
+          </p>
+          {jointStatuses.length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm" aria-label="Resultado da geração conjunta">
+              {jointStatuses.map((item) => (
+                <li key={item.artifact}>
+                  {item.artifact === 'evidence'
+                    ? 'Comprovantes'
+                    : item.artifact === 'memorial'
+                      ? 'Memorial'
+                      : 'Formulários'}
+                  :{' '}
+                  {item.status === 'produced'
+                    ? 'produzido'
+                    : item.status === 'failed'
+                      ? 'falhou'
+                      : 'não iniciado'}
+                  {item.message ? ` - ${item.message}` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+          <Button
+            className="mt-4"
+            onClick={() => void generateAll()}
+            disabled={
+              review.blocksPdf ||
+              Boolean(invalid) ||
+              busy ||
+              Boolean(generating) ||
+              !dataset ||
+              !evidenceProject ||
+              !resolver ||
+              evidence?.status !== 'success'
+            }
+          >
+            <Download className="mr-2" size={17} aria-hidden="true" />
+            {generating === 'all' ? 'Gerando conjunto…' : 'Gerar todos'}
+          </Button>
+        </article>
 
         <div className="grid gap-4 lg:grid-cols-3">
           <article className="subpanel p-5">

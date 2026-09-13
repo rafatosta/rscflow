@@ -19,6 +19,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Geração conjunta e transacional do Memorial, formulários normativos e comprovantes consolidados,
+  usando uma fotografia do projeto e um único mapa de páginas, com resultado explícito por artefato.
+
 - Etapa Gerar documentos com downloads individuais do Memorial, formulários normativos e PDF
   consolidado dos comprovantes, estados por artefato e validação dos arquivos locais atuais.
 

@@ -157,3 +157,8 @@ A preparação de comprovantes em `features/final-documents/prepare.ts` reutiliz
 gerador existentes. A tela verifica a disponibilidade por projeto/resolvedor, descarta resultados
 antigos e prepara novamente os arquivos ao gerar cada artefato. O download do consolidado usa os
 mesmos bytes que originam o mapa, sem outra ordenação ou paginação.
+
+`features/final-documents/generate-all.ts` coordena a geração conjunta sobre uma cópia imutável dos
+dados estruturados. A consolidação termina antes de iniciar os geradores dependentes, que recebem a
+mesma instância de `EvidencePageMap`. O resultado só expõe os bytes dos três artefatos quando todos
+terminam; em falha, expõe apenas o estado produzido, falho ou não iniciado de cada etapa.
