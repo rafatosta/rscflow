@@ -1,7 +1,7 @@
 import { occurrenceProjectExportSchema, type StoredFile } from '@/domain/criterion-entry';
 import type { Evidence } from '@/domain/models';
 import { activityProjectView } from '@/domain/project-migration';
-import { currentProjectExportSchema } from '@/domain/project';
+import { currentProjectExportSchema, draftProjectExportSchema } from '@/domain/project';
 import {
   criterionSchema,
   regulationSchema,
@@ -163,9 +163,11 @@ export function calculateProjectScore(
     return unavailable('pending-policy', 'Política de cálculo pendente de validação.');
   const occurrenceInput = occurrenceProjectExportSchema.safeParse(projectInput);
   const scoringInput = occurrenceInput.success
-    ? { ...activityProjectView(occurrenceInput.data), schemaVersion: '2.0' }
+    ? activityProjectView(occurrenceInput.data)
     : projectInput;
-  const projectResult = currentProjectExportSchema.safeParse(scoringInput);
+  const projectResult = occurrenceInput.success
+    ? draftProjectExportSchema.safeParse(scoringInput)
+    : currentProjectExportSchema.safeParse(scoringInput);
   if (!projectResult.success)
     return unavailable(
       'invalid-project',

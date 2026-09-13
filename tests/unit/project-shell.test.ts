@@ -42,8 +42,9 @@ describe('rotas e rascunhos do shell', () => {
     });
     expect(projectExportSchema.parse(JSON.parse(exportProject(draft)))).toEqual(draft);
     expect(projectScoring(draft)).toMatchObject({
-      status: 'unavailable',
-      issues: [{ code: 'invalid-project' }],
+      status: 'quantitative-requirements-not-met',
+      total: 0,
+      validation: { status: 'provisional' },
     });
     expect(() => createDraft('rsc-i', 'inexistente')).toThrow();
   });

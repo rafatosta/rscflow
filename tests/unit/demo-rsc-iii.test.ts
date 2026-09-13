@@ -6,7 +6,7 @@ import { afterEach, expect, it } from 'vitest';
 import { occurrenceProjectExportSchema } from '@/domain/criterion-entry';
 import { loadIfbaRegulation } from '@/data/regulations/load';
 import { importProject } from '@/features/local-projects/project-files';
-import { calculateRequirementScore } from '@/rules/scoring';
+import { calculateProjectScore, calculateRequirementScore } from '@/rules/scoring';
 import { DexieProjectRepository, ProjectDatabase } from '@/storage/project-repository';
 
 const directory = join(process.cwd(), 'examples/rsc-iii-demonstrativo');
@@ -28,6 +28,12 @@ it('mantém o demonstrativo RSC III fictício vinculado ao catálogo e aos compr
   expect(project.userData.memorial?.conclusion).toMatch(/fictícios/i);
 
   const regulation = loadIfbaRegulation();
+  const score = calculateProjectScore(project, regulation);
+  expect(score.status).not.toBe('unavailable');
+  if (score.status !== 'unavailable') {
+    expect(score.validation.status).toBe('provisional');
+    expect(score.requirementProjection.filter((item) => item.launches.length)).toHaveLength(8);
+  }
   for (const entry of project.userData.criterionEntries) {
     const criterion = regulation.levels
       .find((level) => level.section === entry.selectedLevel)
