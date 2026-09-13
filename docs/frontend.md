@@ -42,7 +42,13 @@ livre nem promover esses valores à lista controlada.
 
 A preparação do memorial cria as bases ausentes e preserva narrativas manuais. Alterações estruturadas anunciam texto desatualizado; manter ou regenerar é explícito. A projeção editorial incorpora a descrição humana do critério e não persiste uma segunda coleção de atividades.
 
-Revisão separa ERROR, WARNING e INFO. Apenas erros estruturais bloqueiam o PDF. Prévia e arquivo usam o mesmo layout A4 e processamento local. A prévia memoriza sua projeção para não reiniciar a paginação a cada navegação. A disponibilidade dos anexos verifica tamanho e SHA-256 dos bytes, separadamente da validade dos metadados.
+Revisão separa ERROR, WARNING e INFO e apresenta a prontidão de cada artefato. Erros estruturais
+bloqueiam o Memorial; arquivos ausentes ou inválidos bloqueiam somente as saídas que dependem dos
+bytes íntegros. Cálculo indisponível, catálogo provisório e ausência de comprovantes aparecem como
+limitações explícitas nos documentos que ainda podem ser gerados. A mesma projeção controla os
+cartões de Gerar documentos. Prévia e arquivo usam o mesmo layout A4 e processamento local. A
+prévia memoriza sua projeção para não reiniciar a paginação a cada navegação. A disponibilidade dos
+anexos verifica tamanho e SHA-256 dos bytes, separadamente da validade dos metadados.
 
 Em Documentos comprobatórios, cada arquivo local ausente oferece no próprio item ações para os
 lançamentos que o referenciam. A ação abre diretamente o seletor nativo e, após a escolha, substitui

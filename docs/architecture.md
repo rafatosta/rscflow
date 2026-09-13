@@ -172,3 +172,9 @@ terminam; em falha, expõe apenas o estado produzido, falho ou não iniciado de 
 valida os três PDFs e os grava sem alteração em um ZIP determinístico. Nomes vêm das mesmas funções
 usadas nos downloads individuais. A camada de pacote não conhece templates, não recalcula dados e
 não chama geradores.
+
+`features/final-review/review.ts` concentra a projeção de prontidão do projeto. Ela combina os
+dados estruturados, o resultado canônico do motor e a preparação dos comprovantes para classificar
+cada artefato como disponível, disponível com avisos, bloqueado ou em verificação. Revisão e Gerar
+documentos consomem a mesma projeção; os componentes não reinterpretam pendências normativas,
+campos obrigatórios nem falhas de arquivos.

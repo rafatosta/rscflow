@@ -290,6 +290,36 @@ it('mostra erros, avisos e informações com links para correção', () => {
   );
 });
 
+it('apresenta a prontidão consolidada após validar os comprovantes locais', async () => {
+  vi.spyOn(preparation, 'prepareEvidenceArtifacts').mockResolvedValue({
+    status: 'error',
+    issues: [
+      {
+        code: 'invalid-file',
+        evidenceId: 'evidence-1',
+        message: 'O comprovante local não contém um PDF válido.',
+      },
+    ],
+  });
+  const current = record(true);
+  render(
+    <MemoryRouter>
+      <FinalReview
+        record={current}
+        scoring={scoring}
+        evidenceProject={current.project as OccurrenceProjectExport}
+        resolver={{ getFile: vi.fn() }}
+      />
+    </MemoryRouter>,
+  );
+
+  const readiness = screen.getByLabelText('Prontidão dos artefatos');
+  await waitFor(() => expect(readiness).toHaveTextContent('PDF consolidado dos comprovantes'));
+  expect(readiness).toHaveTextContent('O comprovante local não contém um PDF válido.');
+  expect(readiness).toHaveTextContent('JSON portátil');
+  expect(readiness).toHaveTextContent('Disponível');
+});
+
 it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos', async () => {
   const current = record(true);
   const exportJson = vi.fn();
@@ -303,6 +333,8 @@ it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos',
         onExportJson={exportJson}
         onImport={vi.fn()}
         dataset={datasets[0]}
+        evidenceProject={current.project as OccurrenceProjectExport}
+        resolver={{ getFile: vi.fn() }}
       />
     </MemoryRouter>,
   );
@@ -317,6 +349,9 @@ it('permite PDF com warnings, exporta JSON e mostra autosave e nomes sugeridos',
   expect(screen.getByText(/11\/09\/2026/)).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Exportar JSON' }));
   expect(exportJson).toHaveBeenCalledOnce();
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Gerar backup .rscflow' })).toBeEnabled(),
+  );
   fireEvent.click(screen.getByRole('button', { name: 'Gerar backup .rscflow' }));
   await waitFor(() =>
     expect(downloadBytes).toHaveBeenCalledWith(

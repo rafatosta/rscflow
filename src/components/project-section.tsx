@@ -172,7 +172,12 @@ export function ProjectSection(props: Props) {
     return (
       <div className="space-y-5">
         <ScoringDashboard result={scoring} compact />
-        <FinalReview record={record} scoring={scoring} />
+        <FinalReview
+          record={record}
+          scoring={scoring}
+          evidenceProject={project}
+          resolver={props.resolver}
+        />
         <ProjectDocuments project={project} resolver={props.resolver} save={props.save} />
         <Button variant="outline" onClick={() => setPreview((value) => !value)}>
           {preview ? 'Fechar prévia' : 'Visualizar prévia'}

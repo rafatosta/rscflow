@@ -1,9 +1,21 @@
+import { useEffect, useState } from 'react';
 import { activityProjectView } from '@/domain/project-migration';
 import { AlertCircle, CheckCircle2, Info, TriangleAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
 import type { CalculationResult } from '@/domain/scoring';
-import { reviewProject, type ReviewFinding } from '@/features/final-review/review';
+import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
+import type { FileResolver } from '@/domain/local-files';
+import {
+  finalArtifactLabels,
+  reviewProject,
+  type ArtifactReadiness,
+  type ReviewFinding,
+} from '@/features/final-review/review';
+import {
+  prepareEvidenceArtifacts,
+  type EvidencePreparation,
+} from '@/features/final-documents/prepare';
 import { projectPath } from '@/features/project-shell/routes';
 import { Button } from './ui/button';
 
@@ -58,29 +70,77 @@ function Finding({ finding, localId }: { finding: ReviewFinding; localId: string
 export function FinalReview({
   record,
   scoring,
+  evidenceProject,
+  resolver,
 }: {
   record: LocalProject;
   scoring: CalculationResult;
+  evidenceProject?: OccurrenceProjectExport;
+  resolver?: FileResolver;
 }) {
+  const [evidenceState, setEvidenceState] = useState<{
+    project: typeof evidenceProject;
+    resolver: typeof resolver;
+    result: EvidencePreparation;
+  }>();
+  useEffect(() => {
+    let active = true;
+    prepareEvidenceArtifacts(evidenceProject, resolver)
+      .then((result) => {
+        if (active) setEvidenceState({ project: evidenceProject, resolver, result });
+      })
+      .catch(() => {
+        if (active)
+          setEvidenceState({
+            project: evidenceProject,
+            resolver,
+            result: {
+              status: 'unavailable',
+              message: 'Não foi possível verificar os comprovantes locais.',
+            },
+          });
+      });
+    return () => {
+      active = false;
+    };
+  }, [evidenceProject, resolver]);
   if (record.project.schemaVersion === '1.0') return null;
-  const review = reviewProject(activityProjectView(record.project), scoring);
+  const evidence =
+    evidenceState &&
+    evidenceState.project === evidenceProject &&
+    evidenceState.resolver === resolver
+      ? evidenceState.result
+      : undefined;
+  const review = reviewProject(activityProjectView(record.project), scoring, evidence);
+  const readinessLabel: Record<ArtifactReadiness['status'], string> = {
+    ready: 'Disponível',
+    limited: 'Disponível com avisos',
+    blocked: 'Bloqueado',
+    checking: 'Verificando',
+  };
   return (
     <div className="space-y-5">
       <section className="panel space-y-4" aria-labelledby="review-summary-title">
         <div className="flex items-start gap-3">
-          {review.blocksPdf ? (
+          {review.blocksPdf || review.counts.error > 0 ? (
             <AlertCircle className="mt-1 shrink-0 text-rose-300" aria-hidden="true" />
           ) : (
             <CheckCircle2 className="mt-1 shrink-0 text-emerald-300" aria-hidden="true" />
           )}
           <div>
             <h2 id="review-summary-title" className="section-title">
-              {review.blocksPdf ? 'Correções necessárias' : 'Documento pronto para exportação'}
+              {review.blocksPdf
+                ? 'Correções necessárias'
+                : review.counts.error > 0
+                  ? 'Há pendências em alguns artefatos'
+                  : 'Documentos prontos para exportação'}
             </h2>
             <p className="mt-2 text-slate-300">
               {review.blocksPdf
-                ? 'Resolva os erros para liberar o PDF final. Avisos não bloqueiam a exportação.'
-                : 'Você pode prosseguir mesmo com avisos; revise-os conforme os documentos do processo.'}
+                ? 'Resolva os erros estruturais para liberar o Memorial. Consulte abaixo a situação dos demais artefatos.'
+                : review.counts.error > 0
+                  ? 'Cada erro bloqueia somente os artefatos que dependem do dado ou arquivo afetado.'
+                  : 'Você pode prosseguir com os artefatos disponíveis; avisos e condições provisórias permanecem explícitos.'}
             </p>
           </div>
         </div>
@@ -98,6 +158,24 @@ export function FinalReview({
             <dd className="text-2xl font-semibold">{review.counts.info}</dd>
           </div>
         </dl>
+        <div>
+          <h3 className="subsection-title">Prontidão dos artefatos</h3>
+          <dl className="mt-3 grid gap-3 md:grid-cols-2" aria-label="Prontidão dos artefatos">
+            {Object.entries(review.artifacts).map(([artifact, readiness]) => (
+              <div className="metric" key={artifact}>
+                <dt className="text-sm text-slate-300">
+                  {finalArtifactLabels[artifact as keyof typeof review.artifacts]}
+                </dt>
+                <dd className="mt-1 font-semibold">{readinessLabel[readiness.status]}</dd>
+                {readiness.reasons.map((reason) => (
+                  <dd className="mt-1 text-sm text-slate-300" key={reason}>
+                    {reason}
+                  </dd>
+                ))}
+              </div>
+            ))}
+          </dl>
+        </div>
         <Button asChild>
           <Link to={projectPath(record.localId, 'documents')}>Gerar documentos</Link>
         </Button>

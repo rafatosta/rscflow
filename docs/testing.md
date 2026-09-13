@@ -21,6 +21,11 @@ git diff --check
 
 Testes focados ajudam durante a implementação, mas não substituem a bateria aplicável ao concluir.
 
+A projeção de prontidão possui regressões para dados estruturais obrigatórios, lançamentos sem
+enquadramento ou comprovante, arquivos locais inválidos, cálculo indisponível, conflito normativo e
+pontuação provisória. Testes de integração confirmam que Revisão e Gerar documentos apresentam os
+mesmos estados por artefato após a preparação assíncrona dos comprovantes.
+
 ## Matriz vigente
 
 | Escopo      | Local                             | Responsabilidade principal                                                               |

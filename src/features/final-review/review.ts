@@ -2,6 +2,22 @@ import type { TypedProjectExport } from '@/domain/project';
 import type { CalculationResult } from '@/domain/scoring';
 import type { Section } from '@/features/project-shell/routes';
 import { teacherProfileIsComplete } from '@/features/teacher-profile/profile';
+import type { EvidencePreparation } from '@/features/final-documents/prepare';
+
+export type FinalArtifact = 'memorial' | 'forms' | 'evidence' | 'package' | 'backup' | 'json';
+export type ArtifactReadiness = {
+  status: 'ready' | 'limited' | 'blocked' | 'checking';
+  reasons: string[];
+};
+
+export const finalArtifactLabels: Record<FinalArtifact, string> = {
+  memorial: 'Memorial Descritivo',
+  forms: 'Formulários e anexos normativos',
+  evidence: 'PDF consolidado dos comprovantes',
+  package: 'Pacote final',
+  backup: 'Backup restaurável',
+  json: 'JSON portátil',
+};
 
 export type ReviewSeverity = 'error' | 'warning' | 'info';
 export type ReviewArea =
@@ -28,6 +44,7 @@ export type FinalReview = {
   findings: ReviewFinding[];
   counts: Record<ReviewSeverity, number>;
   blocksPdf: boolean;
+  artifacts: Record<FinalArtifact, ArtifactReadiness>;
 };
 
 function finding(
@@ -44,6 +61,7 @@ function finding(
 export function reviewProject(
   project: TypedProjectExport,
   scoring: CalculationResult,
+  evidence?: EvidencePreparation,
 ): FinalReview {
   const { userData } = project;
   const findings: ReviewFinding[] = [];
@@ -187,7 +205,9 @@ export function reviewProject(
     findings.push(
       finding(
         'scoring',
-        'Pontuação',
+        scoring.issues.some((issue) => issue.code === 'normative-conflict')
+          ? 'Conflito normativo'
+          : 'Pontuação',
         'warning',
         `A pontuação não está disponível: ${scoring.issues.map((issue) => issue.message).join(' ')}`,
         'requirements',
@@ -200,6 +220,17 @@ export function reviewProject(
         'Pontuação',
         'warning',
         `A pontuação calculada é ${scoring.total} e os requisitos quantitativos ainda não foram atingidos.`,
+        'requirements',
+      ),
+    );
+  else if (scoring.validation.status === 'provisional')
+    findings.push(
+      finding(
+        'scoring',
+        'Pontuação provisória',
+        'warning',
+        scoring.validation.message ??
+          `A pontuação calculada é ${scoring.total}, mas o catálogo permanece pendente de validação normativa.`,
         'requirements',
       ),
     );
@@ -243,9 +274,141 @@ export function reviewProject(
         ),
   );
 
+  if (evidence?.status === 'error')
+    findings.push(
+      finding(
+        'documentation',
+        'Arquivos comprobatórios',
+        'error',
+        evidence.issues.map((issue) => issue.message).join(' '),
+        'requirements',
+        '-files',
+      ),
+    );
+  else if (evidence?.status === 'unavailable')
+    findings.push(
+      finding(
+        'documentation',
+        'Arquivos comprobatórios',
+        'error',
+        evidence.message,
+        'requirements',
+        '-files',
+      ),
+    );
+  else if (evidence?.status === 'empty')
+    findings.push(
+      finding(
+        'documentation',
+        'Arquivos comprobatórios',
+        'warning',
+        evidence.message,
+        'requirements',
+        '-files',
+      ),
+    );
+  else if (evidence?.status === 'success')
+    findings.push(
+      finding(
+        'documentation',
+        'Arquivos comprobatórios',
+        'info',
+        `${evidence.pageMap.totalPages} página(s) validadas para consolidação.`,
+        'requirements',
+        '-files',
+      ),
+    );
+
   const counts = findings.reduce<Record<ReviewSeverity, number>>(
     (result, item) => ({ ...result, [item.severity]: result[item.severity] + 1 }),
     { error: 0, warning: 0, info: 0 },
   );
-  return { findings, counts, blocksPdf: counts.error > 0 };
+  const structural = {
+    identification: !teacherProfileIsComplete(project),
+    request: !userData.request,
+    memorial: !userData.memorial || !userData.memorial.conclusion.trim(),
+  };
+  const proofProblem = evidence?.status === 'error' || evidence?.status === 'unavailable';
+  const proofInvalid = evidence?.status === 'error';
+  const proofEmpty = evidence?.status === 'empty';
+  const scoreUnavailable = scoring.status === 'unavailable';
+  const scoreProvisional =
+    scoring.status !== 'unavailable' && scoring.validation.status === 'provisional';
+  const scoreLimited = scoreUnavailable || scoreProvisional;
+  const reasons = (...values: (string | false | undefined)[]) => values.filter(Boolean) as string[];
+  const artifacts: FinalReview['artifacts'] = {
+    memorial:
+      structural.identification || structural.request || structural.memorial
+        ? {
+            status: 'blocked',
+            reasons: reasons(
+              structural.identification && 'Identificação obrigatória incompleta.',
+              structural.request && 'Nível solicitado ausente.',
+              structural.memorial && 'Memorial ou conclusão incompleto.',
+            ),
+          }
+        : proofProblem
+          ? {
+              status: 'limited',
+              reasons: ['Pode ser gerado sem referências de páginas dos comprovantes.'],
+            }
+          : { status: 'ready', reasons: [] },
+    forms:
+      structural.identification || structural.request || proofInvalid
+        ? {
+            status: 'blocked',
+            reasons: reasons(
+              structural.identification && 'Identificação obrigatória incompleta.',
+              structural.request && 'Nível solicitado ausente.',
+              proofInvalid && 'Comprovantes ausentes, inválidos ou incompatíveis.',
+            ),
+          }
+        : scoreLimited || proofProblem || proofEmpty
+          ? {
+              status: 'limited',
+              reasons: reasons(
+                scoreUnavailable && 'Cálculo indisponível; o documento preservará essa condição.',
+                scoreProvisional && 'Pontuação provisória pendente de validação normativa.',
+                (proofProblem || proofEmpty) &&
+                  'Referências de páginas dos comprovantes indisponíveis.',
+              ),
+            }
+          : { status: 'ready', reasons: [] },
+    evidence:
+      evidence === undefined
+        ? { status: 'checking', reasons: ['Verificando arquivos locais.'] }
+        : evidence.status === 'success'
+          ? { status: 'ready', reasons: [] }
+          : {
+              status: 'blocked',
+              reasons: [
+                evidence.status === 'error'
+                  ? evidence.issues.map((issue) => issue.message).join(' ')
+                  : evidence.message,
+              ],
+            },
+    package: { status: 'checking', reasons: [] },
+    backup:
+      evidence === undefined
+        ? { status: 'checking', reasons: ['Verificando arquivos locais.'] }
+        : proofProblem
+          ? {
+              status: 'blocked',
+              reasons: ['Os arquivos locais precisam estar íntegros para o backup restaurável.'],
+            }
+          : { status: 'ready', reasons: [] },
+    json: { status: 'ready', reasons: ['Cópia portátil sem bytes dos comprovantes.'] },
+  };
+  const packageDependencies = [artifacts.memorial, artifacts.forms, artifacts.evidence];
+  artifacts.package = packageDependencies.some((item) => item.status === 'checking')
+    ? { status: 'checking', reasons: ['Aguardando verificação dos artefatos obrigatórios.'] }
+    : packageDependencies.some((item) => item.status === 'blocked')
+      ? {
+          status: 'blocked',
+          reasons: ['Memorial, formulários e comprovantes precisam estar disponíveis.'],
+        }
+      : packageDependencies.some((item) => item.status === 'limited')
+        ? { status: 'limited', reasons: ['O pacote preservará os avisos dos documentos gerados.'] }
+        : { status: 'ready', reasons: [] };
+  return { findings, counts, blocksPdf: artifacts.memorial.status === 'blocked', artifacts };
 }

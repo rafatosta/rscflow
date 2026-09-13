@@ -32,7 +32,7 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   await expect(page.getByText('Salvo localmente', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Revisão', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: 'Documento pronto para exportação' }),
+    page.getByRole('heading', { name: 'Documentos prontos para exportação' }),
   ).toBeVisible();
   await expect(page.getByText(/Nenhuma formação foi registrada/)).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

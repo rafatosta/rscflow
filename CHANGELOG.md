@@ -19,6 +19,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Projeção consolidada de prontidão compartilhada por Revisão e Gerar documentos, com estados por
+  artefato e distinção explícita entre bloqueios, avisos e pontuação provisória.
+
 - Backup restaurável `.rscflow` com projeto versionado, manifesto de integridade e todos os
   comprovantes binários, restaurado em nova cópia por transação atômica sem alterar o JSON portátil.
 

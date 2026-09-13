@@ -34,6 +34,16 @@ import {
 } from '@/features/local-projects/restorable-backup';
 import { Button } from './ui/button';
 
+function readinessText(readiness: ReturnType<typeof reviewProject>['artifacts']['memorial']) {
+  const label = {
+    ready: 'Disponível',
+    limited: 'Disponível com avisos',
+    blocked: 'Bloqueado',
+    checking: 'Verificando',
+  }[readiness.status];
+  return `${label}${readiness.reasons.length ? `: ${readiness.reasons.join(' ')}` : '.'}`;
+}
+
 export function FinalExport({
   record,
   scoring,
@@ -60,7 +70,6 @@ export function FinalExport({
   backupProject?: ProjectExport;
 }) {
   const project = activityProjectView(record.project as TypedProjectExport);
-  const review = reviewProject(project, scoring);
   const [generating, setGenerating] = useState<
     'all' | 'memorial' | 'forms' | 'evidence' | 'backup' | null
   >(null);
@@ -77,6 +86,7 @@ export function FinalExport({
     evidenceState?.project === evidenceProject && evidenceState?.resolver === resolver
       ? evidenceState?.result
       : undefined;
+  const review = reviewProject(project, scoring, evidence);
   useEffect(() => {
     let active = true;
     prepareEvidenceArtifacts(evidenceProject, resolver)
@@ -252,7 +262,13 @@ export function FinalExport({
             </Link>
           </div>
         )}
-        {!review.blocksPdf && review.counts.warning > 0 && (
+        {!review.blocksPdf && review.counts.error > 0 && (
+          <p className="notice border-amber-500 bg-amber-950/20 text-amber-100">
+            Há erros que bloqueiam somente os artefatos dependentes. Consulte o estado de cada
+            arquivo abaixo.
+          </p>
+        )}
+        {!review.blocksPdf && review.counts.error === 0 && review.counts.warning > 0 && (
           <p className="notice border-amber-500 bg-amber-950/20 text-amber-100">
             Há avisos para conferir, mas eles não impedem a geração dos artefatos disponíveis.
           </p>
@@ -303,7 +319,8 @@ export function FinalExport({
             className="mt-4"
             onClick={() => void generateAll()}
             disabled={
-              review.blocksPdf ||
+              review.artifacts.package.status === 'blocked' ||
+              review.artifacts.package.status === 'checking' ||
               Boolean(invalid) ||
               busy ||
               Boolean(generating) ||
@@ -323,9 +340,7 @@ export function FinalExport({
             <FileSearch className="text-cyan-300" aria-hidden="true" />
             <h3 className="mt-3 subsection-title">Memorial Descritivo</h3>
             <p className="mt-2 text-sm" role="status">
-              {review.blocksPdf
-                ? 'Bloqueado: confira as correções na Revisão.'
-                : 'Disponível: utiliza o texto e os dados atuais do projeto.'}
+              {readinessText(review.artifacts.memorial)}
             </p>
             <p className="mt-2 text-sm">
               {evidence ? evidencePreparationMessage(evidence) : 'Verificando comprovantes…'}{' '}
@@ -339,7 +354,12 @@ export function FinalExport({
             <Button
               className="mt-4"
               onClick={() => void generatePdf()}
-              disabled={review.blocksPdf || Boolean(invalid) || busy || Boolean(generating)}
+              disabled={
+                review.artifacts.memorial.status === 'blocked' ||
+                Boolean(invalid) ||
+                busy ||
+                Boolean(generating)
+              }
             >
               <Download className="mr-2" size={17} aria-hidden="true" />
               {generating === 'memorial' ? 'Gerando Memorial…' : 'Gerar PDF'}
@@ -351,15 +371,7 @@ export function FinalExport({
             <p className="mt-2 text-sm" role="status">
               {!dataset
                 ? 'Bloqueado: catálogo vinculado indisponível.'
-                : review.findings.some(
-                      (item) =>
-                        item.severity === 'error' &&
-                        (item.area === 'identification' || item.area === 'request'),
-                    )
-                  ? 'Bloqueado: confira identificação e nível solicitado.'
-                  : evidence?.status === 'error'
-                    ? 'Bloqueado: corrija os arquivos dos comprovantes.'
-                    : 'Disponível: utiliza os dados e cálculos atuais.'}
+                : readinessText(review.artifacts.forms)}
             </p>
             <p className="mt-2 text-sm">
               {scoring.status === 'unavailable'
@@ -380,16 +392,11 @@ export function FinalExport({
               className="mt-4"
               onClick={() => void generateForms()}
               disabled={
-                review.findings.some(
-                  (item) =>
-                    item.severity === 'error' &&
-                    (item.area === 'identification' || item.area === 'request'),
-                ) ||
+                review.artifacts.forms.status === 'blocked' ||
                 Boolean(invalid) ||
                 busy ||
                 Boolean(generating) ||
-                !dataset ||
-                evidence?.status === 'error'
+                !dataset
               }
             >
               <Download className="mr-2" size={17} aria-hidden="true" />
@@ -400,7 +407,7 @@ export function FinalExport({
             <FileSearch className="text-cyan-300" aria-hidden="true" />
             <h3 className="mt-3 subsection-title">PDF consolidado dos comprovantes</h3>
             <p className="mt-2 text-sm" role="status">
-              {evidence ? evidencePreparationMessage(evidence) : 'Verificando comprovantes…'}
+              {readinessText(review.artifacts.evidence)}
             </p>
             <p className="mt-2 break-all text-sm text-slate-300">
               Nome sugerido: <code>{evidenceBundlePdfFilename(project)}</code>
@@ -409,7 +416,10 @@ export function FinalExport({
               className="mt-4"
               onClick={() => void generateEvidence()}
               disabled={
-                Boolean(invalid) || busy || Boolean(generating) || evidence?.status !== 'success'
+                Boolean(invalid) ||
+                busy ||
+                Boolean(generating) ||
+                review.artifacts.evidence.status !== 'ready'
               }
             >
               <Download className="mr-2" size={17} aria-hidden="true" />
@@ -438,6 +448,9 @@ export function FinalExport({
             <p className="mt-2 text-sm text-slate-300">
               Preserva projeto e comprovantes. É diferente do JSON portátil e do pacote final.
             </p>
+            <p className="mt-2 text-sm" role="status">
+              {readinessText(review.artifacts.backup)}
+            </p>
             <p className="mt-2 break-all text-sm text-slate-300">
               Nome sugerido:{' '}
               <code>{restorableBackupFilename(backupProject ?? record.project)}</code>
@@ -446,7 +459,13 @@ export function FinalExport({
               variant="outline"
               className="mt-4"
               onClick={() => void generateBackup()}
-              disabled={Boolean(invalid) || busy || Boolean(generating)}
+              disabled={
+                review.artifacts.backup.status === 'blocked' ||
+                review.artifacts.backup.status === 'checking' ||
+                Boolean(invalid) ||
+                busy ||
+                Boolean(generating)
+              }
             >
               <Download className="mr-2" size={17} aria-hidden="true" />
               {generating === 'backup' ? 'Gerando backup…' : 'Gerar backup .rscflow'}
