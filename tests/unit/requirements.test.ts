@@ -6,6 +6,7 @@ import { createDraft } from '@/features/project-shell/project-view';
 import {
   allOccurrences,
   quantityPresentation,
+  requirementPoints,
   previewRequirement,
   saveRequirement,
   removeRequirement,
@@ -54,7 +55,32 @@ describe('lançamentos por requisitos', () => {
     expect(requirementFormSchema.safeParse({ ...values, end: '2023-01-01' }).success).toBe(false);
     expect(requirementFormSchema.safeParse({ ...values, quantity: -1 }).success).toBe(false);
   });
-  it('permite dados provisórios e bloqueia pontuação em catálogo pendente ou conflitante', async () => {
+  it('calcula requisito pendente com limite compartilhado e aviso sem validar o catálogo', () => {
+    const pending = {
+      ...dataset,
+      metadata: { ...dataset.metadata, status: 'pending-official-validation' as const },
+    };
+    const item = {
+      ...criterion,
+      factor: 2.5,
+      weight: 2,
+      maxQuantity: 3,
+      provenance: {
+        status: 'pending-official-validation' as const,
+        sourceReference: 'Fixture sintética',
+      },
+    };
+    expect(requirementPoints(pending, item, [2, 2])).toEqual({
+      status: 'available',
+      score: 15,
+      unvalidated: true,
+    });
+    expect(previewRequirement(pending, item, 2)).toContain('10 pontos');
+    expect(previewRequirement(pending, item, 2)).toContain('ainda não validada');
+    expect(requirementPoints(pending, item, [-1]).status).toBe('unavailable');
+    expect(item.provenance.status).toBe('pending-official-validation');
+  });
+  it('permite dados provisórios e bloqueia pontuação em critério conflitante', async () => {
     const pending = loadIfbaRegulation();
     const conflict = pending.levels[1].criteria.find((item) => item.id === 'rsc-ii-d-5')!;
     const next = await saveRequirement(

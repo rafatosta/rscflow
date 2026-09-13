@@ -35,6 +35,30 @@ const unavailable = (
   ...(policy ? { policy } : {}),
 });
 
+/** Pontuação isolada do requisito; pendência humana não impede uma estimativa explícita. */
+export function calculateRequirementScore(quantities: number[], input: unknown) {
+  const result = criterionSchema.safeParse(input);
+  if (!result.success || quantities.some((quantity) => !Number.isFinite(quantity) || quantity < 0))
+    return { status: 'unavailable' as const, reason: 'Critério ou quantidade inválidos.' };
+  if (result.data.provenance.issue)
+    return {
+      status: 'unavailable' as const,
+      reason: 'Indisponível: conflito normativo pendente de validação.',
+    };
+  try {
+    const quantity = sum(quantities.map(number));
+    return {
+      status: 'available' as const,
+      score: weighted(quantity, result.data).toNumber(),
+    };
+  } catch {
+    return {
+      status: 'unavailable' as const,
+      reason: 'Resultado fora do intervalo numérico suportado.',
+    };
+  }
+}
+
 /** Avaliação isolada: não inclui o teto compartilhado da diretriz. */
 export function calculateActivity(
   quantity: number,

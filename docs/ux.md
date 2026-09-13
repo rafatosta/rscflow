@@ -14,7 +14,7 @@ Preencha dados pessoais/funcionais, instituição, requerimento e formação. No
 
 Anexe um arquivo no mesmo formulário ou salve sem ele e resolva a pendência depois. A opção secundária de documentos existentes permite compartilhamento. Se substituir a comprovação por outro conteúdo, desmarque a referência anterior. Excluir um lançamento preserva documentos compartilhados.
 
-O catálogo de produção está transcrito, mas pendente de validação humana. O registro é provisório; pontos não são presumidos. Divergências internas, inclusive o peso literal 14 de d.5 no RSC II, continuam visíveis e bloqueiam cálculo. Datas não geram contagem normativa de meses por inferência.
+O catálogo de produção está transcrito, mas pendente de validação humana. A pontuação de cada requisito e lançamento é calculada provisoriamente com os parâmetros transcritos e exibe aviso de que ainda não foi validada. Totais do projeto continuam indisponíveis. Divergências internas, inclusive o peso literal 14 de d.5 no RSC II, continuam visíveis e bloqueiam o cálculo do critério. Datas não geram contagem normativa de meses por inferência.
 
 ## Memorial e revisão
 

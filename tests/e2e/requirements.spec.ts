@@ -118,17 +118,32 @@ test('jornada de requisitos, anexo, pontuação, autoria, revisão e transporte 
   await expect(page.getByText('1 de 1 arquivos disponíveis')).toBeVisible();
 });
 
-test('catálogo pendente permite registro provisório, nunca cálculo presumido', async ({ page }) => {
+test('catálogo pendente calcula requisito provisório e preserva bloqueio de conflito', async ({
+  page,
+}) => {
   await create(page, 'ifba-189-2026');
   await page.getByRole('link', { name: 'Requisitos', exact: true }).click();
   await page.getByRole('tab', { name: 'RSC II', exact: true }).click();
+  await page.getByLabel('Buscar requisitos').fill('a.1');
+  await page.getByRole('button', { name: 'Adicionar lançamento', exact: true }).click();
+  await page.getByRole('spinbutton').fill('2');
+  await expect(page.getByText(/Pontuação calculada: .*pontos.*ainda não validada/)).toBeVisible();
+  await page.getByRole('button', { name: 'Salvar lançamento', exact: true }).click();
+  await expect(page.getByText(/Pontuação do requisito: \d/)).toBeVisible();
+  await expect(
+    page.getByText('Pontuação provisória, ainda não validada por conferência humana.', {
+      exact: true,
+    }),
+  ).toBeVisible();
   await page.getByLabel('Buscar requisitos').fill('d.5');
   await expect(page.getByText('Conflito normativo pendente de validação humana')).toBeVisible();
   await page.getByRole('button', { name: 'Adicionar lançamento', exact: true }).click();
   await page.getByRole('spinbutton').fill('2');
   await expect(page.getByText(/Pontuação calculada: Indisponível/)).toBeVisible();
   await page.getByRole('button', { name: 'Salvar lançamento', exact: true }).click();
-  await expect(page.getByText('Pontuação indisponível', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('Indisponível: conflito normativo pendente de validação.', { exact: true }),
+  ).toBeVisible();
   await page.getByRole('tab', { name: 'RSC III', exact: true }).click();
   await expect(page.getByRole('tab', { name: 'RSC III', exact: true })).toHaveAttribute(
     'aria-selected',

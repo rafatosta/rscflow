@@ -6,6 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Pontuação provisória por requisito e lançamento em catálogo pendente de validação humana, com
+  aviso explícito; totais do projeto e critérios com conflito normativo permanecem indisponíveis.
+
 - Padrões visuais compartilhados para superfícies, títulos, cartões, campos, botões, links, avisos
   e sobreposições, preservando os fluxos e a organização funcional existentes.
 

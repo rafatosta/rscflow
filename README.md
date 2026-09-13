@@ -10,8 +10,9 @@ telemetria ou envio dos dados pessoais para serviços externos.
 A política de cálculo da Resolução CONSUP/IFBA nº 189/2026 foi conferida e está representada em
 JSON. O catálogo de diretrizes e critérios de RSC I, II e III foi transcrito dos Anexos IV–VI e
 está com status `pending-official-validation` e versão normativa `null`. Ele pode ser consultado e
-receber registros provisórios, mas o dataset de produção retorna cálculo indisponível até a validação
-humana final. O conflito interno do RSC II d.5 permanece literal e sinalizado.
+receber registros e calcular pontuação provisória por requisito, com aviso de validação humana
+pendente. Totais do projeto permanecem indisponíveis até a validação final. O conflito interno do
+RSC II d.5 permanece literal e sinalizado, sem cálculo desse critério.
 
 Em divergências, vale a seguinte ordem: instrução atual do mantenedor, resolução oficial,
 JSON normativo validado, documentação e código. A resolução prevalece sobre a planilha e o

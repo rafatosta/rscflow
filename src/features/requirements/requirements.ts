@@ -9,7 +9,7 @@ import {
 import { migrateProject } from '@/domain/project-migration';
 import type { LocalFile } from '@/domain/local-files';
 import { sha256 } from '@/storage/local-files';
-import { calculateActivity } from '@/rules/scoring';
+import { calculateRequirementScore } from '@/rules/scoring';
 
 export const requirementFormSchema = z
   .object({
@@ -32,12 +32,18 @@ export function quantityPresentation(criterion: Criterion) {
         : `Informe a quantidade comprovada em ${criterion.unit}.`,
   };
 }
+export function requirementPoints(dataset: Regulation, criterion: Criterion, quantities: number[]) {
+  const result = calculateRequirementScore(quantities, criterion);
+  return {
+    ...result,
+    unvalidated:
+      dataset.metadata.status !== 'validated' || criterion.provenance.status !== 'validated',
+  };
+}
 export function previewRequirement(dataset: Regulation, criterion: Criterion, quantity: number) {
-  if (dataset.metadata.status !== 'validated')
-    return 'Indisponível: catálogo pendente de validação.';
-  const result = calculateActivity(quantity, criterion);
+  const result = requirementPoints(dataset, criterion, [quantity]);
   return result.status === 'available'
-    ? `${result.score.toLocaleString('pt-BR')} pontos (antes dos tetos compartilhados)`
+    ? `${result.score.toLocaleString('pt-BR')} pontos (antes dos tetos compartilhados)${result.unvalidated ? ' · Pontuação provisória, ainda não validada por conferência humana.' : ''}`
     : result.reason;
 }
 export function allOccurrences(project: OccurrenceProjectExport) {

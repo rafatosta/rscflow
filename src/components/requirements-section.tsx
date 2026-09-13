@@ -9,6 +9,7 @@ import { searchCriteria, criterionProvenanceLabel } from '@/features/criteria/cr
 import { levelLabel, levels } from '@/features/project-shell/project-view';
 import {
   previewRequirement,
+  requirementPoints,
   quantityPresentation,
   requirementFormSchema,
   saveRequirement,
@@ -108,8 +109,8 @@ export function RequirementsSection({
       >
         {dataset?.metadata.status !== 'validated' && (
           <p role="status" className="panel text-amber-200">
-            Catálogo pendente de validação humana. Você pode registrar informações provisórias; a
-            pontuação está indisponível. {dataset?.metadata.notice}
+            Catálogo pendente de validação humana. A pontuação dos requisitos é provisória e ainda
+            não foi validada. {dataset?.metadata.notice}
           </p>
         )}
         {!dataset && (
@@ -190,10 +191,11 @@ export function RequirementsSection({
                           entry.criterionId === criterion.id && entry.selectedLevel === level,
                       )
                       .flatMap((entry) => entry.occurrences);
-                    const points =
-                      scoring.status === 'unavailable'
-                        ? undefined
-                        : scoring.criteria.find((item) => item.criterionId === criterion.id);
+                    const points = requirementPoints(
+                      dataset!,
+                      criterion,
+                      entries.map((entry) => entry.quantity),
+                    );
                     return (
                       <article
                         key={criterion.id}
@@ -206,8 +208,16 @@ export function RequirementsSection({
                           Máximo considerado: {criterion.maxQuantity}
                         </p>
                         <p>
-                          Pontuação do requisito: {points?.score.toLocaleString('pt-BR') ?? '—'}
+                          Pontuação do requisito:{' '}
+                          {points.status === 'available'
+                            ? points.score.toLocaleString('pt-BR')
+                            : '—'}
                         </p>
+                        {points.status === 'available' && points.unvalidated && (
+                          <p className="text-amber-200">
+                            Pontuação provisória, ainda não validada por conferência humana.
+                          </p>
+                        )}
                         {criterion.provenance.status !== 'validated' && (
                           <p className="text-amber-200">
                             {criterionProvenanceLabel(criterion.provenance)}
@@ -232,11 +242,7 @@ export function RequirementsSection({
                                 {entry.description || entry.title} · {entry.quantity}{' '}
                                 {criterion.unit}
                               </p>
-                              <p>
-                                {scoring.status === 'unavailable'
-                                  ? 'Pontuação indisponível'
-                                  : `${scoring.activities.find((item) => item.activityId === entry.id)?.score ?? '—'} pontos antes dos tetos`}
-                              </p>
+                              <p>{previewRequirement(dataset!, criterion, entry.quantity)}</p>
                               <p>
                                 {entry.evidenceIds.length
                                   ? `Documentos: ${entry.evidenceIds.map((id) => project.userData.evidence.find((item) => item.id === id)?.title).join('; ')}`

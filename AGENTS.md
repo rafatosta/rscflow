@@ -18,7 +18,9 @@ Este arquivo é a porta de entrada e o roteador de contexto do projeto.
   divergência deve ser registrada com suas fontes.
 - Domínio, regras, persistência, interface, memorial e PDF permanecem separados. Componentes React
   não contêm valores nem critérios normativos.
-- Catálogos de produção pendentes continuam indisponíveis para pontuação. Fixtures sintéticas são
+- Catálogos pendentes permitem pontuação provisória por requisito com aviso de validação humana
+  pendente; totais permanecem indisponíveis e conflitos normativos explícitos não são calculados.
+  Fixtures sintéticas são
   exclusivas de testes; o catálogo E2E só pode ser injetado no modo Vite `e2e`.
 - Toda mudança de comportamento exige teste correspondente. Não deixe `TODO`, stub ou
   funcionalidade deliberadamente incompleta.
