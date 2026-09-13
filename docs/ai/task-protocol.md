@@ -11,6 +11,33 @@
 6. Siga o fluxo de testes, documentação, changelog e finalização definido em
    `../development-workflow.md`.
 
+## Recomendação consultiva de capacidade
+
+Classifique cada etapa pela complexidade antes de executar. As recomendações abaixo orientam
+capacidade e esforço, sem exigir um modelo específico ou bloquear o trabalho:
+
+| Classe                   | Escopo típico                                                         | Capacidade e raciocínio recomendados |
+| ------------------------ | --------------------------------------------------------------------- | ------------------------------------ |
+| A — localizada           | texto, estilo ou documentação pontual                                 | leve; esforço baixo                  |
+| B — funcional            | formulário, CRUD ou correção delimitada                               | intermediária; esforço baixo/médio   |
+| C — transversal          | várias camadas, persistência ou migração de schema                    | avançada; esforço médio              |
+| D — arquitetural/ambígua | investigação difícil, decisões estruturais ou requisitos conflitantes | maior capacidade; esforço médio/alto |
+
+Uma migração documental completa normalmente é transversal. Atualizações incrementais e
+reconciliações de commits ou diffs devem ser classificadas pelo impacto real, sem presumir a mesma
+complexidade da migração inicial.
+
+Se a capacidade atual atender à tarefa ou superar a recomendação, continue. Se estiver abaixo,
+informe a limitação e continue quando tecnicamente possível. Impossibilidade técnica real deve ser
+explicada. A escolha do modelo pertence ao usuário; não troque modelo nem crie pausas obrigatórias
+apenas pela recomendação.
+
+Em tarefas compostas, classifique por etapa e informe a estratégia no início. Quando as etapas
+recomendarem capacidades diferentes, apresente a possibilidade de execução contínua ou pausas
+planejadas; preserve a execução contínua enquanto o usuário não escolher pausas.
+
+## Ambiguidade
+
 Pergunte ao usuário ou mantenedor somente quando uma decisão necessária tiver alternativas materialmente
 diferentes e nenhuma fonte autoritativa resolver a dúvida. Em especial, não interprete lacunas ou
 ambiguidades da resolução normativa.

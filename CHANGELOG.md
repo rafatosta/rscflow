@@ -6,6 +6,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Recomendação consultiva de capacidade por etapa integrada ao protocolo de tarefas na atualização
+  incremental do ARRP, sem dependência de nomes específicos de modelos.
+
 - Estrutura documental ARRP com `AGENTS.md` como roteador, mapa de contexto sob demanda, protocolo
   de tarefas, política de decisões e reconciliação documental pós-alteração.
 
@@ -102,6 +105,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 - Testes de leitura, rejeição estrutural, seleção concorrente e fluxo E2E com acessibilidade.
 
 ### Changed
+
+- Matriz de testes consolidada conforme as suítes vigentes; a versão com referências removidas foi
+  preservada como histórico.
+- Referência de validação do domínio 3.0 atualizada para o E2E vigente de Requisitos.
 
 - Plano de refatoração de 11/09/2026 arquivado como histórico, separado da documentação vigente.
 

@@ -60,7 +60,7 @@ arquivos alterados. Revise `git diff` e `git diff --check` antes de sugerir a me
 
 Preserve os leitores 1.0/2.0/2.1 e a migração explícita em cópia. Para mudanças em grupos,
 ocorrências ou arquivos, execute `tests/unit/criterion-entry.test.ts` e o E2E
-`tests/e2e/criterion-entry.spec.ts`, além da bateria completa. O round-trip deve preservar
+`tests/e2e/requirements.spec.ts`, além da bateria completa. O round-trip deve preservar
 quantidades, autoria, ordem, referências incompletas, evidências compartilhadas e descritores.
 Não adicione campos normativos ao envelope e não exporte a projeção transitória Activity como se
 fosse o projeto 3.0. A tabela Dexie `files` está na versão 2 e guarda bytes por cópia local.
