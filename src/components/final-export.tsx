@@ -14,6 +14,7 @@ import { projectJsonFilename } from '@/features/local-projects/project-files';
 import { projectPath } from '@/features/project-shell/routes';
 import {
   evidenceBundlePdfFilename,
+  finalPackageFilename,
   memorialPdfFilename,
   normativeFormsPdfFilename,
 } from '@/pdf/file-name';
@@ -126,10 +127,10 @@ export function FinalExport({
         );
         return;
       }
-      const { downloadPdfBytes } = await import('@/pdf/download');
-      downloadPdfBytes(result.artifacts.evidence, evidenceBundlePdfFilename(project));
-      downloadPdfBytes(result.artifacts.memorial, memorialPdfFilename(project));
-      downloadPdfBytes(result.artifacts.forms, normativeFormsPdfFilename(project));
+      const { createFinalPackage } = await import('@/features/final-documents/package');
+      const finalPackage = createFinalPackage(project, result);
+      const { downloadBytes } = await import('@/pdf/download');
+      downloadBytes(finalPackage.bytes, finalPackage.filename, 'application/zip');
     } catch {
       setError('Não foi possível concluir a geração conjunta dos documentos.');
     } finally {
@@ -240,10 +241,14 @@ export function FinalExport({
 
         <article className="subpanel p-5">
           <Download className="text-cyan-300" aria-hidden="true" />
-          <h3 className="mt-3 subsection-title">Gerar todos os documentos</h3>
+          <h3 className="mt-3 subsection-title">Pacote final do processo</h3>
           <p className="mt-2 text-sm text-slate-300">
-            Consolida os comprovantes e usa o mesmo mapa de páginas no Memorial e nos formulários.
-            Os downloads só são iniciados quando o conjunto inteiro está pronto.
+            Consolida os comprovantes e usa o mesmo mapa de páginas no Memorial e nos formulários. O
+            ZIP mantém os três PDFs separados e só é disponibilizado quando o conjunto inteiro está
+            pronto.
+          </p>
+          <p className="mt-2 break-all text-sm text-slate-300">
+            Nome sugerido: <code>{finalPackageFilename(project)}</code>
           </p>
           {jointStatuses.length > 0 && (
             <ul className="mt-3 space-y-1 text-sm" aria-label="Resultado da geração conjunta">
@@ -280,7 +285,7 @@ export function FinalExport({
             }
           >
             <Download className="mr-2" size={17} aria-hidden="true" />
-            {generating === 'all' ? 'Gerando conjunto…' : 'Gerar todos'}
+            {generating === 'all' ? 'Gerando pacote…' : 'Gerar pacote final'}
           </Button>
         </article>
 

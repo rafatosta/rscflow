@@ -9,11 +9,11 @@ import { createDraft, datasets } from '@/features/project-shell/project-view';
 import { downloadMemorialPdf } from '@/pdf/generator';
 import { downloadNormativeFormsPdf } from '@/pdf/normative-forms';
 import * as preparation from '@/features/final-documents/prepare';
-import { downloadPdfBytes } from '@/pdf/download';
+import { downloadBytes, downloadPdfBytes } from '@/pdf/download';
 import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
 import { generateProcessArtifacts } from '@/features/final-documents/generate-all';
 
-vi.mock('@/pdf/download', () => ({ downloadPdfBytes: vi.fn() }));
+vi.mock('@/pdf/download', () => ({ downloadPdfBytes: vi.fn(), downloadBytes: vi.fn() }));
 vi.mock('@/features/final-documents/generate-all', () => ({
   generateProcessArtifacts: vi.fn(),
 }));
@@ -139,6 +139,7 @@ it('só disponibiliza os três downloads quando a geração conjunta termina com
     bytes: new Uint8Array([1]),
     pageMap,
   });
+  const pdf = (marker: number) => new Uint8Array([37, 80, 68, 70, 45, marker]);
   vi.mocked(generateProcessArtifacts).mockResolvedValue({
     status: 'success',
     statuses: [
@@ -147,9 +148,9 @@ it('só disponibiliza os três downloads quando a geração conjunta termina com
       { artifact: 'forms', status: 'produced' },
     ],
     artifacts: {
-      evidence: new Uint8Array([1]),
-      memorial: new Uint8Array([2]),
-      forms: new Uint8Array([3]),
+      evidence: pdf(1),
+      memorial: pdf(2),
+      forms: pdf(3),
       pageMap,
     },
   });
@@ -170,9 +171,16 @@ it('só disponibiliza os três downloads quando a geração conjunta termina com
       />
     </MemoryRouter>,
   );
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Gerar todos' })).toBeEnabled());
-  fireEvent.click(screen.getByRole('button', { name: 'Gerar todos' }));
-  await waitFor(() => expect(downloadPdfBytes).toHaveBeenCalledTimes(3));
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Gerar pacote final' })).toBeEnabled(),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar pacote final' }));
+  await waitFor(() => expect(downloadBytes).toHaveBeenCalledOnce());
+  expect(downloadBytes).toHaveBeenCalledWith(
+    expect.objectContaining({ 0: 0x50, 1: 0x4b }),
+    'pacote-final-rsc-joana-conceicao.zip',
+    'application/zip',
+  );
   expect(screen.getByRole('list', { name: 'Resultado da geração conjunta' })).toHaveTextContent(
     'Comprovantes: produzido',
   );
@@ -223,14 +231,16 @@ it('não baixa resultado parcial quando a geração conjunta falha', async () =>
       />
     </MemoryRouter>,
   );
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Gerar todos' })).toBeEnabled());
-  fireEvent.click(screen.getByRole('button', { name: 'Gerar todos' }));
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Gerar pacote final' })).toBeEnabled(),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar pacote final' }));
   await waitFor(() =>
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Nenhum conjunto final foi disponibilizado',
     ),
   );
-  expect(downloadPdfBytes).not.toHaveBeenCalled();
+  expect(downloadBytes).not.toHaveBeenCalled();
   expect(screen.getByRole('list', { name: 'Resultado da geração conjunta' })).toHaveTextContent(
     'Formulários: falhou - Falha no formulário.',
   );

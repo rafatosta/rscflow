@@ -162,3 +162,8 @@ mesmos bytes que originam o mapa, sem outra ordenação ou paginação.
 dados estruturados. A consolidação termina antes de iniciar os geradores dependentes, que recebem a
 mesma instância de `EvidencePageMap`. O resultado só expõe os bytes dos três artefatos quando todos
 terminam; em falha, expõe apenas o estado produzido, falho ou não iniciado de cada etapa.
+
+`features/final-documents/package.ts` recebe exclusivamente o resultado completo dessa operação,
+valida os três PDFs e os grava sem alteração em um ZIP determinístico. Nomes vêm das mesmas funções
+usadas nos downloads individuais. A camada de pacote não conhece templates, não recalcula dados e
+não chama geradores.

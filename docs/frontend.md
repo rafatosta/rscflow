@@ -59,10 +59,11 @@ e do nível solicitado. Estados e limitações aparecem no cartão de cada artef
 binário `.rscflow` ainda não tem ação própria. JSON transporta dados e
 descritores, sem bytes.
 
-A ação “Gerar todos” usa uma única fotografia do projeto, consolida os comprovantes antes dos
-documentos que contêm referências e inicia os três downloads somente após o sucesso integral. Uma
-falha mantém o conjunto indisponível e apresenta separadamente quais etapas produziram bytes, quais
-falharam e quais não foram iniciadas.
+A ação “Gerar pacote final” usa uma única fotografia do projeto, consolida os comprovantes antes dos
+documentos que contêm referências e disponibiliza um ZIP somente após o sucesso integral. O pacote
+mantém Memorial, formulários e comprovantes como PDFs independentes com nomes estáveis. Uma falha
+mantém o pacote indisponível e apresenta separadamente quais etapas produziram bytes, quais falharam
+e quais não foram iniciadas.
 
 ## Acessibilidade
 

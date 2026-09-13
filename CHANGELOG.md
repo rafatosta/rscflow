@@ -19,6 +19,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Pacote final ZIP determinístico com Memorial, formulários normativos e comprovantes em PDFs
+  separados, criado somente a partir do resultado completo da geração conjunta.
+
 - Geração conjunta e transacional do Memorial, formulários normativos e comprovantes consolidados,
   usando uma fotografia do projeto e um único mapa de páginas, com resultado explícito por artefato.
 
