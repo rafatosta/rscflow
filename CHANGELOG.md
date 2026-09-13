@@ -13,6 +13,9 @@ This project follows Keep a Changelog and Semantic Versioning.
   aviso condensado em badge e tooltip; totais do projeto e critérios com conflito normativo
   permanecem indisponíveis.
 
+- Cards de requisitos reorganizados com hierarquia entre contexto, pontuação, métricas, referência
+  normativa, lançamentos e ações, preservando conteúdo e regras existentes.
+
 - Padrões visuais compartilhados para superfícies, títulos, cartões, campos, botões, links, avisos
   e sobreposições, preservando os fluxos e a organização funcional existentes.
 

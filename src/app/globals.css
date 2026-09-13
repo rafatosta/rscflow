@@ -273,6 +273,49 @@
     border-color: rgb(var(--line));
     background: rgb(var(--surface-raised) / 0.45);
   }
+  .requirement-card {
+    @apply min-w-0 overflow-visible rounded-2xl border;
+    border-color: rgb(var(--line));
+    background: rgb(var(--surface-raised) / 0.28);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 0.06);
+  }
+  .requirement-card-header {
+    @apply grid min-w-0 gap-5 border-b p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:p-6;
+    border-color: rgb(var(--line));
+  }
+  .requirement-metrics {
+    @apply grid gap-4 border-b p-5 sm:grid-cols-3 sm:p-6;
+    border-color: rgb(var(--line));
+  }
+  .requirement-metric {
+    @apply grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 sm:border-r sm:pr-4 last:sm:border-r-0;
+    border-color: rgb(var(--line));
+  }
+  .requirement-metric-icon,
+  .requirement-reference-icon {
+    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full;
+    background: rgb(var(--accent) / 0.1);
+    color: rgb(var(--accent));
+  }
+  .requirement-metric dt {
+    @apply col-start-2 text-sm font-medium;
+    color: rgb(var(--ink-muted));
+  }
+  .requirement-metric dd {
+    @apply col-start-2 mt-1 text-xl font-bold tabular-nums;
+  }
+  .requirement-reference {
+    @apply mx-5 mt-5 flex min-w-0 items-center gap-4 rounded-xl border p-4 sm:mx-6 sm:mt-6;
+    border-color: rgb(var(--accent) / 0.28);
+    background: rgb(var(--accent) / 0.07);
+  }
+  .requirement-card > .notice,
+  .requirement-card > ul {
+    @apply mx-5 mt-5 sm:mx-6;
+  }
+  .requirement-card-actions {
+    @apply flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6;
+  }
   .empty-state {
     @apply rounded-xl border border-dashed p-5;
     border-color: rgb(var(--line-strong));

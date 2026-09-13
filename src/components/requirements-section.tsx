@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { BarChart3, BookOpen, FileText, List, PlusCircle, Scale } from 'lucide-react';
 import type { Occurrence, OccurrenceProjectExport } from '@/domain/criterion-entry';
 import type { Criterion, Regulation, RscLevel } from '@/domain/regulation';
 import type { CalculationResult } from '@/domain/scoring';
@@ -200,42 +201,85 @@ export function RequirementsSection({
                     return (
                       <article
                         key={criterion.id}
-                        className="subpanel space-y-3 break-words"
+                        className="requirement-card break-words"
                         aria-label={criterion.description}
                       >
-                        <div className="flex items-start gap-3">
-                          <h3 className="min-w-0 flex-1 text-lg font-semibold">
-                            {criterion.description}
-                          </h3>
-                          {points.unvalidated && (
-                            <ValidationBadge tooltipId={`validation-${criterion.id}`} />
-                          )}
+                        <header className="requirement-card-header">
+                          <div className="min-w-0">
+                            <h3 className="text-xl font-bold tracking-tight sm:text-2xl">
+                              {criterion.description}
+                            </h3>
+                            <p className="mt-2 text-sm font-medium text-slate-300 sm:text-base">
+                              {levelLabel(level)} <span aria-hidden="true">•</span> Item{' '}
+                              {criterion.code} <span aria-hidden="true">•</span> Unidade:{' '}
+                              {criterion.unit}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
+                            {points.unvalidated && (
+                              <ValidationBadge tooltipId={`validation-${criterion.id}`} />
+                            )}
+                            <div className="sm:text-right">
+                              <p className="text-sm font-medium text-slate-300">
+                                Pontuação do requisito<span className="sr-only">:</span>{' '}
+                              </p>
+                              <p className="mt-1 text-2xl font-bold tabular-nums">
+                                {points.status === 'available'
+                                  ? points.score.toLocaleString('pt-BR')
+                                  : '—'}{' '}
+                                <span className="text-base font-medium text-slate-300">pontos</span>
+                              </p>
+                            </div>
+                          </div>
+                        </header>
+                        <dl className="requirement-metrics">
+                          <div className="requirement-metric">
+                            <span className="requirement-metric-icon" aria-hidden="true">
+                              <BookOpen size={22} />
+                            </span>
+                            <dt>Valor por unidade</dt>
+                            <dd>{criterion.factor.toLocaleString('pt-BR')}</dd>
+                          </div>
+                          <div className="requirement-metric">
+                            <span
+                              className="requirement-metric-icon text-emerald-300"
+                              aria-hidden="true"
+                            >
+                              <Scale size={22} />
+                            </span>
+                            <dt>Peso</dt>
+                            <dd>{criterion.weight.toLocaleString('pt-BR')}</dd>
+                          </div>
+                          <div className="requirement-metric">
+                            <span
+                              className="requirement-metric-icon text-cyan-300"
+                              aria-hidden="true"
+                            >
+                              <BarChart3 size={22} />
+                            </span>
+                            <dt>Máximo considerado</dt>
+                            <dd>{criterion.maxQuantity.toLocaleString('pt-BR')}</dd>
+                          </div>
+                        </dl>
+                        <div className="requirement-reference">
+                          <span className="requirement-reference-icon" aria-hidden="true">
+                            <FileText size={24} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-semibold">Referência normativa</p>
+                            <p className="mt-1 text-sm text-slate-300">
+                              {criterion.provenance.sourceReference}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-sm text-slate-300">
-                          {levelLabel(level)} · item {criterion.code} · Unidade: {criterion.unit} ·
-                          Máximo considerado: {criterion.maxQuantity}
-                        </p>
-                        <p>
-                          Pontuação do requisito:{' '}
-                          {points.status === 'available'
-                            ? points.score.toLocaleString('pt-BR')
-                            : '—'}
-                        </p>
                         {criterion.provenance.issue && (
-                          <p className="text-amber-200">
-                            {criterionProvenanceLabel(criterion.provenance)}
-                          </p>
+                          <div className="notice border-amber-500/50 bg-amber-950/20 text-amber-200">
+                            <p className="font-semibold">
+                              {criterionProvenanceLabel(criterion.provenance)}
+                            </p>
+                            <p className="mt-1 text-sm">{criterion.provenance.issue.description}</p>
+                          </div>
                         )}
-                        {criterion.provenance.issue && (
-                          <p className="text-amber-200">{criterion.provenance.issue.description}</p>
-                        )}
-                        <details>
-                          <summary>Referência normativa e valores</summary>
-                          <p>
-                            Valor por unidade: {criterion.factor} · Peso: {criterion.weight}
-                          </p>
-                          <p>{criterion.provenance.sourceReference}</p>
-                        </details>
                         <ul className="space-y-3">
                           {entries.map((entry) => (
                             <li key={entry.id} className="rounded bg-slate-800 p-3">
@@ -276,17 +320,29 @@ export function RequirementsSection({
                             </li>
                           ))}
                         </ul>
-                        <Button
-                          id={`add-${criterion.id}`}
-                          disabled={disabled}
-                          onClick={(event) => {
-                            trigger.current = event.currentTarget;
-                            setEditing({ criterion, occurrence: reframing });
-                            setReframing(undefined);
-                          }}
-                        >
-                          {reframing ? 'Usar este requisito' : 'Adicionar lançamento'}
-                        </Button>
+                        <footer className="requirement-card-actions">
+                          <Button
+                            id={`add-${criterion.id}`}
+                            disabled={disabled}
+                            onClick={(event) => {
+                              trigger.current = event.currentTarget;
+                              setEditing({ criterion, occurrence: reframing });
+                              setReframing(undefined);
+                            }}
+                          >
+                            <PlusCircle size={18} aria-hidden="true" />
+                            {reframing ? 'Usar este requisito' : 'Adicionar lançamento'}
+                          </Button>
+                          {!!entries.length && (
+                            <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-300">
+                              <List size={18} aria-hidden="true" />
+                              {entries.length}{' '}
+                              {entries.length === 1
+                                ? 'lançamento cadastrado'
+                                : 'lançamentos cadastrados'}
+                            </p>
+                          )}
+                        </footer>
                       </article>
                     );
                   })}

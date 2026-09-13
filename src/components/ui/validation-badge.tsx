@@ -2,10 +2,10 @@ import { AlertTriangle } from 'lucide-react';
 
 export function ValidationBadge({ tooltipId }: { tooltipId: string }) {
   return (
-    <span className="group relative ml-auto shrink-0">
+    <span className="group relative shrink-0">
       <button
         type="button"
-        className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-amber-500/70 bg-amber-950/20 px-2.5 py-1 text-xs font-semibold text-amber-200"
+        className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-amber-500/70 bg-amber-950/20 px-3 py-2 text-sm font-semibold text-amber-200"
         aria-describedby={tooltipId}
       >
         <AlertTriangle size={14} aria-hidden="true" />

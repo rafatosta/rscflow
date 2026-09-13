@@ -25,6 +25,11 @@ Nos cartões de requisitos pendentes, um badge “Não validado” no topo direi
 dos avisos de pontuação provisória e validação oficial. O tooltip associado aparece por mouse ou
 foco do teclado; conflitos normativos específicos continuam descritos no corpo do cartão.
 
+Cada cartão organiza título e contexto no cabeçalho, junto da pontuação e do estado de validação.
+Valor por unidade, peso e máximo considerado formam uma faixa de métricas; a referência normativa
+recebe destaque próprio. Lançamentos permanecem visíveis no corpo, enquanto a ação de adicionar e
+a quantidade cadastrada encerram o cartão.
+
 Salvar prepara ocorrência, evidência e descritor no caso de uso e grava os bytes junto com o projeto. Falhas mantêm o formulário. Sem arquivo, o lançamento permanece com pendência e pode ser editado depois. Documentos já cadastrados podem ser compartilhados. Selecionar novamente o mesmo conteúdo recupera seu vínculo local por hash sem duplicar descritores. Registros importados sem enquadramento podem ser associados a um requisito sem perder sua identidade e texto manual.
 
 ## Edição e saídas
