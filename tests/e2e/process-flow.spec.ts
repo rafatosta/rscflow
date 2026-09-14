@@ -129,6 +129,23 @@ test('percorre o processo demonstrativo e mantém os dados consistentes em todos
   expect(previewText).toContain('Gestão escolar fictícia - RSC I a.1 (pp. 1-2)');
   expect(previewText).toContain('Curso FIC fictício - RSC I c.1 (p. 3)');
 
+  const formsSelector = page.getByRole('button', { name: 'Formulários e anexos normativos' });
+  await expect(formsSelector).toBeEnabled();
+  await formsSelector.click();
+  await expect(
+    page.getByRole('heading', { name: 'Formulários e anexos normativos' }),
+  ).toBeVisible();
+  const formsPreviewPages = Number(await page.getByLabel('Página atual').getAttribute('max'));
+  await expect(page.getByRole('article', { name: 'Página 1' }).locator('canvas')).toBeVisible();
+
+  await page.getByRole('button', { name: 'PDF consolidado dos comprovantes' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'PDF consolidado dos comprovantes' }),
+  ).toBeVisible();
+  const evidencePreviewPages = Number(await page.getByLabel('Página atual').getAttribute('max'));
+  expect(evidencePreviewPages).toBe(9);
+  await expect(page.getByRole('article', { name: 'Página 1' }).locator('canvas')).toBeVisible();
+
   await page
     .getByRole('navigation')
     .getByRole('link', { name: 'Gerar documentos', exact: true })
@@ -143,6 +160,7 @@ test('percorre o processo demonstrativo e mantém os dados consistentes em todos
   const formsDownload = await downloadFrom(page, 'Gerar formulários');
   const formsBytes = await downloadBytes(formsDownload);
   const forms = await PDFDocument.load(formsBytes);
+  expect(forms.getPageCount()).toBe(formsPreviewPages);
   expect(forms.getTitle()).toBe('Formulários e anexos do processo de RSC');
   const formsContent = decodedPdfContent(forms);
   expect(formsContent).toContain('pp. 1-2');

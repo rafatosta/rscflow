@@ -9,6 +9,8 @@ This project follows Keep a Changelog and Semantic Versioning.
 - Prévia de Documentos reutilizável com mapa de miniaturas, visualizador sincronizado, zoom, modos
   de uma ou duas páginas e painel contextual responsivo; o Memorial preserva a paginação e a geração
   existentes por meio de um adaptador próprio.
+- Formulários e anexos normativos e PDF consolidado dos comprovantes disponíveis na mesma Prévia de
+  Documentos, reutilizando os bytes e o mapa produzidos pelos geradores existentes.
 
 ### Changed
 

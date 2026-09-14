@@ -355,6 +355,9 @@
     width: 100%;
     box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
   }
+  .document-pdf-page {
+    width: min(100%, 49.61rem);
+  }
   .document-canvas {
     min-height: 38rem;
     background: rgb(var(--surface-raised));
@@ -405,6 +408,12 @@
   .document-print-pages .a4-page {
     width: 210mm;
     height: 297mm;
+    max-width: none;
+    box-shadow: none;
+    break-after: page;
+  }
+  .document-print-pages .document-pdf-page {
+    width: 210mm;
     max-width: none;
     box-shadow: none;
     break-after: page;

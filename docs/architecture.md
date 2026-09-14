@@ -114,6 +114,9 @@ regras normativas.
 visualizador, toolbar e painel contextual recebem páginas, metadados, estado e ações por contrato.
 `PdfPreview` atua como adaptador do Memorial e continua usando o layout A4 compartilhado; a
 composição genérica não conhece o domínio do Memorial nem regras normativas.
+Os PDFs binários dos formulários e comprovantes são renderizados localmente pelo adaptador PDF.js;
+os bytes continuam sendo produzidos pelos geradores existentes, e a troca de documento altera
+somente o conteúdo e o contexto entregues ao visualizador.
 
 `src/pdf/evidence-bundle.ts` cria um plano ordenado por RSC, requisito e lançamento e percorre essa
 mesma sequência para consolidar os PDFs e produzir o mapa de páginas. Comprovantes compartilhados

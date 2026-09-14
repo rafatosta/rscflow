@@ -1,21 +1,33 @@
 import { useEffect, useMemo, useState } from 'react';
-import { activityProjectView } from '@/domain/project-migration';
-import { Download, Pencil, Printer, RotateCcw } from 'lucide-react';
+import { Download, Pencil, Printer } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { activityProjectView } from '@/domain/project-migration';
 import type { LocalProject } from '@/domain/local-project';
 import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
-import type { EvidencePageMap } from '@/domain/evidence-page-map';
 import type { FileResolver } from '@/domain/local-files';
 import type { TypedProjectExport } from '@/domain/project';
+import type { Regulation } from '@/domain/regulation';
+import type { ArtifactReadiness } from '@/features/final-review/review';
 import { reviewProject } from '@/features/final-review/review';
+import type { EvidencePreparation } from '@/features/final-documents/prepare';
+import { prepareEvidenceArtifacts } from '@/features/final-documents/prepare';
 import { projectPath } from '@/features/project-shell/routes';
 import { projectScoring } from '@/features/project-shell/project-view';
 import { buildMemorialDocument } from '@/memorial/preview';
 import { A4_PAGE, type MemorialPdfLayout } from '@/pdf/model';
+import { evidenceBundlePdfFilename, normativeFormsPdfFilename } from '@/pdf/file-name';
 import { Button } from './ui/button';
-import { DocumentPreview, type DocumentPreviewPage } from './document-preview/document-preview';
+import {
+  DocumentPreview,
+  type DocumentPreviewPage,
+  type DocumentStatus,
+} from './document-preview/document-preview';
+import type { LoadedPdfPreview } from './document-preview/pdf-document-pages';
 
-function PreviewPage({
+type DocumentId = 'memorial' | 'forms' | 'evidence';
+type PdfArtifact = LoadedPdfPreview & { bytes: Uint8Array };
+
+function MemorialPage({
   page,
   thumbnail = false,
 }: {
@@ -26,16 +38,11 @@ function PreviewPage({
   return (
     <Element
       className={`a4-page relative mx-auto overflow-hidden bg-white text-slate-950 ${thumbnail ? '' : 'shadow-2xl'}`}
-      {...(!thumbnail ? { 'aria-label': `Página ${page.number}` } : { 'aria-hidden': true })}
+      {...(thumbnail ? { 'aria-hidden': true } : { 'aria-label': `Página ${page.number}` })}
     >
       {page.lines.map((line, index) => {
-        const contentWidth = A4_PAGE.width - A4_PAGE.marginLeft - A4_PAGE.marginRight;
-        const left =
-          line.align === 'left'
-            ? line.x
-            : line.align === 'center'
-              ? A4_PAGE.marginLeft
-              : A4_PAGE.width - A4_PAGE.marginRight - contentWidth;
+        const width = A4_PAGE.width - A4_PAGE.marginLeft - A4_PAGE.marginRight;
+        const left = line.align === 'left' ? line.x : A4_PAGE.marginLeft;
         return (
           <span
             key={`${line.y}-${index}`}
@@ -43,10 +50,7 @@ function PreviewPage({
             style={{
               left: `${(left / A4_PAGE.width) * 100}%`,
               top: `${(line.y / A4_PAGE.height) * 100}%`,
-              width:
-                line.align === 'left'
-                  ? `${(line.width / A4_PAGE.width) * 100}%`
-                  : `${(contentWidth / A4_PAGE.width) * 100}%`,
+              width: `${((line.align === 'left' ? line.width : width) / A4_PAGE.width) * 100}%`,
               fontFamily: 'Georgia, "Times New Roman", serif',
               fontSize: `${(line.fontSize / A4_PAGE.width) * 100}cqw`,
               fontWeight: line.style === 'heading' || line.style === 'cover-title' ? 700 : 400,
@@ -62,146 +66,239 @@ function PreviewPage({
   );
 }
 
+function statusOf(readiness: ArtifactReadiness): DocumentStatus {
+  if (readiness.status === 'blocked')
+    return {
+      label: 'Dados incompletos',
+      description: readiness.reasons.join(' '),
+      tone: 'destructive',
+    };
+  if (readiness.status === 'limited' || readiness.status === 'checking')
+    return {
+      label: readiness.status === 'checking' ? 'Verificando documento' : 'Requer revisão',
+      description: readiness.reasons.join(' ') || 'Confira as limitações antes de gerar.',
+      tone: 'warning',
+    };
+  return {
+    label: 'Pronto para geração',
+    description: 'Não há correções bloqueantes na verificação atual.',
+    tone: 'success',
+  };
+}
+
 export function PdfPreview({
   record,
   evidenceProject,
   resolver,
+  dataset,
   onExportJson,
 }: {
   record: LocalProject;
   evidenceProject?: OccurrenceProjectExport;
   resolver?: FileResolver;
+  dataset?: Regulation;
   onExportJson?: () => void;
 }) {
   const project = useMemo(
     () => activityProjectView(record.project as TypedProjectExport),
     [record.project],
   );
-  const review = reviewProject(project, projectScoring(project));
+  const scoring = useMemo(() => projectScoring(project), [project]);
+  const [selected, setSelected] = useState<DocumentId>('memorial');
   const [layout, setLayout] = useState<MemorialPdfLayout>();
-  const [pageMap, setPageMap] = useState<EvidencePageMap>();
-  const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState('');
-  const [referenceWarning, setReferenceWarning] = useState('');
+  const [pdfs, setPdfs] = useState<Partial<Record<Exclude<DocumentId, 'memorial'>, PdfArtifact>>>(
+    {},
+  );
+  const [evidence, setEvidence] = useState<EvidencePreparation>();
+  const [errors, setErrors] = useState<Partial<Record<DocumentId, string>>>({});
+  const [generating, setGenerating] = useState<DocumentId>();
 
   useEffect(() => {
     let active = true;
+    const loaded: LoadedPdfPreview[] = [];
     setLayout(undefined);
-    setPageMap(undefined);
-    setError('');
-    setReferenceWarning('');
-    void Promise.all([
-      import('@/pdf/layout'),
-      evidenceProject && resolver
-        ? import('@/pdf/evidence-bundle').then(({ createEvidencePageMap }) =>
-            createEvidencePageMap(evidenceProject, resolver).catch(() => {
-              if (active)
-                setReferenceWarning(
-                  'A prévia foi montada sem referências de páginas. Verifique os comprovantes locais.',
-                );
-              return undefined;
-            }),
-          )
-        : undefined,
-    ])
-      .then(([{ createMemorialPdfLayout }, nextPageMap]) => {
-        if (active) setPageMap(nextPageMap);
-        return createMemorialPdfLayout(buildMemorialDocument(project, nextPageMap));
-      })
-      .then((nextLayout) => {
-        if (active) setLayout(nextLayout);
-      })
-      .catch(() => {
-        if (active) setError('Não foi possível montar a pré-visualização do memorial.');
-      });
+    setPdfs({});
+    setEvidence(undefined);
+    setErrors({});
+    void (async () => {
+      const prepared = await prepareEvidenceArtifacts(evidenceProject, resolver);
+      if (!active) return;
+      setEvidence(prepared);
+      const pageMap = prepared.status === 'success' ? prepared.pageMap : undefined;
+      const { createMemorialPdfLayout } = await import('@/pdf/layout');
+      const nextLayout = await createMemorialPdfLayout(buildMemorialDocument(project, pageMap));
+      if (!active) return;
+      setLayout(nextLayout);
+      if (prepared.status === 'success') {
+        try {
+          const { loadPdfPreview } = await import('./document-preview/pdf-document-pages');
+          const preview = await loadPdfPreview(prepared.bytes, 'evidence');
+          loaded.push(preview);
+          if (active)
+            setPdfs((value) => ({ ...value, evidence: { ...preview, bytes: prepared.bytes } }));
+        } catch {
+          if (active)
+            setErrors((value) => ({
+              ...value,
+              evidence: 'Não foi possível montar a prévia dos comprovantes consolidados.',
+            }));
+        }
+      }
+      if (dataset && prepared.status !== 'error') {
+        try {
+          const [{ buildNormativeProcessDocument }, { generateNormativeFormsPdf }] =
+            await Promise.all([
+              import('@/normative-documents/model'),
+              import('@/pdf/normative-forms'),
+            ]);
+          const bytes = await generateNormativeFormsPdf(
+            buildNormativeProcessDocument(project, dataset, scoring, pageMap),
+          );
+          const { loadPdfPreview } = await import('./document-preview/pdf-document-pages');
+          const preview = await loadPdfPreview(bytes, 'forms');
+          loaded.push(preview);
+          if (active) setPdfs((value) => ({ ...value, forms: { ...preview, bytes } }));
+        } catch {
+          if (active)
+            setErrors((value) => ({
+              ...value,
+              forms: 'Não foi possível montar a prévia dos formulários normativos.',
+            }));
+        }
+      }
+    })().catch(() => {
+      if (active)
+        setErrors((value) => ({
+          ...value,
+          memorial: 'Não foi possível montar a prévia do Memorial Descritivo.',
+        }));
+    });
     return () => {
       active = false;
+      loaded.forEach((value) => void value.document.cleanup());
     };
-  }, [evidenceProject, project, resolver]);
+  }, [dataset, evidenceProject, project, resolver, scoring]);
 
-  async function generate() {
-    setGenerating(true);
-    setError('');
+  const review = reviewProject(project, scoring, evidence);
+  const memorialPages: DocumentPreviewPage[] =
+    layout?.pages.map((page) => ({
+      id: `memorial-${page.number}`,
+      label: `Página ${page.number}`,
+      content: <MemorialPage page={page} />,
+      thumbnail: <MemorialPage page={page} thumbnail />,
+    })) ?? [];
+  const documents = {
+    memorial: {
+      label: 'Memorial Descritivo',
+      title: project.userData.memorial?.title?.trim() || project.userData.title,
+      pages: memorialPages,
+      readiness: review.artifacts.memorial,
+      edit: 'memorial',
+      hint: 'Confira o conteúdo, a paginação e as referências antes de gerar o PDF final.',
+    },
+    forms: {
+      label: 'Formulários e anexos normativos',
+      title: 'Formulários e anexos normativos',
+      pages: pdfs.forms?.pages ?? [],
+      readiness: review.artifacts.forms,
+      edit: 'review',
+      hint: 'Os formulários são derivados do projeto, da pontuação e do mapa dos comprovantes.',
+    },
+    evidence: {
+      label: 'PDF consolidado dos comprovantes',
+      title: 'PDF consolidado dos comprovantes',
+      pages: pdfs.evidence?.pages ?? [],
+      readiness: review.artifacts.evidence,
+      edit: 'requirements',
+      hint: 'A ordem e os intervalos seguem o mapa produzido pela consolidação dos comprovantes.',
+    },
+  } as const;
+  const current = documents[selected];
+  const blocked = current.readiness.status === 'blocked' || current.readiness.status === 'checking';
+
+  async function download() {
+    setGenerating(selected);
+    setErrors((value) => ({ ...value, [selected]: undefined }));
     try {
-      const { downloadMemorialPdf } = await import('@/pdf/generator');
-      if (pageMap) await downloadMemorialPdf(project, pageMap);
-      else await downloadMemorialPdf(project);
+      if (selected === 'memorial') {
+        const { downloadMemorialPdf } = await import('@/pdf/generator');
+        await downloadMemorialPdf(
+          project,
+          evidence?.status === 'success' ? evidence.pageMap : undefined,
+        );
+      } else {
+        const pdf = pdfs[selected];
+        if (!pdf) throw new Error('Documento indisponível.');
+        const { downloadPdfBytes } = await import('@/pdf/download');
+        downloadPdfBytes(
+          pdf.bytes,
+          selected === 'forms'
+            ? normativeFormsPdfFilename(project)
+            : evidenceBundlePdfFilename(project),
+        );
+      }
     } catch {
-      setError('Não foi possível gerar o PDF. Revise os dados e tente novamente.');
+      setErrors((value) => ({
+        ...value,
+        [selected]: `Não foi possível gerar ${current.label.toLocaleLowerCase('pt-BR')}.`,
+      }));
     } finally {
-      setGenerating(false);
+      setGenerating(undefined);
     }
   }
 
-  const pages: DocumentPreviewPage[] =
-    layout?.pages.map((page) => ({
-      id: `${page.sectionId}-${page.number}`,
-      label: `Página ${page.number}`,
-      content: <PreviewPage page={page} />,
-      thumbnail: <PreviewPage page={page} thumbnail />,
-    })) ?? [];
-  const title = project.userData.memorial?.title?.trim() || project.userData.title;
-  const warnings = review.counts.warning;
-  const status = review.blocksPdf
-    ? {
-        label: 'Dados incompletos',
-        description: 'Há correções necessárias antes da geração do PDF final.',
-        tone: 'destructive' as const,
-      }
-    : warnings
-      ? {
-          label: 'Requer revisão',
-          description: `${warnings} aviso(s) devem ser conferidos antes da geração.`,
-          tone: 'warning' as const,
-        }
-      : {
-          label: 'Pronto para geração',
-          description: 'Não há correções bloqueantes ou avisos na verificação atual.',
-          tone: 'success' as const,
-        };
   return (
-    <>
-      {!layout ? (
-        !error && <p role="status">Preparando páginas…</p>
+    <section className="space-y-4">
+      <nav aria-label="Documento em pré-visualização" className="flex flex-wrap gap-2">
+        {(Object.keys(documents) as DocumentId[]).map((id) => (
+          <Button
+            key={id}
+            variant={selected === id ? 'default' : 'outline'}
+            aria-pressed={selected === id}
+            disabled={id !== 'memorial' && !documents[id].pages.length}
+            onClick={() => setSelected(id)}
+          >
+            {documents[id].label}
+          </Button>
+        ))}
+      </nav>
+      {!current.pages.length ? (
+        <div className="panel" role="status">
+          {errors[selected] ||
+            current.readiness.reasons.join(' ') ||
+            `Preparando ${current.label.toLocaleLowerCase('pt-BR')}…`}
+        </div>
       ) : (
         <DocumentPreview
-          pages={pages}
+          key={selected}
+          pages={current.pages}
           metadata={{
-            title,
-            type: 'Memorial Descritivo',
+            title: current.title,
+            type: current.label,
             teacher: project.userData.teacher?.name,
             campus: project.userData.teacher?.campus,
-            regulation: project.regulation.version ?? project.regulation.id,
+            regulation: dataset
+              ? `${dataset.metadata.regulation.authority} ${dataset.metadata.regulation.number}/${dataset.metadata.regulation.year}`
+              : (project.regulation.version ?? project.regulation.id),
             updatedAt: new Date(record.updatedAt).toLocaleString('pt-BR'),
           }}
-          status={status}
+          status={statusOf(current.readiness)}
           actions={[
             {
               id: 'generate',
-              label: generating ? 'Gerando PDF…' : 'Gerar PDF',
+              label: generating === selected ? 'Gerando PDF…' : 'Gerar PDF',
               icon: <Download size={17} aria-hidden="true" />,
               primary: true,
-              disabled: generating || review.blocksPdf,
-              onClick: () => void generate(),
+              disabled: Boolean(generating) || blocked,
+              onClick: () => void download(),
             },
             {
               id: 'edit',
               label: 'Voltar para edição',
               content: (
                 <Button asChild variant="outline" className="w-full">
-                  <Link to={projectPath(record.localId, 'memorial')}>
+                  <Link to={projectPath(record.localId, current.edit)}>
                     <Pencil size={17} aria-hidden="true" /> Voltar para edição
-                  </Link>
-                </Button>
-              ),
-            },
-            {
-              id: 'review',
-              label: 'Abrir revisão',
-              content: (
-                <Button asChild variant="outline" className="w-full">
-                  <Link to={projectPath(record.localId, 'review')}>
-                    <RotateCcw size={17} aria-hidden="true" /> Abrir revisão
                   </Link>
                 </Button>
               ),
@@ -210,7 +307,7 @@ export function PdfPreview({
               id: 'print',
               label: 'Imprimir',
               icon: <Printer size={17} aria-hidden="true" />,
-              disabled: review.blocksPdf,
+              disabled: blocked,
               onClick: () => window.print(),
             },
             ...(onExportJson
@@ -219,26 +316,25 @@ export function PdfPreview({
           ]}
           notices={
             <>
-              {error && (
+              {errors[selected] && (
                 <p role="alert" className="notice document-status" data-tone="destructive">
-                  {error}
+                  {errors[selected]}
                 </p>
               )}
-              {referenceWarning && (
-                <p className="notice document-status" data-tone="warning">
-                  {referenceWarning}
-                </p>
-              )}
+              {selected === 'memorial' &&
+                evidence &&
+                evidence.status !== 'success' &&
+                evidence.status !== 'empty' && (
+                  <p className="notice document-status" data-tone="warning">
+                    A prévia foi montada sem referências de páginas. Verifique os comprovantes
+                    locais.
+                  </p>
+                )}
             </>
           }
-          hint="Confira o conteúdo, a paginação e os avisos antes de gerar o PDF final."
+          hint={current.hint}
         />
       )}
-      {error && !layout && (
-        <p role="alert" className="notice document-status" data-tone="destructive">
-          {error}
-        </p>
-      )}
-    </>
+    </section>
   );
 }

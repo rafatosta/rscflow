@@ -6,7 +6,8 @@ import type { LocalProject } from '@/domain/local-project';
 import { PdfPreview } from '@/components/pdf-preview';
 import { createDraft, datasets } from '@/features/project-shell/project-view';
 import { downloadMemorialPdf } from '@/pdf/generator';
-import { createEvidencePageMap } from '@/pdf/evidence-bundle';
+import { downloadPdfBytes } from '@/pdf/download';
+import { prepareEvidenceArtifacts } from '@/features/final-documents/prepare';
 
 const { mappedPages } = vi.hoisted(() => ({
   mappedPages: { totalPages: 1, evidences: [] },
@@ -16,9 +17,27 @@ vi.mock('@/pdf/generator', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/pdf/generator')>();
   return { ...original, downloadMemorialPdf: vi.fn().mockResolvedValue(undefined) };
 });
-vi.mock('@/pdf/evidence-bundle', () => ({
-  createEvidencePageMap: vi.fn().mockResolvedValue(mappedPages),
+vi.mock('@/features/final-documents/prepare', () => ({
+  prepareEvidenceArtifacts: vi.fn().mockResolvedValue({
+    status: 'success',
+    bytes: new Uint8Array([1]),
+    pageMap: mappedPages,
+  }),
 }));
+vi.mock('@/components/document-preview/pdf-document-pages', () => ({
+  loadPdfPreview: vi.fn().mockImplementation(async (_bytes: Uint8Array, prefix: string) => ({
+    document: { cleanup: vi.fn() },
+    pages: [
+      {
+        id: `${prefix}-1`,
+        label: 'Página 1',
+        content: <article aria-label="Página 1">PDF {prefix}</article>,
+        thumbnail: <span aria-hidden="true">Miniatura {prefix}</span>,
+      },
+    ],
+  })),
+}));
+vi.mock('@/pdf/download', () => ({ downloadPdfBytes: vi.fn() }));
 
 afterEach(() => {
   cleanup();
@@ -47,7 +66,12 @@ it('navega pela prévia A4, volta ao editor e inicia o download local', async ()
   };
   render(
     <MemoryRouter>
-      <PdfPreview record={record} evidenceProject={project} resolver={{ getFile: vi.fn() }} />
+      <PdfPreview
+        record={record}
+        evidenceProject={project}
+        resolver={{ getFile: vi.fn() }}
+        dataset={datasets[0]}
+      />
     </MemoryRouter>,
   );
 
@@ -72,13 +96,39 @@ it('navega pela prévia A4, volta ao editor e inicia o download local', async ()
   expect(screen.getByRole('article', { name: 'Página 2' })).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Gerar PDF' }));
   await waitFor(() =>
-    expect(createEvidencePageMap).toHaveBeenCalledWith(project, expect.anything()),
+    expect(prepareEvidenceArtifacts).toHaveBeenCalledWith(project, expect.anything()),
   );
   expect(downloadMemorialPdf).toHaveBeenCalledWith(activityProjectView(project), mappedPages);
+
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Formulários e anexos normativos' })).toBeEnabled(),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Formulários e anexos normativos' }));
+  expect(screen.getByRole('heading', { name: 'Formulários e anexos normativos' })).toBeVisible();
+  expect(screen.getByRole('article', { name: 'Página 1' })).toHaveTextContent('PDF forms');
+  fireEvent.click(screen.getByRole('button', { name: 'PDF consolidado dos comprovantes' }));
+  expect(screen.getByRole('heading', { name: 'PDF consolidado dos comprovantes' })).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Gerar PDF' }));
+  await waitFor(() =>
+    expect(downloadPdfBytes).toHaveBeenCalledWith(
+      expect.any(Uint8Array),
+      'comprovantes-rsc-ana-vitoria.pdf',
+    ),
+  );
 });
 
 it('mantém a prévia disponível quando os comprovantes locais não podem ser consolidados', async () => {
-  vi.mocked(createEvidencePageMap).mockRejectedValueOnce(new Error('Arquivo ausente.'));
+  vi.mocked(prepareEvidenceArtifacts).mockResolvedValueOnce({
+    status: 'error',
+    issues: [
+      {
+        code: 'missing-file',
+        evidenceId: 'evidence-1',
+        fileId: 'file-1',
+        message: 'Arquivo ausente.',
+      },
+    ],
+  });
   const project = createDraft('rsc-i', datasets[0].metadata.regulation.id);
   const record: LocalProject = {
     localId: 'local-2',

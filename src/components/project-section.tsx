@@ -187,6 +187,7 @@ export function ProjectSection(props: Props) {
             record={projected}
             evidenceProject={project}
             resolver={props.resolver}
+            dataset={dataset}
             onExportJson={props.onExport}
           />
         )}
@@ -198,6 +199,7 @@ export function ProjectSection(props: Props) {
         record={projected}
         evidenceProject={project}
         resolver={props.resolver}
+        dataset={dataset}
         onExportJson={props.onExport}
       />
     );

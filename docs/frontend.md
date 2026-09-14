@@ -50,7 +50,8 @@ cartões de Gerar documentos. Prévia e arquivo usam o mesmo layout A4 e process
 
 A Prévia de Documentos compõe mapa de páginas, visualizador e painel contextual genéricos. O
 Memorial fornece páginas, metadados, estado e ações por um adaptador, preservando a mesma projeção
-A4 do arquivo final. Página selecionada, zoom e modo de visualização possuem estado único; em telas
+A4 do arquivo final. Formulários normativos e comprovantes consolidados fornecem os bytes já
+produzidos por seus geradores e podem ser selecionados na mesma página. Página selecionada, zoom e modo de visualização possuem estado único; em telas
 menores, mapa e contexto tornam-se áreas recolhíveis. A prévia memoriza sua projeção para não
 reiniciar a paginação a cada navegação. A disponibilidade dos anexos verifica tamanho e SHA-256 dos
 bytes, separadamente da validade dos metadados.
