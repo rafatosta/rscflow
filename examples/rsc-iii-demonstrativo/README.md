@@ -35,6 +35,9 @@ exemplo e também permite testar a recuperação de anexos após importação.
 | RSC III | c.1  | Captação fictícia interna     | `07-rsc-iii-c1-captacao-propria.pdf`  |
 | RSC III | d.1  | Captação fictícia em parceria | `08-rsc-iii-d1-captacao-parceria.pdf` |
 
+O primeiro comprovante possui duas páginas para demonstrar intervalos no mapa; os demais possuem
+uma página cada.
+
 ## Regenerar os PDFs
 
 `generate-comprovantes.py` gera os oito PDFs de forma determinística com `reportlab`. Depois de

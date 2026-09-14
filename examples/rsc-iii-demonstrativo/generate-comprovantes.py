@@ -4,7 +4,7 @@ from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import PageBreak, SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
 
 OUTPUT = Path(__file__).parent / "comprovantes"
@@ -18,6 +18,7 @@ DOCUMENTS = [
         "period": "01/01/2018 a 31/12/2018",
         "quantity": "12 meses",
         "activity": "Direção fictícia da Escola Técnica Horizonte.",
+        "multipage": True,
     },
     {
         "file": "02-rsc-i-c1-curso-fic.pdf",
@@ -172,6 +173,19 @@ def build(document):
             styles["Body"],
         )
     )
+    if document.get("multipage"):
+        story += [
+            PageBreak(),
+            Paragraph("DOCUMENTO FICTÍCIO - SEM VALIDADE", styles["Warning"]),
+            Paragraph("Continuação do comprovante demonstrativo", styles["Heading2"]),
+            Spacer(1, 0.5 * cm),
+            Paragraph(
+                "Esta segunda página existe para validar a consolidação e o mapa de intervalos "
+                "de páginas do RSCFlow. Ela integra o mesmo comprovante fictício descrito na "
+                "página anterior.",
+                styles["Body"],
+            ),
+        ]
     SimpleDocTemplate(
         str(destination),
         pagesize=A4,

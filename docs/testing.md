@@ -65,6 +65,10 @@ pontuação presumida.
   paginação, prévia e download local.
 - `tests/e2e/accessibility.spec.ts` verifica axe, foco e reflow em mobile, tablet e desktop.
 - `tests/e2e/bootstrap.spec.ts` verifica validação e importação dos contratos portáteis.
+- `tests/e2e/process-flow.spec.ts` percorre o projeto demonstrativo pelos três níveis RSC e verifica
+  a consistência do mapa de páginas entre prévia, PDFs individuais, formulários, pacote final e
+  backup restaurado. A mesma suíte cobre comprovante ausente, PDF inválido e falha transacional da
+  geração conjunta.
 
 Todos os E2E usam o suporte compartilhado em `tests/e2e/support/fixtures.ts`. Exceções de página,
 `console.error` e `console.warning` inesperados devem falhar o cenário. Não crie exceções sem fonte

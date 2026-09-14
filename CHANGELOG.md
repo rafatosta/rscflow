@@ -19,6 +19,10 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Jornada E2E integral baseada no projeto demonstrativo, cobrindo dados docentes, formação, três
+  níveis RSC, lançamentos, comprovante multipágina, referências documentais, PDFs finais, pacote
+  ZIP e restauração do backup, além de arquivos ausentes, inválidos e falha da geração conjunta.
+
 - Projeção consolidada de prontidão compartilhada por Revisão e Gerar documentos, com estados por
   artefato e distinção explícita entre bloqueios, avisos e pontuação provisória.
 
