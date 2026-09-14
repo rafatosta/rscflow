@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { activityProjectView } from '@/domain/project-migration';
-import { ChevronLeft, ChevronRight, Download, Pencil } from 'lucide-react';
+import { Download, Pencil, Printer, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { LocalProject } from '@/domain/local-project';
 import type { OccurrenceProjectExport } from '@/domain/criterion-entry';
@@ -13,12 +13,20 @@ import { projectScoring } from '@/features/project-shell/project-view';
 import { buildMemorialDocument } from '@/memorial/preview';
 import { A4_PAGE, type MemorialPdfLayout } from '@/pdf/model';
 import { Button } from './ui/button';
+import { DocumentPreview, type DocumentPreviewPage } from './document-preview/document-preview';
 
-function PreviewPage({ page }: { page: MemorialPdfLayout['pages'][number] }) {
+function PreviewPage({
+  page,
+  thumbnail = false,
+}: {
+  page: MemorialPdfLayout['pages'][number];
+  thumbnail?: boolean;
+}) {
+  const Element = thumbnail ? 'div' : 'article';
   return (
-    <article
-      className="a4-page relative mx-auto overflow-hidden bg-white text-slate-950 shadow-2xl"
-      aria-label={`Página ${page.number}`}
+    <Element
+      className={`a4-page relative mx-auto overflow-hidden bg-white text-slate-950 ${thumbnail ? '' : 'shadow-2xl'}`}
+      {...(!thumbnail ? { 'aria-label': `Página ${page.number}` } : { 'aria-hidden': true })}
     >
       {page.lines.map((line, index) => {
         const contentWidth = A4_PAGE.width - A4_PAGE.marginLeft - A4_PAGE.marginRight;
@@ -50,7 +58,7 @@ function PreviewPage({ page }: { page: MemorialPdfLayout['pages'][number] }) {
           </span>
         );
       })}
-    </article>
+    </Element>
   );
 }
 
@@ -58,10 +66,12 @@ export function PdfPreview({
   record,
   evidenceProject,
   resolver,
+  onExportJson,
 }: {
   record: LocalProject;
   evidenceProject?: OccurrenceProjectExport;
   resolver?: FileResolver;
+  onExportJson?: () => void;
 }) {
   const project = useMemo(
     () => activityProjectView(record.project as TypedProjectExport),
@@ -70,7 +80,6 @@ export function PdfPreview({
   const review = reviewProject(project, projectScoring(project));
   const [layout, setLayout] = useState<MemorialPdfLayout>();
   const [pageMap, setPageMap] = useState<EvidencePageMap>();
-  const [pageIndex, setPageIndex] = useState(0);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
   const [referenceWarning, setReferenceWarning] = useState('');
@@ -79,7 +88,6 @@ export function PdfPreview({
     let active = true;
     setLayout(undefined);
     setPageMap(undefined);
-    setPageIndex(0);
     setError('');
     setReferenceWarning('');
     void Promise.all([
@@ -125,82 +133,112 @@ export function PdfPreview({
     }
   }
 
-  const page = layout?.pages[pageIndex];
+  const pages: DocumentPreviewPage[] =
+    layout?.pages.map((page) => ({
+      id: `${page.sectionId}-${page.number}`,
+      label: `Página ${page.number}`,
+      content: <PreviewPage page={page} />,
+      thumbnail: <PreviewPage page={page} thumbnail />,
+    })) ?? [];
+  const title = project.userData.memorial?.title?.trim() || project.userData.title;
+  const warnings = review.counts.warning;
+  const status = review.blocksPdf
+    ? {
+        label: 'Dados incompletos',
+        description: 'Há correções necessárias antes da geração do PDF final.',
+        tone: 'destructive' as const,
+      }
+    : warnings
+      ? {
+          label: 'Requer revisão',
+          description: `${warnings} aviso(s) devem ser conferidos antes da geração.`,
+          tone: 'warning' as const,
+        }
+      : {
+          label: 'Pronto para geração',
+          description: 'Não há correções bloqueantes ou avisos na verificação atual.',
+          tone: 'success' as const,
+        };
   return (
-    <section className="space-y-5">
-      <div className="panel space-y-4">
-        <div>
-          <h2 className="section-title">Pré-visualização A4</h2>
-          <p className="mt-2 text-sm text-slate-300">
-            Confira capa, sumário, seções e paginação antes de baixar o arquivo para o SEI.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="outline">
-            <Link to={projectPath(record.localId, 'memorial')}>
-              <Pencil className="mr-2" size={17} aria-hidden="true" />
-              Voltar para edição
-            </Link>
-          </Button>
-          <Button
-            onClick={() => void generate()}
-            disabled={!layout || generating || review.blocksPdf}
-          >
-            <Download className="mr-2" size={17} aria-hidden="true" />
-            {generating ? 'Gerando PDF…' : 'Gerar PDF'}
-          </Button>
-        </div>
-        {review.blocksPdf && (
-          <p className="notice border-rose-500 p-3 text-rose-200">
-            Corrija os itens ERROR antes de gerar o PDF final.{' '}
-            <Link className="text-link" to={projectPath(record.localId, 'review')}>
-              Abrir revisão
-            </Link>
-          </p>
-        )}
-        {error && (
-          <p role="alert" className="text-rose-200">
-            {error}
-          </p>
-        )}
-        {referenceWarning && (
-          <p className="notice border-amber-500 p-3 text-amber-100">{referenceWarning}</p>
-        )}
-      </div>
-
-      {!page ? (
+    <>
+      {!layout ? (
         !error && <p role="status">Preparando páginas…</p>
       ) : (
-        <>
-          <nav
-            aria-label="Navegação entre páginas da pré-visualização"
-            className="flex flex-wrap items-center justify-center gap-3"
-          >
-            <Button
-              variant="outline"
-              onClick={() => setPageIndex((current) => current - 1)}
-              disabled={pageIndex === 0}
-            >
-              <ChevronLeft size={18} aria-hidden="true" />
-              Página anterior
-            </Button>
-            <span role="status" aria-live="polite" className="min-w-28 text-center text-sm">
-              Página {pageIndex + 1} de {layout.pages.length}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() => setPageIndex((current) => current + 1)}
-              disabled={pageIndex === layout.pages.length - 1}
-            >
-              Próxima página
-              <ChevronRight size={18} aria-hidden="true" />
-            </Button>
-          </nav>
-          <div className="rounded-xl bg-slate-800 p-2 sm:p-5">
-            <PreviewPage page={page} />
-          </div>
-        </>
+        <DocumentPreview
+          pages={pages}
+          metadata={{
+            title,
+            type: 'Memorial Descritivo',
+            teacher: project.userData.teacher?.name,
+            campus: project.userData.teacher?.campus,
+            regulation: project.regulation.version ?? project.regulation.id,
+            updatedAt: new Date(record.updatedAt).toLocaleString('pt-BR'),
+          }}
+          status={status}
+          actions={[
+            {
+              id: 'generate',
+              label: generating ? 'Gerando PDF…' : 'Gerar PDF',
+              icon: <Download size={17} aria-hidden="true" />,
+              primary: true,
+              disabled: generating || review.blocksPdf,
+              onClick: () => void generate(),
+            },
+            {
+              id: 'edit',
+              label: 'Voltar para edição',
+              content: (
+                <Button asChild variant="outline" className="w-full">
+                  <Link to={projectPath(record.localId, 'memorial')}>
+                    <Pencil size={17} aria-hidden="true" /> Voltar para edição
+                  </Link>
+                </Button>
+              ),
+            },
+            {
+              id: 'review',
+              label: 'Abrir revisão',
+              content: (
+                <Button asChild variant="outline" className="w-full">
+                  <Link to={projectPath(record.localId, 'review')}>
+                    <RotateCcw size={17} aria-hidden="true" /> Abrir revisão
+                  </Link>
+                </Button>
+              ),
+            },
+            {
+              id: 'print',
+              label: 'Imprimir',
+              icon: <Printer size={17} aria-hidden="true" />,
+              disabled: review.blocksPdf,
+              onClick: () => window.print(),
+            },
+            ...(onExportJson
+              ? [{ id: 'json', label: 'Exportar JSON', onClick: onExportJson }]
+              : []),
+          ]}
+          notices={
+            <>
+              {error && (
+                <p role="alert" className="notice document-status" data-tone="destructive">
+                  {error}
+                </p>
+              )}
+              {referenceWarning && (
+                <p className="notice document-status" data-tone="warning">
+                  {referenceWarning}
+                </p>
+              )}
+            </>
+          }
+          hint="Confira o conteúdo, a paginação e os avisos antes de gerar o PDF final."
+        />
       )}
-    </section>
+      {error && !layout && (
+        <p role="alert" className="notice document-status" data-tone="destructive">
+          {error}
+        </p>
+      )}
+    </>
   );
 }

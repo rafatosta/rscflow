@@ -47,7 +47,7 @@ test('jornada de requisitos, anexo, pontuação, autoria, revisão e transporte 
     'Requisitos',
     'Memorial',
     'Revisão',
-    'Prévia do memorial',
+    'Prévia de documentos',
     'Gerar documentos',
   ]);
   await profile(page);

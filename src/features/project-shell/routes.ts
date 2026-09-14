@@ -4,7 +4,7 @@ export const sections = [
   ['requirements', 'Requisitos'],
   ['memorial', 'Memorial'],
   ['review', 'Revisão'],
-  ['preview', 'Prévia do memorial'],
+  ['preview', 'Prévia de documentos'],
   ['documents', 'Gerar documentos'],
 ] as const;
 export type Section = (typeof sections)[number][0];

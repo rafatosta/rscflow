@@ -19,6 +19,9 @@
     --ink-subtle: 148 163 184;
     --accent: 34 211 238;
     --focus: 103 232 249;
+    --success: 16 185 129;
+    --warning: 245 158 11;
+    --destructive: 244 63 94;
   }
   html[data-theme='light'] {
     --page: 248 250 252;
@@ -31,6 +34,9 @@
     --ink-subtle: 71 85 105;
     --accent: 7 89 133;
     --focus: 8 145 178;
+    --success: 5 150 105;
+    --warning: 180 83 9;
+    --destructive: 190 18 60;
   }
   html[data-text-size='large'] {
     font-size: 112.5%;
@@ -327,5 +333,80 @@
     container-type: inline-size;
     width: min(100%, 49.61rem);
     aspect-ratio: 210 / 297;
+  }
+  .document-page-map {
+    scrollbar-color: rgb(var(--line-strong)) transparent;
+  }
+  .document-thumbnail {
+    border-color: rgb(var(--line));
+    background: rgb(var(--surface-raised) / 0.35);
+    color: rgb(var(--ink-muted));
+  }
+  .document-thumbnail:hover {
+    border-color: rgb(var(--accent) / 0.6);
+  }
+  .document-thumbnail[aria-current='page'] {
+    border-color: rgb(var(--accent));
+    background: rgb(var(--accent) / 0.1);
+    color: rgb(var(--accent));
+    box-shadow: 0 0 0 1px rgb(var(--accent) / 0.25);
+  }
+  .document-thumbnail .a4-page {
+    width: 100%;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
+  }
+  .document-canvas {
+    min-height: 38rem;
+    background: rgb(var(--surface-raised));
+  }
+  .document-status {
+    --status-color: var(--warning);
+    border-color: rgb(var(--status-color) / 0.6);
+    background: rgb(var(--status-color) / 0.1);
+  }
+  .document-status[data-tone='success'] {
+    --status-color: var(--success);
+  }
+  .document-status[data-tone='destructive'] {
+    --status-color: var(--destructive);
+  }
+  @media (min-width: 1024px) {
+    .responsive-preview-panel > summary {
+      display: none;
+    }
+  }
+  @media (min-width: 1280px) {
+    .responsive-preview-panel:last-child {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .document-print-pages[hidden] {
+    display: block !important;
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 210mm;
+  }
+  .document-print-pages,
+  .document-print-pages * {
+    visibility: visible;
+  }
+  .document-print-pages .a4-page {
+    width: 210mm;
+    height: 297mm;
+    max-width: none;
+    box-shadow: none;
+    break-after: page;
   }
 }

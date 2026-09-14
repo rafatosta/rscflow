@@ -78,14 +78,42 @@ test('pré-visualiza páginas A4 e baixa o PDF produzido no navegador', async ({
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.getByRole('link', { name: 'Prévia do memorial', exact: true }).click();
+  await page.getByRole('link', { name: 'Prévia de documentos', exact: true }).click();
   await expect(page).toHaveURL(/\/preview$/);
 
   const article = page.getByRole('article', { name: 'Página 1' });
   await expect(article).toContainText('Lívia Conceição');
-  await expect(page.getByText(/Página 1 de/)).toBeVisible();
+  await expect(page.getByText('Prévia de Documentos', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Página atual')).toHaveValue('1');
   await page.getByRole('button', { name: 'Próxima página' }).click();
   await expect(page.getByRole('article', { name: 'Página 2' })).toContainText('Sumário');
+  await page.getByRole('button', { name: 'Ir para Página 3', exact: true }).click();
+  await expect(page.getByLabel('Página atual')).toHaveValue('3');
+  await page.getByRole('button', { name: 'Aumentar zoom' }).click();
+  await expect(page.getByText('110%', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Duas páginas', exact: true }).click();
+  await expect(page.getByRole('article', { name: 'Página 4', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Página única', exact: true }).click();
+  await page.getByRole('button', { name: 'Ajustar', exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .locator('summary')
+    .getByText(/^Mapa de páginas/)
+    .click();
+  await expect(page.getByRole('navigation', { name: 'Mapa de páginas' })).toBeHidden();
+  await expect(page.getByRole('article', { name: 'Página 3', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await expect(page.getByRole('navigation', { name: 'Mapa de páginas' })).toBeVisible();
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.document-print-pages article')).toHaveCount(
+    Number(await page.getByLabel('Página atual').getAttribute('max')),
+  );
+  await expect(page.locator('.document-print-pages article').last()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Gerar PDF', exact: true })).toBeHidden();
+  await page.emulateMedia({ media: 'screen' });
   await expect(page.getByRole('link', { name: /Voltar para edição/ })).toHaveAttribute(
     'href',
     /\/memorial$/,

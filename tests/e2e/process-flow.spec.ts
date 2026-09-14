@@ -117,11 +117,9 @@ test('percorre o processo demonstrativo e mantém os dados consistentes em todos
   );
   await expect(page.getByLabel('Texto da conclusão', { exact: true })).toContainText('fictícios');
 
-  await page.getByRole('link', { name: 'Prévia do memorial', exact: true }).click();
-  await expect(page.getByText(/Página 1 de/)).toBeVisible();
-  const totalPreviewPages = Number(
-    (await page.getByText(/Página 1 de/).textContent())?.split(' de ')[1],
-  );
+  await page.getByRole('link', { name: 'Prévia de documentos', exact: true }).click();
+  await expect(page.getByText('Prévia de Documentos')).toBeVisible();
+  const totalPreviewPages = Number(await page.getByLabel('Página atual').getAttribute('max'));
   let previewText = '';
   for (let current = 1; current <= totalPreviewPages; current += 1) {
     previewText += ` ${await page.getByRole('article', { name: `Página ${current}` }).textContent()}`;

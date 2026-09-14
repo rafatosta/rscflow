@@ -110,6 +110,11 @@ portugueses são preservados; símbolos não representáveis pela fonte são sub
 seguro para que conteúdo livre não interrompa a exportação. A camada não consulta nem implementa
 regras normativas.
 
+`src/components/document-preview/` fornece a composição genérica da prévia: mapa de páginas,
+visualizador, toolbar e painel contextual recebem páginas, metadados, estado e ações por contrato.
+`PdfPreview` atua como adaptador do Memorial e continua usando o layout A4 compartilhado; a
+composição genérica não conhece o domínio do Memorial nem regras normativas.
+
 `src/pdf/evidence-bundle.ts` cria um plano ordenado por RSC, requisito e lançamento e percorre essa
 mesma sequência para consolidar os PDFs e produzir o mapa de páginas. Comprovantes compartilhados
 entram uma única vez e mantêm todos os vínculos no mapa derivado. O contrato neutro em

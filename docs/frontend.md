@@ -10,7 +10,7 @@ O shell React Router oferece sete seções, com a sessão local acima das rotas.
 | `/project/:id/requirements` | Abas RSC I/II/III, busca, diretrizes, critérios e lançamentos com arquivo opcional        |
 | `/project/:id/memorial`     | Texto determinístico, formação e narrativas cronológicas editáveis                        |
 | `/project/:id/review`       | Checklist por severidade, pontuação, disponibilidade dos arquivos e ação de prévia A4     |
-| `/project/:id/preview`      | Prévia A4 paginada do memorial, acessível pela Revisão e pelo menu principal              |
+| `/project/:id/preview`      | Prévia genérica de documentos; inicialmente apresenta o Memorial Descritivo               |
 | `/project/:id/documents`    | Memorial, formulários/anexos normativos, comprovantes consolidados e cópia JSON           |
 
 Rotas anteriores de formação, trajetória, critérios, pontuação, comprovantes, RSCs separados, prévia, exportação e edição técnica foram removidas. Endereços desconhecidos mostram uma página de recuperação. A hospedagem estática precisa de fallback para `index.html`.
@@ -46,9 +46,14 @@ Revisão separa ERROR, WARNING e INFO e apresenta a prontidão de cada artefato.
 bloqueiam o Memorial; arquivos ausentes ou inválidos bloqueiam somente as saídas que dependem dos
 bytes íntegros. Cálculo indisponível, catálogo provisório e ausência de comprovantes aparecem como
 limitações explícitas nos documentos que ainda podem ser gerados. A mesma projeção controla os
-cartões de Gerar documentos. Prévia e arquivo usam o mesmo layout A4 e processamento local. A
-prévia memoriza sua projeção para não reiniciar a paginação a cada navegação. A disponibilidade dos
-anexos verifica tamanho e SHA-256 dos bytes, separadamente da validade dos metadados.
+cartões de Gerar documentos. Prévia e arquivo usam o mesmo layout A4 e processamento local.
+
+A Prévia de Documentos compõe mapa de páginas, visualizador e painel contextual genéricos. O
+Memorial fornece páginas, metadados, estado e ações por um adaptador, preservando a mesma projeção
+A4 do arquivo final. Página selecionada, zoom e modo de visualização possuem estado único; em telas
+menores, mapa e contexto tornam-se áreas recolhíveis. A prévia memoriza sua projeção para não
+reiniciar a paginação a cada navegação. A disponibilidade dos anexos verifica tamanho e SHA-256 dos
+bytes, separadamente da validade dos metadados.
 
 Em Documentos comprobatórios, cada arquivo local ausente oferece no próprio item ações para os
 lançamentos que o referenciam. A ação abre diretamente o seletor nativo e, após a escolha, substitui

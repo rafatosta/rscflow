@@ -31,7 +31,7 @@ for (const viewport of viewports) {
       ['requirements', 'Requisitos'],
       ['memorial', 'Memorial'],
       ['review', 'Revisão'],
-      ['preview', 'Prévia do memorial'],
+      ['preview', 'Prévia de documentos'],
       ['documents', 'Gerar documentos'],
     ]) {
       await page.goto(`${projectUrl}${path ? `/${path}` : ''}`);

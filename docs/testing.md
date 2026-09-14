@@ -63,6 +63,9 @@ pontuação presumida.
   autosave, conflitos, duplicação, arquivos locais e round-trip.
 - Testes de memorial, revisão e PDF cobrem preservação do texto manual, bloqueios estruturais,
   paginação, prévia e download local.
+- `tests/integration/document-preview.test.tsx` verifica o contrato genérico com outro tipo
+  documental. A integração e o E2E de PDF cobrem miniaturas, página atual, zoom, modos de
+  visualização, painéis responsivos e impressão de todas as páginas.
 - `tests/e2e/accessibility.spec.ts` verifica axe, foco e reflow em mobile, tablet e desktop.
 - `tests/e2e/bootstrap.spec.ts` verifica validação e importação dos contratos portáteis.
 - `tests/e2e/process-flow.spec.ts` percorre o projeto demonstrativo pelos três níveis RSC e verifica

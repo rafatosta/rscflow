@@ -183,12 +183,24 @@ export function ProjectSection(props: Props) {
           {preview ? 'Fechar prévia' : 'Visualizar prévia'}
         </Button>
         {preview && (
-          <PdfPreview record={projected} evidenceProject={project} resolver={props.resolver} />
+          <PdfPreview
+            record={projected}
+            evidenceProject={project}
+            resolver={props.resolver}
+            onExportJson={props.onExport}
+          />
         )}
       </div>
     );
   if (section === 'preview')
-    return <PdfPreview record={projected} evidenceProject={project} resolver={props.resolver} />;
+    return (
+      <PdfPreview
+        record={projected}
+        evidenceProject={project}
+        resolver={props.resolver}
+        onExportJson={props.onExport}
+      />
+    );
   if (section === 'documents')
     return (
       <div className="space-y-5">

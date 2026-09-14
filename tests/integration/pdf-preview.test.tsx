@@ -52,7 +52,10 @@ it('navega pela prévia A4, volta ao editor e inicia o download local', async ()
   );
 
   expect(await screen.findByRole('article', { name: 'Página 1' })).toHaveTextContent('Ana Vitória');
-  expect(screen.getByText(/Página 1 de/)).toBeVisible();
+  expect(screen.getByText('Prévia de Documentos')).toBeVisible();
+  expect(screen.getByRole('navigation', { name: 'Mapa de páginas' })).toBeVisible();
+  expect(screen.getByLabelText('Página atual')).toHaveValue(1);
+  expect(screen.getByRole('heading', { name: 'Memorial de Ana Vitória' })).toBeVisible();
   expect(screen.getByRole('link', { name: /Voltar para edição/ })).toHaveAttribute(
     'href',
     '/project/local-1/memorial',
@@ -60,6 +63,13 @@ it('navega pela prévia A4, volta ao editor e inicia o download local', async ()
 
   fireEvent.click(screen.getByRole('button', { name: /Próxima página/ }));
   expect(screen.getByRole('article', { name: 'Página 2' })).toHaveTextContent('Sumário');
+  expect(screen.getByLabelText('Página atual')).toHaveValue(2);
+  fireEvent.click(screen.getByRole('button', { name: 'Ir para Página 1' }));
+  expect(screen.getByRole('article', { name: 'Página 1' })).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Aumentar zoom' }));
+  expect(screen.getByText('110%')).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Duas páginas' }));
+  expect(screen.getByRole('article', { name: 'Página 2' })).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Gerar PDF' }));
   await waitFor(() =>
     expect(createEvidencePageMap).toHaveBeenCalledWith(project, expect.anything()),
