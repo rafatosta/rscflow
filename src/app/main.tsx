@@ -14,7 +14,9 @@ applyVisualPreferences(
   window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false,
 );
 
-const router = createBrowserRouter([{ path: '*', element: <App /> }]);
+const router = createBrowserRouter([{ path: '*', element: <App /> }], {
+  basename: import.meta.env.BASE_URL,
+});
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RouterProvider router={router} />

@@ -19,6 +19,9 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Added
 
+- Publicação estática no GitHub Pages acionada somente por release publicada, com build da tag,
+  caminho base do repositório e fallback para acesso direto às rotas da aplicação.
+
 - Jornada E2E integral baseada no projeto demonstrativo, cobrindo dados docentes, formação, três
   níveis RSC, lançamentos, comprovante multipágina, referências documentais, PDFs finais, pacote
   ZIP e restauração do backup, além de arquivos ausentes, inválidos e falha da geração conjunta.

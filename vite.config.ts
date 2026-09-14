@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => ({
+  base: process.env.RSCFLOW_BASE_PATH ?? '/',
   plugins: [react()],
   resolve: {
     alias: [

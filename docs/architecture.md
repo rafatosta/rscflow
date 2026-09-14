@@ -15,6 +15,11 @@ The application is layered to keep legal/normative decisions auditable and indep
 
 React components may present outcomes but must never contain normative criteria or scoring logic.
 
+A distribuição pública é um site estático no GitHub Pages. O build recebe o caminho base do Pages
+por ambiente e o React Router consome o mesmo valor, preservando assets, navegação e acesso direto
+às rotas sob o subdiretório do repositório. A publicação é exclusiva do evento de release publicada
+e usa o conteúdo da respectiva tag.
+
 `calculateProjectScore` também entrega a projeção por requisito consumida pela interface. Ela reúne pontuação e vínculos documentais sem duplicar a resolução de critérios, tetos ou parâmetros do catálogo em componentes, memorial ou futuros geradores.
 
 ## Dependências entre camadas

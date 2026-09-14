@@ -94,3 +94,13 @@ git diff --check
 
 Fixtures normativas dos testes são sintéticas ou recortes identificados. O modo Vite `e2e` injeta
 um catálogo sintético apenas na suíte Playwright; ele não integra o bundle de produção.
+
+## Publicação
+
+O site público é publicado no GitHub Pages somente quando uma release é publicada no GitHub. O
+workflow `Publish GitHub Pages` usa exatamente o commit da tag da release; pushes e pull requests
+continuam executando apenas o workflow de qualidade e não geram uma nova versão pública.
+
+No repositório do GitHub, configure **Settings → Pages → Build and deployment → Source** como
+**GitHub Actions**. Depois, crie a tag e publique a release correspondente. O workflow prepara o
+prefixo do repositório e o fallback das rotas automaticamente.
