@@ -7,9 +7,9 @@ de Saberes e Competências. Mantém projetos e comprovantes no navegador, calcul
 normativos validados e gera JSON, memorial e PDF localmente. Não possui backend, autenticação,
 telemetria nem transmissão de dados pessoais.
 
-O estado funcional e as orientações de uso pertencem ao `../../README.md`. Arquitetura, domínio,
-persistência, regulação, interface e testes têm documentos especializados apontados por
-`documentation-map.md`.
+O estado funcional e as orientações para usuários pertencem ao `../../README.md`. Instalação e
+manutenção começam em `../technical-guide.md`. Arquitetura, domínio, persistência, regulação,
+interface e testes têm documentos especializados apontados por `documentation-map.md`.
 
 ## Stack observada
 

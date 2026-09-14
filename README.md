@@ -1,106 +1,59 @@
 # RSCFlow
 
-RSCFlow é uma aplicação web local para organizar o Memorial Descritivo do Reconhecimento de Saberes
-e Competências (RSC) docente do IFBA. O fluxo reúne dados do docente, formação, requisitos,
-lançamentos, documentos, memorial, revisão e exportações JSON/PDF. Não há backend, autenticação,
-telemetria ou envio dos dados pessoais para serviços externos.
+O RSCFlow ajuda docentes do IFBA a organizar o Memorial Descritivo do Reconhecimento de Saberes e
+Competências (RSC). A aplicação reúne as informações do processo em um fluxo guiado e gera os
+documentos para conferência e entrega.
 
-## Estado normativo
+## Acessar o sistema
 
-A política de cálculo da Resolução CONSUP/IFBA nº 189/2026 foi conferida e está representada em
-JSON. O catálogo de diretrizes e critérios de RSC I, II e III foi transcrito dos Anexos IV–VI e
-está com status `pending-official-validation` e versão normativa `null`. Ele pode ser consultado e
-receber registros e calcular pontuação provisória por requisito, com aviso de validação humana
-pendente. Totais do projeto permanecem indisponíveis até a validação final. O conflito interno do
-RSC II d.5 permanece literal e sinalizado, sem cálculo desse critério.
+Acesse o [RSCFlow](https://rafatosta.github.io/rscflow/).
 
-Em divergências, vale a seguinte ordem: instrução atual do mantenedor, resolução oficial,
-JSON normativo validado, documentação e código. A resolução prevalece sobre a planilha e o
-JSON; a divergência e suas fontes devem ser registradas. Ambiguidades internas da resolução não são
-resolvidas por inferência. Consulte [Dados e motor normativos](docs/rsc-regulation.md).
+## O que é possível fazer
 
-## Executar localmente
+- criar e manter mais de um projeto de RSC;
+- preencher dados docentes, formação e atividades de RSC I, II e III;
+- anexar comprovantes aos lançamentos;
+- preparar e editar o memorial descritivo;
+- revisar pendências antes de gerar os documentos;
+- gerar o memorial, os formulários e os comprovantes em PDF;
+- baixar um pacote com os documentos finais;
+- exportar e restaurar uma cópia completa do projeto.
 
-Requisitos: Node.js 22 ou superior e npm 10 ou superior.
+O repositório também oferece um [processo fictício completo de RSC III](examples/rsc-iii-demonstrativo/)
+para conhecer o fluxo. Os dados e documentos desse exemplo não têm validade.
 
-```bash
-npm ci
-npm run dev
-```
+## Privacidade e conservação dos dados
 
-O navegador armazena projetos no IndexedDB. Limpar os dados do site ou usar uma sessão privada pode
-removê-los; exporte o `.rscflow` para preservar dados e comprovantes ou o JSON como cópia portátil
-sem binários. Os documentos e backups são montados e baixados no próprio navegador.
+Os projetos e comprovantes ficam armazenados no navegador usado para acessar o RSCFlow. O sistema
+não exige conta e não envia dados pessoais ou documentos para serviços externos.
 
-## Funcionalidades
+Limpar os dados do site, usar uma janela privativa ou trocar de navegador ou dispositivo pode
+impedir o acesso aos projetos salvos. Baixe regularmente uma cópia completa no formato `.rscflow`,
+principalmente antes de limpar o navegador ou mudar de equipamento.
 
-- múltiplos projetos locais, duplicação, importação, exportação e autosave com conflitos explícitos;
-- perfil docente, formação e lançamentos por requisito em RSC I, II e III;
-- documento comprobatório opcional no próprio lançamento, armazenado localmente e verificado por hash;
-- motor determinístico com limites de item, diretriz e nível e requisitos quantitativos 60/36;
-- memorial determinístico com edição autoral preservada;
-- prévia A4 na revisão, PDF local, checklist final e correções por seção;
-- backup restaurável `.rscflow`, separado do JSON portátil e do pacote final de documentos;
-- rotas responsivas, navegação por teclado e verificações automatizadas com axe-core.
+## Situação das regras de pontuação
 
-Os envelopes portáteis `1.0`, `2.0`, `2.1` e `3.0` são aceitos. Novos projetos usam 3.0; editar
-2.0/2.1 converte a cópia ao formato de ocorrências. O formato 1.0 permanece exportável para
-consulta. JSON não inclui bytes dos documentos; o backup `.rscflow` inclui. Validação estrutural de um arquivo não certifica
-sua referência normativa nem sua pontuação.
+O catálogo de critérios ainda aguarda validação humana final. O sistema pode mostrar pontuações
+provisórias por requisito, acompanhadas de aviso, mas não apresenta o total do projeto enquanto a
+validação estiver pendente. Um critério do RSC II possui conflito no texto oficial e, por isso, não
+é calculado.
 
-## Exemplo demonstrativo
+Confira os resultados e os documentos gerados antes de utilizá-los em um processo oficial. Em caso
+de divergência, prevalece a regulamentação oficial do IFBA.
 
-O repositório inclui um [processo fictício completo de RSC III](examples/rsc-iii-demonstrativo/)
-com formação, lançamentos nos três níveis e oito PDFs sem validade. O guia do diretório explica a
-importação do JSON e a anexação local dos comprovantes, necessária porque o contrato portátil não
-transporta bytes.
+## Como reportar um problema
 
-## Arquitetura e manutenção
+Abra uma [nova issue](https://github.com/rafatosta/rscflow/issues/new) e informe:
 
-O [plano de refatoração de 11/09/2026](docs/maintainers/history/plano-refatoracao.md) foi preservado
-como histórico da evolução que levou ao estado atual. A resolução é a única fonte normativa oficial;
-a planilha é material informal auxiliar, conforme a decisão registrada nessa etapa.
+- o que você estava tentando fazer;
+- o que aconteceu e o que esperava que acontecesse;
+- os passos para reproduzir o problema;
+- o navegador e o dispositivo utilizados;
+- imagens da tela, se ajudarem a explicar o problema.
 
-Antes de alterar código, comece por [AGENTS.md](AGENTS.md) e use o
-[mapa de documentação](docs/ai/documentation-map.md) para selecionar o contexto pertinente:
+Não inclua dados pessoais, comprovantes ou documentos do seu processo no relato.
 
-- [arquitetura e dependências](docs/architecture.md);
-- [domínio e relações](docs/domain.md);
-- [schemas, versões e persistência](docs/data-model.md);
-- [regulamento, divergências e correção de datasets](docs/rsc-regulation.md);
-- [frontend e rotas](docs/frontend.md) e [experiência de uso](docs/ux.md);
-- [matriz de testes](docs/testing.md) e [fluxo de desenvolvimento](docs/development-workflow.md);
-- [convenção de commits](docs/commit-convention.md).
+## Documentação técnica
 
-Os valores normativos pertencem exclusivamente aos JSONs em
-`src/data/regulations/ifba-189-2026/`. Componentes React apenas apresentam dados e resultados. Uma
-correção de fator, unidade, limite, peso, descrição ou teto deve alterar o JSON e sua evidência de
-proveniência, sem criar uma exceção no algoritmo ou na interface.
-
-## Qualidade
-
-Execute a mesma sequência do CI antes de solicitar revisão:
-
-```bash
-npm ci
-npm run format:check
-npm run lint
-npm run typecheck
-npm run test:run
-npm run build
-npm run test:e2e
-git diff --check
-```
-
-Fixtures normativas dos testes são sintéticas ou recortes identificados. O modo Vite `e2e` injeta
-um catálogo sintético apenas na suíte Playwright; ele não integra o bundle de produção.
-
-## Publicação
-
-O site público é publicado no GitHub Pages somente quando uma release é publicada no GitHub. O
-workflow `Publish GitHub Pages` usa exatamente o commit da tag da release; pushes e pull requests
-continuam executando apenas o workflow de qualidade e não geram uma nova versão pública.
-
-No repositório do GitHub, configure **Settings → Pages → Build and deployment → Source** como
-**GitHub Actions**. Depois, crie a tag e publique a release correspondente. O workflow prepara o
-prefixo do repositório e o fallback das rotas automaticamente.
+As instruções para instalação, desenvolvimento, testes, arquitetura e publicação estão na
+[documentação técnica](docs/technical-guide.md).

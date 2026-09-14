@@ -4,6 +4,11 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- README passa a reunir somente informações para usuários, enquanto instalação, desenvolvimento,
+  testes e publicação ficam centralizados no novo guia técnico.
+
 ## [0.1.0] - 2026-09-14
 
 ### Fixed

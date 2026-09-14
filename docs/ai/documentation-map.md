@@ -4,7 +4,8 @@ Use este arquivo como roteador. Leia somente o contexto relacionado à tarefa.
 
 | Se a tarefa afetar...                     | Consulte primeiro...                                  | Contexto adicional                             |
 | ----------------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
-| objetivo, escopo ou execução local        | `project-context.md`, `../../README.md`               | `../../CONTRIBUTING.md`                        |
+| objetivo ou escopo do produto             | `project-context.md`, `../../README.md`               |                                                |
+| instalação ou execução local              | `../technical-guide.md`, `../../CONTRIBUTING.md`      | `project-context.md`                           |
 | interpretação, decomposição ou capacidade | `task-protocol.md`                                    | `decision-policy.md`                           |
 | arquitetura ou dependências               | `../architecture.md`, `../development-workflow.md`    | código e testes arquiteturais                  |
 | domínio                                   | `../domain.md`                                        | `../data-model.md`                             |
@@ -21,7 +22,8 @@ Use este arquivo como roteador. Leia somente o contexto relacionado à tarefa.
 ## Públicos e histórico
 
 - `docs/ai/`: instruções operacionais e roteamento para agentes;
-- `README.md`: produto, instalação e uso;
+- `README.md`: objetivo, funcionalidades, cuidados e suporte para usuários;
+- `docs/technical-guide.md`: entrada para instalação, desenvolvimento, testes e publicação;
 - `CONTRIBUTING.md` e documentos técnicos em `docs/`: manutenção e desenvolvimento;
 - `docs/maintainers/history/`: planos e auditorias históricas, fora do contexto inicial.
 
