@@ -193,7 +193,7 @@ export function App({ repository }: { repository?: ProjectRepository }) {
           id="main-content"
           tabIndex={-1}
           aria-busy={work.busy || work.saveState.status === 'saving'}
-          className="mx-auto max-w-6xl px-4 py-7 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-cyan-300 sm:px-8"
+          className="w-full px-3 py-7 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-cyan-300"
         >
           <h1
             tabIndex={-1}

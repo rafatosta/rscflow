@@ -90,6 +90,9 @@ nativo de cores.
 
 ## Padrões visuais
 
+O conteúdo das páginas ocupa toda a largura disponível ao lado da navegação, sem largura máxima,
+com recuos laterais mínimos de 0,75 rem no contêiner principal, em mobile, tablet e desktop.
+
 A interface usa tokens compartilhados de página, superfície, contorno, texto e destaque para que os
 temas mantenham a mesma hierarquia. Painéis, cartões internos, títulos de seção, links, campos,
 botões, avisos, métricas e superfícies sobrepostas têm classes semânticas comuns em

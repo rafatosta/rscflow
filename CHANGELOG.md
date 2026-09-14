@@ -14,6 +14,8 @@ This project follows Keep a Changelog and Semantic Versioning.
 
 ### Changed
 
+- Páginas passam a ocupar toda a largura disponível, com recuos laterais mínimos de 0,75 rem no
+  contêiner principal.
 - README passa a reunir somente informações para usuários, enquanto instalação, desenvolvimento,
   testes e publicação ficam centralizados no novo guia técnico.
 

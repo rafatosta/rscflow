@@ -16,10 +16,24 @@ async function expectNoSeriousAxeViolations(page: Page) {
   ).toEqual([]);
 }
 
+async function expectFullPageWidth(page: Page) {
+  const main = await page.getByRole('main').boundingBox();
+  const header = await page.getByRole('banner').boundingBox();
+  const heading = await page.getByRole('heading', { level: 1 }).boundingBox();
+  expect(main).not.toBeNull();
+  expect(header).not.toBeNull();
+  expect(heading).not.toBeNull();
+  expect(main!.x).toBeCloseTo(header!.x);
+  expect(main!.width).toBeCloseTo(header!.width);
+  expect(heading!.x).toBeCloseTo(main!.x + 12);
+  expect(heading!.width).toBeCloseTo(main!.width - 24);
+}
+
 for (const viewport of viewports) {
   test(`fluxos principais atendem axe e refluem em ${viewport.name}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/');
+    await expectFullPageWidth(page);
     await page.getByLabel('RSC pretendido').selectOption('rsc-ii');
     await page.getByRole('button', { name: 'Criar projeto', exact: true }).click();
     await expect(page).toHaveURL(/\/project\/[^/]+$/);
@@ -36,6 +50,7 @@ for (const viewport of viewports) {
     ]) {
       await page.goto(`${projectUrl}${path ? `/${path}` : ''}`);
       await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+      await expectFullPageWidth(page);
       await expectNoSeriousAxeViolations(page);
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
