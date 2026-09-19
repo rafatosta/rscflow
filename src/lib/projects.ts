@@ -6,7 +6,7 @@ export type MemorialSection = { id: string; content: string }
 export type Formation = { id: string; type: string; title: string; institution: string; area: string; startDate: string; endDate: string; status: string; documentReference: string; attachmentName: string; notes: string; createdAt: string; updatedAt: string }
 export type RequirementOccurrence = { id: string; criterionId?: string; selectedLevel?: "rsc-i" | "rsc-ii" | "rsc-iii"; period: string; quantity: number; description: string; results: string; competencies: string; evidence: string; attachmentNames: string[]; generatedText?: string; editedText?: string; isManuallyEdited?: boolean; isGeneratedTextOutdated?: boolean; createdAt: string; updatedAt: string }
 export type LocalProject = { localId: string; name: string; rscLevel: string; regulation: string; revision: number; createdAt: string; updatedAt: string; schemaVersion: string; formations?: Formation[]; requirementOccurrences?: RequirementOccurrence[]; memorialSections?: MemorialSection[]; identification?: Identification }
-type StoredAttachment = { id: string; projectId: string; occurrenceId: string; name: string; file: File }
+export type StoredAttachment = { id: string; projectId: string; occurrenceId: string; name: string; file: File }
 
 const string = z.string()
 const identificationSchema = z.object({ name: string, cpf: string, admissionDate: string, siape: string, position: string, institution: string, campus: string, currentLevel: string, degree: string, personalEmail: string, professionalEmail: string, phone: string })
@@ -36,4 +36,5 @@ export async function duplicateLocalProject(project: LocalProject) { const now =
 export async function replaceLocalProjects(projects: LocalProject[]) { await db.transaction("rw", db.projects, async () => { await db.projects.clear(); await db.projects.bulkAdd(projects.map((project) => localProjectSchema.parse(project))) }) }
 export async function replaceOccurrenceAttachments(projectId: string, occurrenceId: string, files: File[]) { await db.transaction("rw", db.attachments, async () => { await db.attachments.where("occurrenceId").equals(occurrenceId).delete(); await db.attachments.bulkAdd(files.map((file) => ({ id: crypto.randomUUID(), projectId, occurrenceId, name: file.name, file }))) }) }
 export async function getOccurrencesWithStoredAttachments(projectId: string, occurrenceIds: string[]) { const attachments = await db.attachments.where("projectId").equals(projectId).toArray(); const requested = new Set(occurrenceIds); return new Set(attachments.filter((attachment) => requested.has(attachment.occurrenceId)).map((attachment) => attachment.occurrenceId)) }
+export async function getStoredAttachments(projectId: string) { return db.attachments.where("projectId").equals(projectId).toArray() }
 export function isLocalProject(value: unknown): value is LocalProject { return localProjectSchema.safeParse(value).success }
