@@ -3,7 +3,6 @@ import {
   FileText, GraduationCap, HardDrive, LayoutDashboard, Search, UserRound,
 } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
@@ -31,14 +30,7 @@ export function ProjectPage({ localId, section, onNavigate }: ProjectPageProps) 
   return <main className="min-h-full px-4 py-6 sm:px-6 lg:px-8">
     <div className="mx-auto max-w-6xl">
       <Button variant="ghost" size="sm" onClick={() => onNavigate("/")}><ArrowLeft /> Projetos</Button>
-      <div className="mt-4 flex flex-col gap-4 border-b pb-6 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-medium text-primary">PROJETO RSC</p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-tight">{project?.name ?? "Projeto"}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{project ? `${project.rscLevel} · ${project.regulation}` : "Projeto local não encontrado."}</p>
-        </div>
-        {project && <Badge variant="secondary">rev. {project.revision}</Badge>}
-      </div>
+      {!project && <p className="mt-4 text-sm text-muted-foreground">Projeto local não encontrado.</p>}
 
       <nav className="mt-5 flex gap-1 overflow-x-auto border-b pb-3" aria-label="Seções do projeto">
         {pages.map((page) => {

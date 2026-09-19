@@ -6,6 +6,7 @@ import { HomePage } from "@/components/home-page"
 import { ProjectPage } from "@/components/project-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { getLocalProjects } from "@/lib/projects"
 
 const navigationItems: NavigationItem[] = [
   { id: "visao-geral", label: "Visão geral", icon: "layout-dashboard" },
@@ -35,12 +36,19 @@ function App() {
   const routeMatch = pathname.match(/^\/project\/([^/]+)(?:\/([^/]+))?\/?$/)
   const isProjectRoute = Boolean(routeMatch)
   const projectSection = routeMatch?.[2] ?? "overview"
+  const project = isProjectRoute
+    ? getLocalProjects().find((item) => item.localId === routeMatch?.[1])
+    : undefined
 
   return (
     <SidebarProvider>
       <AppSidebar activePage={activePage} items={navigationItems} onPageChange={handlePageChange} />
       <SidebarInset className="min-w-0">
-        <AppHeader title={isProjectRoute ? "Projeto" : activeItem.label} />
+        <AppHeader
+          title={project?.name ?? (isProjectRoute ? "Projeto" : activeItem.label)}
+          subtitle={project ? `${project.rscLevel} · ${project.regulation}` : undefined}
+          revision={project?.revision}
+        />
         {isProjectRoute ? (
           <ProjectPage localId={routeMatch?.[1] ?? ""} section={projectSection} onNavigate={navigate} />
         ) : (
