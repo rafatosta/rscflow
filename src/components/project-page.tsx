@@ -111,6 +111,7 @@ function MemorialSectionEditor({ project, onChange }: { project: ReturnType<type
   const [activeId, setActiveId] = React.useState("cover")
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false)
+  const [isClearAllDialogOpen, setIsClearAllDialogOpen] = React.useState(false)
   const sections = project.memorialSections ?? []
   const activeIndex = memorialSteps.findIndex((step) => step.id === activeId)
   const activeStep = memorialSteps[activeIndex]
@@ -132,7 +133,10 @@ function MemorialSectionEditor({ project, onChange }: { project: ReturnType<type
         <h2 className="text-2xl font-semibold tracking-tight">Memorial descritivo</h2>
         <p className="mt-2 max-w-3xl text-base text-muted-foreground">Organize sua trajetória profissional por seções e redija cada etapa do memorial. O conteúdo será consolidado no documento final.</p>
       </div>
-      <Button variant="outline" className="shrink-0" onClick={() => setIsPreviewOpen(true)}><FileText /> Pré-visualizar PDF</Button>
+      <div className="flex shrink-0 flex-wrap gap-2">
+        <Button variant="outline" disabled={completedCount === 0} onClick={() => setIsClearAllDialogOpen(true)}>Limpar tudo</Button>
+        <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><FileText /> Pré-visualizar PDF</Button>
+      </div>
     </div>
 
     <div className="mt-8 grid gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
@@ -182,6 +186,13 @@ function MemorialSectionEditor({ project, onChange }: { project: ReturnType<type
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle>Limpar seção?</DialogTitle><DialogDescription>O texto de “{activeStep.label}” será removido do memorial.</DialogDescription></DialogHeader>
         <DialogFooter><Button variant="outline" onClick={() => setIsClearDialogOpen(false)}>Cancelar</Button><Button variant="destructive" onClick={() => { updateContent(""); setIsClearDialogOpen(false) }}>Limpar seção</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={isClearAllDialogOpen} onOpenChange={setIsClearAllDialogOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle>Limpar todo o memorial?</DialogTitle><DialogDescription>Todo o conteúdo redigido nas {completedCount} seções preenchidas será removido permanentemente.</DialogDescription></DialogHeader>
+        <DialogFooter><Button variant="outline" onClick={() => setIsClearAllDialogOpen(false)}>Cancelar</Button><Button variant="destructive" onClick={() => { onChange([]); setIsClearAllDialogOpen(false) }}>Limpar tudo</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </section>
