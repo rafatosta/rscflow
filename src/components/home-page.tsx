@@ -48,9 +48,10 @@ import {
   saveLocalProject,
   type LocalProject,
 } from "@/lib/projects";
+import { loadRegulations } from "@/data/regulations/load";
 
 const rscLevels = ["RSC 1", "RSC 2", "RSC 3"];
-const regulations = ["Regulamento RSC 2026", "Dataset de referência 2026"];
+const regulations = loadRegulations();
 
 type HomePageProps = { onNavigate: (path: string) => void };
 
@@ -59,6 +60,11 @@ function formatDate(date: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(date));
+}
+
+function formatRegulation(regulation: (typeof regulations)[number]) {
+  const { authority, number, year } = regulation.metadata.regulation
+  return `${authority} nº ${number}/${year}`
 }
 
 export function HomePage({ onNavigate }: HomePageProps) {
@@ -194,7 +200,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   )}
                 </label>
                 <label className="block text-sm font-medium" htmlFor="regulation">
-                  Regulamento / dataset{" "}
+                  Regulamento{" "}
                   <span className="text-destructive">*</span>
                   <Select
                     value={regulation}
@@ -205,19 +211,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       aria-invalid={showErrors && !regulation}
                       className="mt-2 h-10 w-full"
                     >
-                      <SelectValue placeholder="Selecione um regulamento ou dataset" />
+                      <SelectValue placeholder="Selecione um regulamento" />
                     </SelectTrigger>
                     <SelectContent>
                       {regulations.map((item) => (
-                        <SelectItem key={item} value={item}>
-                          {item}
+                        <SelectItem key={item.metadata.regulation.id} value={item.metadata.regulation.id}>
+                          {formatRegulation(item)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {showErrors && !regulation && (
                     <span className="mt-1.5 block text-xs font-normal text-destructive">
-                      Selecione o regulamento ou dataset.
+                      Selecione o regulamento.
                     </span>
                   )}
                 </label>
