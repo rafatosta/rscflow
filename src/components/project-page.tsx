@@ -1,7 +1,7 @@
 import * as React from "react"
 import {
   BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, Copy, Download, FileOutput,
-  ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleHelp, FileText, GraduationCap, HardDrive, LayoutDashboard, Minus, PanelLeft, PanelRight, Pencil, Plus, Printer, Search, Trash2, UserRound, ZoomIn,
+  ChevronDown, ChevronRight, CircleAlert, CircleHelp, FileText, GraduationCap, HardDrive, LayoutDashboard, Minus, PanelLeft, PanelRight, Pencil, Plus, Printer, Search, Trash2, UserRound, ZoomIn,
 } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, type FieldError } from "react-hook-form"
@@ -196,7 +196,7 @@ function InfoCard({ title, text }: { title: string; text: string }) {
   return <Card><CardHeader><CardTitle>{title}</CardTitle><CardDescription>{text}</CardDescription></CardHeader><CardContent><div className="flex items-center gap-2 text-sm text-muted-foreground"><BookOpen className="size-4" /> Os dados serão salvos neste navegador.</div></CardContent></Card>
 }
 
-type FindingSeverity = "ERROR" | "WARNING" | "INFO"
+type FindingSeverity = "ERROR" | "WARNING"
 type ReviewFinding = { severity: FindingSeverity; title: string; description: string; section: (typeof pages)[number]["id"] }
 
 function projectSectionHref(project: LocalProject, section: string) {
@@ -211,28 +211,31 @@ function ReviewSection({ project, catalog }: { project: LocalProject; catalog?: 
   const requestedCatalogLevel = requestedLevel && catalog?.levels.find((level) => level.section === requestedLevel)
   const invalidOccurrences = occurrences.filter((occurrence) => !occurrence.selectedLevel || !occurrence.criterionId || !catalog?.levels.find((level) => level.section === occurrence.selectedLevel)?.criteria.some((criterion) => criterion.id === occurrence.criterionId))
   const occurrencesWithoutEvidence = occurrences.filter((occurrence) => !occurrence.evidence.trim() && occurrence.attachmentNames.length === 0)
-  const namedAttachments = [...formations.map((formation) => formation.attachmentName), ...occurrences.flatMap((occurrence) => occurrence.attachmentNames)].filter(Boolean)
   const projection = requestedLevel && catalog ? calculateLevelProjection(catalog, requestedLevel, occurrences) : undefined
   const hasConclusion = memorial.some((item) => item.id === "conclusion" && item.content.trim())
-  const completedMemorialSections = memorial.filter((item) => item.content.trim()).length
   const findings: ReviewFinding[] = []
 
   if (!project.identification) findings.push({ severity: "ERROR", title: "Identificação do docente não foi salva", description: "O Memorial e os formulários normativos ficam bloqueados até que os dados funcionais e o nível solicitado sejam confirmados.", section: "profile" })
-  else findings.push({ severity: "INFO", title: `Identificação registrada para ${project.identification.name}`, description: `Nível solicitado: ${project.rscLevel}.`, section: "profile" })
   if (formations.length === 0) findings.push({ severity: "WARNING", title: "Nenhuma formação cadastrada", description: "A revisão pode continuar, mas a formação deve ser conferida antes da emissão.", section: "education" })
-  else findings.push({ severity: "INFO", title: `${formations.length} formação(ões) cadastrada(s)`, description: "Verifique titulação, situação e referência documental.", section: "education" })
   if (occurrences.length === 0) findings.push({ severity: "ERROR", title: "Não há lançamentos para pontuar", description: "O resultado e os comprovantes consolidados ficam bloqueados.", section: "requirements" })
   if (invalidOccurrences.length) findings.push({ severity: "ERROR", title: `${invalidOccurrences.length} lançamento(s) sem critério ou nível válido`, description: "Corrija o enquadramento normativo antes de gerar o resultado.", section: "requirements" })
   if (occurrencesWithoutEvidence.length) findings.push({ severity: "ERROR", title: `${occurrencesWithoutEvidence.length} lançamento(s) sem evidência vinculada`, description: "Inclua uma referência de evidência ou um comprovante para consolidar os anexos.", section: "requirements" })
-  if (occurrences.length && !invalidOccurrences.length && !occurrencesWithoutEvidence.length) findings.push({ severity: "INFO", title: "Lançamentos enquadrados e com evidências", description: `${occurrences.length} lançamento(s) pronto(s) para a conferência documental.`, section: "requirements" })
-  if (namedAttachments.length) findings.push({ severity: "WARNING", title: "Integridade dos arquivos locais exige conferência", description: `${namedAttachments.length} arquivo(s) foram referenciados, mas o navegador conserva somente seus nomes. Um resolvedor de arquivos locais não está configurado neste projeto.`, section: "documents" })
-  else findings.push({ severity: "INFO", title: "Nenhum arquivo local referenciado", description: "Não há comprovantes locais para resolver ou verificar.", section: "documents" })
+  occurrences.forEach((occurrence) => {
+    const title = occurrence.description.split(". ")[0] || "Lançamento sem descrição"
+    const attachmentNames = occurrence.attachmentNames.filter(Boolean)
+    findings.push({
+      severity: "WARNING",
+      title: `Comprovante não disponível: ${title}`,
+      description: attachmentNames.length
+        ? `Referência cadastrada: ${attachmentNames.join(", ")}. O arquivo não foi armazenado no navegador e precisa ser selecionado novamente.`
+        : "Nenhum arquivo de comprovação foi cadastrado para este lançamento.",
+      section: "requirements",
+    })
+  })
   if (!catalog || !requestedCatalogLevel || !projection) findings.push({ severity: "ERROR", title: "Resultado indisponível", description: "O regulamento ou o nível RSC solicitado não está disponível no catálogo local.", section: "requirements" })
   else if (projection.provisional) findings.push({ severity: "WARNING", title: `Pontuação estimada: ${projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pontos`, description: "O catálogo está provisório e requer validação humana antes do uso oficial.", section: "requirements" })
   else if (projection.total < catalog.metadata.scoring.minimumRequestedLevel) findings.push({ severity: "WARNING", title: `Pontuação estimada: ${projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pontos`, description: `A estimativa está abaixo do mínimo de ${catalog.metadata.scoring.minimumRequestedLevel} pontos para o nível solicitado.`, section: "requirements" })
-  else findings.push({ severity: "INFO", title: `Pontuação estimada: ${projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pontos`, description: "A estimativa está disponível para conferência final.", section: "requirements" })
   if (!hasConclusion) findings.push({ severity: "ERROR", title: "Conclusão do memorial não foi preparada", description: "O Memorial fica bloqueado até que a seção de conclusão seja preenchida.", section: "memorial" })
-  else findings.push({ severity: "INFO", title: `Memorial com conclusão (${completedMemorialSections} seções preenchidas)`, description: "Revise o conteúdo antes de gerar a versão final.", section: "memorial" })
   findings.push({ severity: "WARNING", title: "Formulários normativos ainda não foram gerados", description: "A emissão e a conferência dos formulários serão necessárias antes do protocolo.", section: "documents" })
 
   const documents = [
@@ -242,8 +245,8 @@ function ReviewSection({ project, catalog }: { project: LocalProject; catalog?: 
   ]
 
   return <section className="mt-6 space-y-6">
-    <Card><CardHeader><CardTitle>Revisão de prontidão</CardTitle><CardDescription>Achados que afetam a geração do Memorial, formulários normativos e comprovantes consolidados.</CardDescription></CardHeader><CardContent className="grid gap-3 sm:grid-cols-3"><ReviewSummary label="Bloqueios" value={findings.filter((item) => item.severity === "ERROR").length} /><ReviewSummary label="Conferências" value={findings.filter((item) => item.severity === "WARNING").length} /><ReviewSummary label="Informações" value={findings.filter((item) => item.severity === "INFO").length} /></CardContent></Card>
-    <Card><CardHeader><CardTitle>Achados</CardTitle><CardDescription>ERROR bloqueia o artefato correspondente; WARNING permite seguir com conferência; INFO apenas registra a situação.</CardDescription></CardHeader><CardContent className="space-y-3">{findings.map((finding, index) => <ReviewFindingCard key={`${finding.title}-${index}`} project={project} finding={finding} />)}</CardContent></Card>
+    <Card><CardHeader><CardTitle>Revisão de prontidão</CardTitle><CardDescription>Pendências que afetam a geração do Memorial, formulários normativos e comprovantes consolidados.</CardDescription></CardHeader><CardContent className="grid gap-3 sm:grid-cols-2"><ReviewSummary label="Bloqueios" value={findings.filter((item) => item.severity === "ERROR").length} /><ReviewSummary label="Conferências" value={findings.filter((item) => item.severity === "WARNING").length} /></CardContent></Card>
+    <Card><CardHeader><CardTitle>Pendências</CardTitle><CardDescription>ERROR bloqueia o artefato correspondente; WARNING permite seguir com conferência.</CardDescription></CardHeader><CardContent className="space-y-3">{findings.length ? findings.map((finding, index) => <ReviewFindingCard key={`${finding.title}-${index}`} project={project} finding={finding} />) : <p className="text-sm text-muted-foreground">Não há pendências neste projeto.</p>}</CardContent></Card>
     <Card><CardHeader><CardTitle>Prontidão dos documentos</CardTitle><CardDescription>Estado atual dos artefatos que compõem o protocolo.</CardDescription></CardHeader><CardContent className="grid gap-3 md:grid-cols-3">{documents.map((document) => <div key={document.title} className="rounded-lg border p-4"><div className="flex items-center justify-between gap-3"><p className="font-medium">{document.title}</p><Badge variant={document.ready ? "secondary" : "outline"}>{document.ready ? "Pronto" : "Pendente"}</Badge></div><p className="mt-2 text-sm text-muted-foreground">{document.note}</p><Button className="mt-4" size="sm" variant="outline" render={<a href={projectSectionHref(project, document.section)} />}>Ver seção</Button></div>)}</CardContent></Card>
   </section>
 }
@@ -253,8 +256,8 @@ function ReviewSummary({ label, value }: { label: string; value: number }) {
 }
 
 function ReviewFindingCard({ project, finding }: { project: LocalProject; finding: ReviewFinding }) {
-  const Icon = finding.severity === "ERROR" ? CircleAlert : finding.severity === "WARNING" ? CircleHelp : CircleCheck
-  const variant = finding.severity === "ERROR" ? "destructive" : finding.severity === "WARNING" ? "secondary" : "outline"
+  const Icon = finding.severity === "ERROR" ? CircleAlert : CircleHelp
+  const variant = finding.severity === "ERROR" ? "destructive" : "secondary"
   return <div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="flex gap-3"><Icon className="mt-0.5 size-5 shrink-0" /><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{finding.title}</p><Badge variant={variant}>{finding.severity}</Badge></div><p className="mt-1 text-sm text-muted-foreground">{finding.description}</p></div></div><Button size="sm" variant="outline" className="shrink-0" render={<a href={projectSectionHref(project, finding.section)} />}>Corrigir</Button></div>
 }
 
