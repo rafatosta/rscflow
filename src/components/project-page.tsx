@@ -114,6 +114,7 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
   const [query, setQuery] = React.useState("")
   const [criterionId, setCriterionId] = React.useState<string | null>(null)
   const [attachments, setAttachments] = React.useState<string[]>([])
+  const [collapsedDirectiveIds, setCollapsedDirectiveIds] = React.useState<Set<string>>(() => new Set())
   const form = useForm<OccurrenceFormValues, unknown, OccurrenceValues>({ resolver: zodResolver(occurrenceSchema), defaultValues: emptyOccurrence })
   const level = catalog.levels.find((item) => item.section === levelId)!
   const projection = projections[levelId]
@@ -142,10 +143,11 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
 
       {requirementLevels.map((item) => <TabsContent key={item.id} value={item.id} className="mt-4 space-y-4">
         {projection.provisional && <Card><CardContent className="p-4 text-sm text-muted-foreground">Este catálogo está pendente de validação humana final. As pontuações exibidas são estimativas provisórias e não representam pontuação oficial.</CardContent></Card>}
+        <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted-foreground">Diretrizes deste nível</p><div className="flex gap-2"><Button type="button" variant="outline" size="sm" onClick={() => setCollapsedDirectiveIds((current) => { const next = new Set(current); level.directives.forEach((directive) => next.delete(directive.id)); return next })}>Expandir todas</Button><Button type="button" variant="outline" size="sm" onClick={() => setCollapsedDirectiveIds((current) => { const next = new Set(current); level.directives.forEach((directive) => next.add(directive.id)); return next })}>Recolher todas</Button></div></div>
         {level.directives.map((directive) => {
           const criteria = level.criteria.filter((criterion) => criterion.directiveId === directive.id && matches(criterion.description))
           if (criteria.length === 0) return null
-          return <DirectiveCard key={directive.id} directive={directive} criteria={criteria} projection={projection} onAdd={openDialog} />
+          return <DirectiveCard key={directive.id} directive={directive} criteria={criteria} projection={projection} open={!collapsedDirectiveIds.has(directive.id)} onOpenChange={(open) => setCollapsedDirectiveIds((current) => { const next = new Set(current); if (open) next.delete(directive.id); else next.add(directive.id); return next })} onAdd={openDialog} />
         })}
       </TabsContent>)}
     </Tabs>
@@ -156,10 +158,8 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
   </section>
 }
 
-function DirectiveCard({ directive, criteria, projection, onAdd }: { directive: Regulation["levels"][number]["directives"][number]; criteria: Regulation["levels"][number]["criteria"]; projection: LevelProjection; onAdd: (criterionId: string) => void }) {
-  const [open, setOpen] = React.useState(true)
-
-  return <Collapsible open={open} onOpenChange={setOpen}>
+function DirectiveCard({ directive, criteria, projection, open, onOpenChange, onAdd }: { directive: Regulation["levels"][number]["directives"][number]; criteria: Regulation["levels"][number]["criteria"]; projection: LevelProjection; open: boolean; onOpenChange: (open: boolean) => void; onAdd: (criterionId: string) => void }) {
+  return <Collapsible open={open} onOpenChange={onOpenChange}>
     <Card>
       <CardHeader><div className="flex items-start justify-between gap-3"><div className="min-w-0 flex-1"><CardDescription>Diretriz {directive.code}</CardDescription><CardTitle className="mt-1 text-base">{directive.title}</CardTitle></div><div className="flex shrink-0 items-center gap-2"><Badge variant="outline">{projection.directiveScores[directive.id].toLocaleString("pt-BR", { maximumFractionDigits: 2 })} / {directive.maxScore} pts</Badge><CollapsibleTrigger render={<Button type="button" variant="ghost" size="sm" />} aria-label={`${open ? "Recolher" : "Expandir"} diretriz ${directive.code}`}><ChevronDown className={`transition-transform ${open ? "rotate-180" : ""}`} /><span className="hidden sm:inline">{open ? "Recolher" : "Expandir"}</span></CollapsibleTrigger></div></div></CardHeader>
       <CollapsibleContent><CardContent className="grid gap-3">{criteria.map((criterion) => {
