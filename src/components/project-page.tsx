@@ -86,9 +86,12 @@ export function ProjectPage({ section, catalog }: ProjectPageProps) {
 }
 
 function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange }: { section: (typeof pages)[number]["id"]; project?: LocalProject; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void; onMemorialChange: (sections: MemorialSection[]) => void; onIdentificationChange: (identification: Identification) => void; onFormationsChange: (formations: Formation[]) => void }) {
+  const requestedLevel = project ? requestedLevelIds[project.rscLevel as keyof typeof requestedLevelIds] : undefined
+  const requestedProjection = project && catalog && requestedLevel ? calculateLevelProjection(catalog, requestedLevel, project.requirementOccurrences ?? []) : undefined
+
   if (section === "overview") return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento da avaliação</CardTitle><CardDescription>Complete as seções para avançar na revisão.</CardDescription></CardHeader><CardContent><Progress value={0}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
-    <Card><CardHeader><CardTitle>Pontuação estimada</CardTitle><CardDescription>Sem lançamentos avaliados.</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold">0 pts</p></CardContent></Card>
+    <Card><CardHeader><CardTitle>Pontuação estimada</CardTitle><CardDescription>{requestedProjection ? requestedProjection.provisional ? "Cálculo sujeito à validação manual do catálogo." : "Cálculo disponível para conferência." : "Selecione um regulamento e um nível RSC disponíveis."}</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold">{requestedProjection ? `${requestedProjection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts` : "—"}</p></CardContent></Card>
     <InfoCard title="Comprovantes" text="Nenhum comprovante adicionado." /><InfoCard title="Pendências" text="Preencha a identificação e a formação para começar." /><InfoCard title="Backup" text="Gere um backup JSON na seção Documentos." />
   </div>
   if (section === "profile") return project ? <IdentificationForm project={project} onSave={onIdentificationChange} /> : null
