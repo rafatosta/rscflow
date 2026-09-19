@@ -112,7 +112,7 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemo
   </div>
   if (section === "profile") return project ? <IdentificationForm project={project} onSave={onIdentificationChange} /> : null
   if (section === "education") return project ? <EducationSection project={project} onChange={onFormationsChange} /> : null
-  if (section === "memorial") return project ? <MemorialSectionEditor project={project} onChange={onMemorialChange} /> : null
+  if (section === "memorial") return project ? <MemorialSectionEditor project={project} catalog={catalog} onChange={onMemorialChange} onOccurrencesChange={onOccurrencesChange} /> : null
   if (section === "requirements") {
     if (!project) return null
     if (!catalog) return <Card className="mt-6"><CardHeader><CardTitle>Regulamento indisponível</CardTitle><CardDescription>O regulamento salvo neste projeto não está disponível no catálogo local.</CardDescription></CardHeader><CardContent><p className="text-sm text-muted-foreground">Selecione ou restaure um projeto vinculado a um regulamento instalado antes de cadastrar lançamentos.</p></CardContent></Card>
@@ -307,7 +307,27 @@ function formatMemorialDate(value: string) {
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(date)
 }
 
-function buildMemorialTextBase(project: LocalProject): MemorialSection[] {
+function getCriterionDescription(catalog: Regulation | undefined, occurrence: RequirementOccurrence) {
+  return catalog?.levels.find((level) => level.section === occurrence.selectedLevel)?.criteria.find((criterion) => criterion.id === occurrence.criterionId)?.description
+}
+
+function buildOccurrenceNarrative(occurrence: RequirementOccurrence, criterionDescription?: string) {
+  const evidence = [occurrence.evidence, ...occurrence.attachmentNames].filter(Boolean).join("; ")
+  return [
+    occurrence.period && `Contexto e período: ${occurrence.period}.`,
+    `Atividade realizada: ${occurrence.description}.`,
+    occurrence.results && `Resultados alcançados: ${occurrence.results}.`,
+    occurrence.competencies && `Saberes e competências demonstrados: ${occurrence.competencies}.`,
+    criterionDescription && `Enquadramento no critério: ${criterionDescription}.`,
+    evidence && `Comprovantes relacionados: ${evidence}.`,
+  ].filter(Boolean).join("\n\n")
+}
+
+function getOccurrenceText(occurrence: RequirementOccurrence, catalog?: Regulation) {
+  return occurrence.editedText || occurrence.generatedText || buildOccurrenceNarrative(occurrence, getCriterionDescription(catalog, occurrence))
+}
+
+function buildMemorialTextBase(project: LocalProject, catalog?: Regulation): MemorialSection[] {
   const identification = project.identification
   const name = identification?.name || "[nome do(a) docente]"
   const institution = identification?.institution || "[instituição]"
@@ -317,34 +337,42 @@ function buildMemorialTextBase(project: LocalProject): MemorialSection[] {
   const formations = project.formations ?? []
   const occurrences = project.requirementOccurrences ?? []
   const formationSummary = formations.length
-    ? formations.map((formation) => `${formation.type}: ${formation.title}${formation.institution ? ` — ${formation.institution}` : ""}`).join("\n")
+    ? formations.map((formation) => [
+      `${formation.type}: ${formation.title}${formation.institution ? ` — ${formation.institution}` : ""}.`,
+      formation.startDate || formation.endDate ? `Período: ${[formation.startDate, formation.endDate].filter(Boolean).join(" a ")}.` : "",
+      formation.status && `Situação: ${formation.status}.`,
+      formation.notes && `Observações: ${formation.notes}.`,
+    ].filter(Boolean).join(" ")).join("\n\n")
     : "Não há formações complementares cadastradas no processo."
   const occurrenceSummary = occurrences.length
-    ? occurrences.map((occurrence, index) => `${index + 1}. ${occurrence.description}${occurrence.period ? ` (${occurrence.period})` : ""}`).join("\n")
+    ? [...occurrences].sort((first, second) => (first.period || first.createdAt).localeCompare(second.period || second.createdAt, "pt-BR")).map((occurrence, index) => `${index + 1}. ${getOccurrenceText(occurrence, catalog)}`).join("\n\n")
     : "Não há lançamentos de atividades cadastrados no processo."
 
   return [
-    { id: "cover", content: `MEMORIAL DESCRITIVO\n\n${name}\n${position}\n${institution} · ${campus}\nReconhecimento de Saberes e Competências — ${project.rscLevel}` },
-    { id: "introduction", content: `Eu, ${name}, ${position} no(a) ${institution}, campus ${campus}, apresento este Memorial Descritivo para instruir meu processo de Reconhecimento de Saberes e Competências (RSC), no nível ${project.rscLevel}. Este texto-base foi composto a partir dos dados cadastrados no processo e deve ser revisado e complementado antes do protocolo.` },
+    { id: "cover", content: `MEMORIAL DESCRITIVO\n\n${name}\nSIAPE: ${identification?.siape || "[SIAPE não informado]"}\n${position}\n${institution} · ${campus}\nReconhecimento de Saberes e Competências — ${project.rscLevel}` },
+    { id: "introduction", content: `Eu, ${name}, SIAPE ${identification?.siape || "[não informado]"}, ${position} no(a) ${institution}, campus ${campus}, apresento este Memorial Descritivo para instruir meu processo de Reconhecimento de Saberes e Competências (RSC), no nível ${project.rscLevel}. Este texto-base foi composto a partir dos dados cadastrados no processo e deve ser revisado e complementado antes do protocolo.` },
     { id: "career", content: `Minha trajetória funcional no(a) ${institution} teve início em ${formatMemorialDate(identification?.admissionDate ?? "")}. Atualmente, informo a titulação ${degree} e o nível funcional ${identification?.currentLevel || "[nível atual não informado]"}.\n\nFormações cadastradas:\n${formationSummary}` },
-    { id: "teaching", content: `Para este processo de ${project.rscLevel}, foram cadastrados ${occurrences.length} lançamento(s) de atividades e experiências. As informações abaixo devem ser contextualizadas, indicando minha participação, os resultados alcançados e os respectivos comprovantes.\n\n${occurrenceSummary}` },
+    { id: "teaching", content: `Para este processo de ${project.rscLevel}, foram cadastrados ${occurrences.length} lançamento(s) de atividades e experiências. A seguir, as narrativas são organizadas cronologicamente a partir dos dados já cadastrados.\n\n${occurrenceSummary}` },
     { id: "outreach", content: `As ações de extensão, pesquisa e demais experiências relacionadas ao processo devem ser apresentadas com seus objetivos, público envolvido, resultados e evidências. Os lançamentos cadastrados neste processo podem ser usados como referência para detalhar esta seção.\n\nQuantidade de lançamentos disponíveis: ${occurrences.length}.` },
     { id: "management", content: `Nesta seção, descrevo atividades de gestão, participação em comissões e outras contribuições institucionais pertinentes ao pedido de ${project.rscLevel}. Cada atividade deve ser associada ao período de atuação, às responsabilidades desempenhadas e aos documentos comprobatórios correspondentes.` },
     { id: "conclusion", content: `Diante da trajetória, formação e atividades apresentadas neste Memorial Descritivo, solicito a apreciação do pedido de Reconhecimento de Saberes e Competências no nível ${project.rscLevel}. Declaro que as informações serão revisadas e acompanhadas das evidências pertinentes antes do protocolo.` },
   ]
 }
 
-function MemorialSectionEditor({ project, onChange }: { project: LocalProject; onChange: (sections: MemorialSection[]) => void }) {
+function MemorialSectionEditor({ project, catalog, onChange, onOccurrencesChange }: { project: LocalProject; catalog?: Regulation; onChange: (sections: MemorialSection[]) => void; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void }) {
   const [activeId, setActiveId] = React.useState("cover")
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false)
   const [isClearAllDialogOpen, setIsClearAllDialogOpen] = React.useState(false)
   const [isTextBaseDialogOpen, setIsTextBaseDialogOpen] = React.useState(false)
+  const [editingNarrativeId, setEditingNarrativeId] = React.useState<string | null>(null)
   const sections = project.memorialSections ?? []
   const activeIndex = memorialSteps.findIndex((step) => step.id === activeId)
   const activeStep = memorialSteps[activeIndex]
   const activeContent = sections.find((item) => item.id === activeId)?.content ?? ""
   const completedCount = memorialSteps.filter((step) => sections.some((item) => item.id === step.id && item.content.trim())).length
+  const occurrences = project.requirementOccurrences ?? []
+  const editingNarrative = occurrences.find((occurrence) => occurrence.id === editingNarrativeId)
 
   const updateContent = (content: string) => {
     const next = sections.filter((item) => item.id !== activeId)
@@ -366,6 +394,11 @@ function MemorialSectionEditor({ project, onChange }: { project: LocalProject; o
         <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><FileText /> Pré-visualizar PDF</Button>
       </div>
     </div>
+
+    <Card className="mt-6">
+      <CardHeader><CardTitle>Narrativas dos lançamentos</CardTitle><CardDescription>Textos projetados a partir dos lançamentos, critérios e evidências cadastrados. Uma edição aqui preserva sua autoria quando os dados de origem forem atualizados.</CardDescription></CardHeader>
+      <CardContent className="space-y-3">{occurrences.length ? occurrences.map((occurrence) => <div key={occurrence.id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{occurrence.description}</p>{occurrence.isGeneratedTextOutdated && <Badge variant="outline">Texto desatualizado</Badge>}{occurrence.isManuallyEdited && <Badge variant="secondary">Editado manualmente</Badge>}</div><p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">{getOccurrenceText(occurrence, catalog)}</p></div><Button size="sm" variant="outline" className="shrink-0" onClick={() => setEditingNarrativeId(occurrence.id)}><Pencil /> Editar narrativa</Button></div>) : <p className="text-sm text-muted-foreground">Cadastre lançamentos para gerar narrativas baseadas no processo.</p>}</CardContent>
+    </Card>
 
     <div className="mt-8 grid gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
       <Card className="h-fit py-5">
@@ -427,7 +460,15 @@ function MemorialSectionEditor({ project, onChange }: { project: LocalProject; o
     <Dialog open={isTextBaseDialogOpen} onOpenChange={setIsTextBaseDialogOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle>Inserir texto-base gerado?</DialogTitle><DialogDescription>Será inserido um rascunho estático nas sete seções, com os dados cadastrados do docente e do processo de RSC. O conteúdo atual será substituído; revise e complemente o texto antes do protocolo.</DialogDescription></DialogHeader>
-        <DialogFooter><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(false)}>Cancelar</Button><Button onClick={() => { onChange(buildMemorialTextBase(project)); setActiveId("cover"); setIsTextBaseDialogOpen(false) }}>Inserir texto-base</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(false)}>Cancelar</Button><Button onClick={() => { onChange(buildMemorialTextBase(project, catalog)); setActiveId("cover"); setIsTextBaseDialogOpen(false) }}>Inserir texto-base</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={Boolean(editingNarrative)} onOpenChange={(open) => { if (!open) setEditingNarrativeId(null) }}>
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader><DialogTitle>Editar narrativa do lançamento</DialogTitle><DialogDescription>Este texto é exibido na projeção do Memorial. Ao salvá-lo, a versão automática continuará disponível para comparação e regeneração.</DialogDescription></DialogHeader>
+        {editingNarrative && <Textarea defaultValue={getOccurrenceText(editingNarrative, catalog)} className="min-h-72 resize-y" aria-label="Narrativa do lançamento" onChange={(event) => { const text = event.target.value; onOccurrencesChange(occurrences.map((occurrence) => occurrence.id === editingNarrative.id ? { ...occurrence, editedText: text, isManuallyEdited: text !== (occurrence.generatedText || buildOccurrenceNarrative(occurrence, getCriterionDescription(catalog, occurrence))), isGeneratedTextOutdated: occurrence.isGeneratedTextOutdated && text !== occurrence.generatedText } : occurrence)) }} />}
+        <DialogFooter>{editingNarrative?.isGeneratedTextOutdated && <Button variant="outline" onClick={() => { onOccurrencesChange(occurrences.map((occurrence) => occurrence.id === editingNarrative.id ? { ...occurrence, editedText: occurrence.generatedText, isManuallyEdited: false, isGeneratedTextOutdated: false } : occurrence)); setEditingNarrativeId(null) }}>Usar versão regenerada</Button>}<Button onClick={() => setEditingNarrativeId(null)}>Concluir edição</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </section>
@@ -499,8 +540,18 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
     const currentOccurrences = project.requirementOccurrences ?? []
     const occurrenceId = editingOccurrenceId ?? crypto.randomUUID()
     const nextOccurrences = editingOccurrenceId
-      ? currentOccurrences.map((item) => item.id === occurrenceId ? { ...item, criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, updatedAt: now } : item)
-      : [...currentOccurrences, { id: occurrenceId, criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, createdAt: now, updatedAt: now }]
+      ? currentOccurrences.map((item) => {
+        if (item.id !== occurrenceId) return item
+        const next = { ...item, criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, updatedAt: now }
+        const generatedText = buildOccurrenceNarrative(next, selectedCriterion.description)
+        const isGeneratedTextOutdated = Boolean(item.isManuallyEdited && item.generatedText && generatedText !== item.generatedText)
+        return { ...next, generatedText, editedText: item.isManuallyEdited ? item.editedText : generatedText, isManuallyEdited: item.isManuallyEdited ?? false, isGeneratedTextOutdated }
+      })
+      : (() => {
+        const next = { id: occurrenceId, criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, createdAt: now, updatedAt: now }
+        const generatedText = buildOccurrenceNarrative(next, selectedCriterion.description)
+        return [...currentOccurrences, { ...next, generatedText, editedText: generatedText, isManuallyEdited: false, isGeneratedTextOutdated: false }]
+      })()
     if (attachmentFiles.length) await replaceOccurrenceAttachments(project.localId, occurrenceId, attachmentFiles)
     onOccurrencesChange(nextOccurrences)
     const returnToReview = Boolean(editingOccurrenceId)
