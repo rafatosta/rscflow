@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getLocalProjects } from "@/lib/projects"
 import { type Formation, updateLocalProject } from "@/lib/projects"
 
@@ -31,7 +32,7 @@ const pages = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard, description: "Progresso, pontuação, comprovantes, pendências e backup." },
   { id: "profile", label: "Identificação", icon: UserRound, description: "Cadastro Funcional e Acadêmico do Servidor" },
   { id: "education", label: "Formação", icon: GraduationCap, description: "Formação, aperfeiçoamento e titulação." },
-  { id: "requirements", label: "Requerimentos", icon: Search, description: "Catálogo, busca, lançamentos e enquadramentos." },
+  { id: "requirements", label: "Requisitos", icon: Search, description: "Explore o catálogo normativo e registre suas experiências." },
   { id: "memorial", label: "Memorial", icon: FileText, description: "Edição e regeneração do Memorial." },
   { id: "review", label: "Revisão", icon: ClipboardCheck, description: "Checklist e prontidão documental." },
   { id: "preview", label: "Visualizar", icon: FileOutput, description: "Visualizador A4 genérico." },
@@ -68,12 +69,73 @@ function ProjectSection({ section, project }: { section: (typeof pages)[number][
   </div>
   if (section === "profile") return <IdentificationForm />
   if (section === "education") return project ? <EducationSection project={project} /> : null
+  if (section === "requirements") return <RequirementsSection />
   if (section === "preview") return <Card className="mt-6"><CardContent className="p-6"><div className="mx-auto aspect-[210/297] max-w-xl border bg-background p-8 shadow-sm"><p className="text-sm font-semibold">Memorial RSC</p><div className="mt-8 space-y-3"><div className="h-2 w-2/3 rounded bg-muted" /><div className="h-2 rounded bg-muted" /><div className="h-2 w-5/6 rounded bg-muted" /></div></div></CardContent></Card>
   return <div className="mt-6 grid gap-4 md:grid-cols-2"><InfoCard title={section === "documents" ? "Arquivos do projeto" : "Nenhum dado cadastrado"} text={section === "documents" ? "Exporte PDFs, JSON e backup ZIP, ou importe uma restauração." : "Adicione informações para compor esta etapa da avaliação."} /><Card><CardHeader><CardTitle>Próxima ação</CardTitle><CardDescription>Esta seção está pronta para receber seus lançamentos.</CardDescription></CardHeader><CardContent><Button><CheckCircle2 /> Adicionar informação</Button></CardContent></Card></div>
 }
 
 function InfoCard({ title, text }: { title: string; text: string }) {
   return <Card><CardHeader><CardTitle>{title}</CardTitle><CardDescription>{text}</CardDescription></CardHeader><CardContent><div className="flex items-center gap-2 text-sm text-muted-foreground"><BookOpen className="size-4" /> Os dados serão salvos neste navegador.</div></CardContent></Card>
+}
+
+const requirementLevels = [
+  { id: "rsc-i", label: "RSC I", title: "Reconhecimento de Saberes e Competências I", description: "Explore os requisitos aplicáveis ao primeiro nível de reconhecimento." },
+  { id: "rsc-ii", label: "RSC II", title: "Reconhecimento de Saberes e Competências II", description: "Explore os requisitos aplicáveis ao segundo nível de reconhecimento." },
+  { id: "rsc-iii", label: "RSC III", title: "Reconhecimento de Saberes e Competências III", description: "Explore os requisitos aplicáveis ao terceiro nível de reconhecimento." },
+] as const
+
+function RequirementsSection() {
+  const [level, setLevel] = React.useState<(typeof requirementLevels)[number]["id"]>("rsc-i")
+
+  return <section className="mt-6">
+    <Tabs value={level} onValueChange={(value) => setLevel(value as typeof level)}>
+      <Card>
+        <CardHeader>
+          <CardTitle>1. Escolha o nível de RSC</CardTitle>
+          <CardDescription>Selecione o nível para navegar pelo catálogo normativo correspondente.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TabsList aria-label="Nível de RSC" className="grid w-full max-w-md grid-cols-3">
+            {requirementLevels.map((item) => <TabsTrigger key={item.id} value={item.id}>{item.label}</TabsTrigger>)}
+          </TabsList>
+        </CardContent>
+      </Card>
+
+      {requirementLevels.map((item) => <TabsContent key={item.id} value={item.id} className="mt-4">
+        <div className="grid gap-4 lg:grid-cols-5">
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div><CardTitle>{item.title}</CardTitle><CardDescription className="mt-1">{item.description}</CardDescription></div>
+                <Badge variant="secondary">Catálogo normativo</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border border-dashed p-5">
+                <p className="font-medium">Itens organizados por tipo</p>
+                <p className="mt-1 text-sm text-muted-foreground">A listagem de itens e seus agrupamentos será exibida aqui na próxima etapa.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>2. Registre sua experiência</CardTitle>
+              <CardDescription>Escolha um item do catálogo para vincular a experiência docente.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form className="grid gap-4" onSubmit={(event) => event.preventDefault()}>
+                <FormField label="Item do requisito"><Input disabled placeholder="Selecione um item do catálogo" /></FormField>
+                <FormField label="Descrição da experiência"><Textarea disabled rows={4} placeholder="Descreva a atividade, período e evidências." /></FormField>
+                <Button type="submit" disabled>Salvar experiência</Button>
+              </form>
+              <p className="mt-3 text-xs text-muted-foreground">O formulário será habilitado após a seleção de um item.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>)}
+    </Tabs>
+  </section>
 }
 
 const formationTypes = ["Graduação", "Aperfeiçoamento", "Especialização", "Mestrado", "Doutorado", "Curso livre"]

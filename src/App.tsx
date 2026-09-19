@@ -16,7 +16,7 @@ const processItems: NavigationItem[] = [
   { id: "overview", label: "Visão geral", icon: "layout-dashboard" },
   { id: "profile", label: "Identificação", icon: "user-round" },
   { id: "education", label: "Formação", icon: "graduation-cap" },
-  { id: "requirements", label: "Requerimentos", icon: "search" },
+  { id: "requirements", label: "Requisitos", icon: "search" },
   { id: "memorial", label: "Memorial", icon: "file-text" },
   { id: "review", label: "Revisão", icon: "clipboard-check" },
   { id: "preview", label: "Visualizar", icon: "file-output" },
