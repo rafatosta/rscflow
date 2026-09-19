@@ -10,6 +10,22 @@ export type LocalProject = {
   formations?: Formation[]
   requirementOccurrences?: RequirementOccurrence[]
   memorialSections?: MemorialSection[]
+  identification?: Identification
+}
+
+export type Identification = {
+  name: string
+  cpf: string
+  admissionDate: string
+  siape: string
+  position: string
+  institution: string
+  campus: string
+  currentLevel: string
+  degree: string
+  personalEmail: string
+  professionalEmail: string
+  phone: string
 }
 
 export type MemorialSection = {

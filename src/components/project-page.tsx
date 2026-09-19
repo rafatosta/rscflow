@@ -1,7 +1,7 @@
 import * as React from "react"
 import {
   BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, Copy, FileOutput,
-  ChevronDown, ChevronRight, FileText, GraduationCap, HardDrive, LayoutDashboard, Pencil, Plus, Search, Trash2, UserRound,
+  ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleHelp, FileText, GraduationCap, HardDrive, LayoutDashboard, Pencil, Plus, Search, Trash2, UserRound,
 } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, type FieldError } from "react-hook-form"
@@ -27,7 +27,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { getLocalProjects } from "@/lib/projects"
-import { type Formation, type MemorialSection, updateLocalProject } from "@/lib/projects"
+import { type Formation, type Identification, type MemorialSection, updateLocalProject } from "@/lib/projects"
 import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection, type LevelProjection } from "@/domain/scoring"
 import type { RequirementOccurrence } from "@/lib/projects"
@@ -69,32 +69,105 @@ export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
           const nextProject = { ...project, memorialSections, updatedAt: new Date().toISOString() }
           updateLocalProject(nextProject)
           setProject(nextProject)
+        }} onIdentificationChange={(identification) => {
+          if (!project) return
+          const nextProject = { ...project, identification, updatedAt: new Date().toISOString() }
+          updateLocalProject(nextProject)
+          setProject(nextProject)
+        }} onFormationsChange={(formations) => {
+          if (!project) return
+          const nextProject = { ...project, formations, updatedAt: new Date().toISOString() }
+          updateLocalProject(nextProject)
+          setProject(nextProject)
         }} />
       </section>
     </div>
   </main>
 }
 
-function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void; onMemorialChange: (sections: MemorialSection[]) => void }) {
+function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void; onMemorialChange: (sections: MemorialSection[]) => void; onIdentificationChange: (identification: Identification) => void; onFormationsChange: (formations: Formation[]) => void }) {
   if (section === "overview") return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento da avaliação</CardTitle><CardDescription>Complete as seções para avançar na revisão.</CardDescription></CardHeader><CardContent><Progress value={0}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
     <Card><CardHeader><CardTitle>Pontuação estimada</CardTitle><CardDescription>Sem lançamentos avaliados.</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold">0 pts</p></CardContent></Card>
     <InfoCard title="Comprovantes" text="Nenhum comprovante adicionado." /><InfoCard title="Pendências" text="Preencha a identificação e a formação para começar." /><InfoCard title="Backup" text="Gere um backup JSON na seção Documentos." />
   </div>
-  if (section === "profile") return <IdentificationForm />
-  if (section === "education") return project ? <EducationSection project={project} /> : null
+  if (section === "profile") return project ? <IdentificationForm project={project} onSave={onIdentificationChange} /> : null
+  if (section === "education") return project ? <EducationSection project={project} onChange={onFormationsChange} /> : null
   if (section === "memorial") return project ? <MemorialSectionEditor project={project} onChange={onMemorialChange} /> : null
   if (section === "requirements") {
     if (!project) return null
     if (!catalog) return <Card className="mt-6"><CardHeader><CardTitle>Regulamento indisponível</CardTitle><CardDescription>O regulamento salvo neste projeto não está disponível no catálogo local.</CardDescription></CardHeader><CardContent><p className="text-sm text-muted-foreground">Selecione ou restaure um projeto vinculado a um regulamento instalado antes de cadastrar lançamentos.</p></CardContent></Card>
     return <RequirementsSection project={project} catalog={catalog} projections={{ "rsc-i": calculateLevelProjection(catalog, "rsc-i", project.requirementOccurrences ?? []), "rsc-ii": calculateLevelProjection(catalog, "rsc-ii", project.requirementOccurrences ?? []), "rsc-iii": calculateLevelProjection(catalog, "rsc-iii", project.requirementOccurrences ?? []) }} onOccurrencesChange={onOccurrencesChange} />
   }
+  if (section === "review") return project ? <ReviewSection project={project} catalog={catalog} /> : null
   if (section === "preview") return <Card className="mt-6"><CardContent className="p-6"><div className="mx-auto aspect-[210/297] max-w-xl border bg-background p-8 shadow-sm"><p className="text-sm font-semibold">Memorial RSC</p><div className="mt-8 space-y-3"><div className="h-2 w-2/3 rounded bg-muted" /><div className="h-2 rounded bg-muted" /><div className="h-2 w-5/6 rounded bg-muted" /></div></div></CardContent></Card>
   return <div className="mt-6 grid gap-4 md:grid-cols-2"><InfoCard title={section === "documents" ? "Arquivos do projeto" : "Nenhum dado cadastrado"} text={section === "documents" ? "Exporte PDFs, JSON e backup ZIP, ou importe uma restauração." : "Adicione informações para compor esta etapa da avaliação."} /><Card><CardHeader><CardTitle>Próxima ação</CardTitle><CardDescription>Esta seção está pronta para receber seus lançamentos.</CardDescription></CardHeader><CardContent><Button><CheckCircle2 /> Adicionar informação</Button></CardContent></Card></div>
 }
 
 function InfoCard({ title, text }: { title: string; text: string }) {
   return <Card><CardHeader><CardTitle>{title}</CardTitle><CardDescription>{text}</CardDescription></CardHeader><CardContent><div className="flex items-center gap-2 text-sm text-muted-foreground"><BookOpen className="size-4" /> Os dados serão salvos neste navegador.</div></CardContent></Card>
+}
+
+type FindingSeverity = "ERROR" | "WARNING" | "INFO"
+type ReviewFinding = { severity: FindingSeverity; title: string; description: string; section: (typeof pages)[number]["id"] }
+
+function projectSectionHref(project: ReturnType<typeof getLocalProjects>[number], section: string) {
+  return section === "overview" ? `/project/${project.localId}` : `/project/${project.localId}/${section}`
+}
+
+function ReviewSection({ project, catalog }: { project: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation }) {
+  const occurrences = project.requirementOccurrences ?? []
+  const formations = project.formations ?? []
+  const memorial = project.memorialSections ?? []
+  const requestedLevel = ({ "RSC I": "rsc-i", "RSC II": "rsc-ii", "RSC III": "rsc-iii" } as const)[project.rscLevel]
+  const requestedCatalogLevel = requestedLevel && catalog?.levels.find((level) => level.section === requestedLevel)
+  const invalidOccurrences = occurrences.filter((occurrence) => !occurrence.selectedLevel || !occurrence.criterionId || !catalog?.levels.find((level) => level.section === occurrence.selectedLevel)?.criteria.some((criterion) => criterion.id === occurrence.criterionId))
+  const occurrencesWithoutEvidence = occurrences.filter((occurrence) => !occurrence.evidence.trim() && occurrence.attachmentNames.length === 0)
+  const namedAttachments = [...formations.map((formation) => formation.attachmentName), ...occurrences.flatMap((occurrence) => occurrence.attachmentNames)].filter(Boolean)
+  const projection = requestedLevel && catalog ? calculateLevelProjection(catalog, requestedLevel, occurrences) : undefined
+  const hasConclusion = memorial.some((item) => item.id === "conclusion" && item.content.trim())
+  const completedMemorialSections = memorial.filter((item) => item.content.trim()).length
+  const findings: ReviewFinding[] = []
+
+  if (!project.identification) findings.push({ severity: "ERROR", title: "Identificação do docente não foi salva", description: "O Memorial e os formulários normativos ficam bloqueados até que os dados funcionais e o nível solicitado sejam confirmados.", section: "profile" })
+  else findings.push({ severity: "INFO", title: `Identificação registrada para ${project.identification.name}`, description: `Nível solicitado: ${project.rscLevel}.`, section: "profile" })
+  if (formations.length === 0) findings.push({ severity: "WARNING", title: "Nenhuma formação cadastrada", description: "A revisão pode continuar, mas a formação deve ser conferida antes da emissão.", section: "education" })
+  else findings.push({ severity: "INFO", title: `${formations.length} formação(ões) cadastrada(s)`, description: "Verifique titulação, situação e referência documental.", section: "education" })
+  if (occurrences.length === 0) findings.push({ severity: "ERROR", title: "Não há lançamentos para pontuar", description: "O resultado e os comprovantes consolidados ficam bloqueados.", section: "requirements" })
+  if (invalidOccurrences.length) findings.push({ severity: "ERROR", title: `${invalidOccurrences.length} lançamento(s) sem critério ou nível válido`, description: "Corrija o enquadramento normativo antes de gerar o resultado.", section: "requirements" })
+  if (occurrencesWithoutEvidence.length) findings.push({ severity: "ERROR", title: `${occurrencesWithoutEvidence.length} lançamento(s) sem evidência vinculada`, description: "Inclua uma referência de evidência ou um comprovante para consolidar os anexos.", section: "requirements" })
+  if (occurrences.length && !invalidOccurrences.length && !occurrencesWithoutEvidence.length) findings.push({ severity: "INFO", title: "Lançamentos enquadrados e com evidências", description: `${occurrences.length} lançamento(s) pronto(s) para a conferência documental.`, section: "requirements" })
+  if (namedAttachments.length) findings.push({ severity: "WARNING", title: "Integridade dos arquivos locais exige conferência", description: `${namedAttachments.length} arquivo(s) foram referenciados, mas o navegador conserva somente seus nomes. Um resolvedor de arquivos locais não está configurado neste projeto.`, section: "documents" })
+  else findings.push({ severity: "INFO", title: "Nenhum arquivo local referenciado", description: "Não há comprovantes locais para resolver ou verificar.", section: "documents" })
+  if (!catalog || !requestedCatalogLevel || !projection) findings.push({ severity: "ERROR", title: "Resultado indisponível", description: "O regulamento ou o nível RSC solicitado não está disponível no catálogo local.", section: "requirements" })
+  else if (projection.provisional) findings.push({ severity: "WARNING", title: `Pontuação estimada: ${projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pontos`, description: "O catálogo está provisório e requer validação humana antes do uso oficial.", section: "requirements" })
+  else if (projection.total < catalog.metadata.scoring.minimumRequestedLevel) findings.push({ severity: "WARNING", title: `Pontuação estimada: ${projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pontos`, description: `A estimativa está abaixo do mínimo de ${catalog.metadata.scoring.minimumRequestedLevel} pontos para o nível solicitado.`, section: "requirements" })
+  else findings.push({ severity: "INFO", title: `Pontuação estimada: ${projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pontos`, description: "A estimativa está disponível para conferência final.", section: "requirements" })
+  if (!hasConclusion) findings.push({ severity: "ERROR", title: "Conclusão do memorial não foi preparada", description: "O Memorial fica bloqueado até que a seção de conclusão seja preenchida.", section: "memorial" })
+  else findings.push({ severity: "INFO", title: `Memorial com conclusão (${completedMemorialSections} seções preenchidas)`, description: "Revise o conteúdo antes de gerar a versão final.", section: "memorial" })
+  findings.push({ severity: "WARNING", title: "Formulários normativos ainda não foram gerados", description: "A emissão e a conferência dos formulários serão necessárias antes do protocolo.", section: "documents" })
+
+  const documents = [
+    { title: "Memorial", ready: Boolean(project.identification && hasConclusion), section: "memorial" as const, note: hasConclusion ? "Conclusão preenchida." : "Requer identificação e conclusão." },
+    { title: "Formulários normativos", ready: false, section: "documents" as const, note: "Geração ainda não disponível." },
+    { title: "Comprovantes consolidados", ready: occurrences.length > 0 && !invalidOccurrences.length && !occurrencesWithoutEvidence.length, section: "requirements" as const, note: occurrencesWithoutEvidence.length ? "Há lançamentos sem evidência." : "Dependem de conferência dos arquivos locais." },
+  ]
+
+  return <section className="mt-6 space-y-6">
+    <Card><CardHeader><CardTitle>Revisão de prontidão</CardTitle><CardDescription>Achados que afetam a geração do Memorial, formulários normativos e comprovantes consolidados.</CardDescription></CardHeader><CardContent className="grid gap-3 sm:grid-cols-3"><ReviewSummary label="Bloqueios" value={findings.filter((item) => item.severity === "ERROR").length} /><ReviewSummary label="Conferências" value={findings.filter((item) => item.severity === "WARNING").length} /><ReviewSummary label="Informações" value={findings.filter((item) => item.severity === "INFO").length} /></CardContent></Card>
+    <Card><CardHeader><CardTitle>Achados</CardTitle><CardDescription>ERROR bloqueia o artefato correspondente; WARNING permite seguir com conferência; INFO apenas registra a situação.</CardDescription></CardHeader><CardContent className="space-y-3">{findings.map((finding, index) => <ReviewFindingCard key={`${finding.title}-${index}`} project={project} finding={finding} />)}</CardContent></Card>
+    <Card><CardHeader><CardTitle>Prontidão dos documentos</CardTitle><CardDescription>Estado atual dos artefatos que compõem o protocolo.</CardDescription></CardHeader><CardContent className="grid gap-3 md:grid-cols-3">{documents.map((document) => <div key={document.title} className="rounded-lg border p-4"><div className="flex items-center justify-between gap-3"><p className="font-medium">{document.title}</p><Badge variant={document.ready ? "secondary" : "outline"}>{document.ready ? "Pronto" : "Pendente"}</Badge></div><p className="mt-2 text-sm text-muted-foreground">{document.note}</p><Button className="mt-4" size="sm" variant="outline" render={<a href={projectSectionHref(project, document.section)} />}>Ver seção</Button></div>)}</CardContent></Card>
+  </section>
+}
+
+function ReviewSummary({ label, value }: { label: string; value: number }) {
+  return <div className="rounded-lg border p-4"><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold">{value}</p></div>
+}
+
+function ReviewFindingCard({ project, finding }: { project: ReturnType<typeof getLocalProjects>[number]; finding: ReviewFinding }) {
+  const Icon = finding.severity === "ERROR" ? CircleAlert : finding.severity === "WARNING" ? CircleHelp : CircleCheck
+  const variant = finding.severity === "ERROR" ? "destructive" : finding.severity === "WARNING" ? "secondary" : "outline"
+  return <div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="flex gap-3"><Icon className="mt-0.5 size-5 shrink-0" /><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{finding.title}</p><Badge variant={variant}>{finding.severity}</Badge></div><p className="mt-1 text-sm text-muted-foreground">{finding.description}</p></div></div><Button size="sm" variant="outline" className="shrink-0" render={<a href={projectSectionHref(project, finding.section)} />}>Corrigir</Button></div>
 }
 
 const memorialSteps = [
@@ -310,7 +383,7 @@ function formatTimestamp(value: string) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value))
 }
 
-function EducationSection({ project }: { project: ReturnType<typeof getLocalProjects>[number] }) {
+function EducationSection({ project, onChange }: { project: ReturnType<typeof getLocalProjects>[number]; onChange: (formations: Formation[]) => void }) {
   const [formations, setFormations] = React.useState<Formation[]>(project.formations ?? [])
   const [editing, setEditing] = React.useState<Formation | null>(null)
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
@@ -318,7 +391,7 @@ function EducationSection({ project }: { project: ReturnType<typeof getLocalProj
   const orderedFormations = [...formations].sort((a, b) => (b.startDate || "").localeCompare(a.startDate || ""))
   const persist = (nextFormations: Formation[]) => {
     setFormations(nextFormations)
-    updateLocalProject({ ...project, formations: nextFormations, updatedAt: new Date().toISOString() })
+    onChange(nextFormations)
   }
   const createFormation = () => {
     setEditing(null)
@@ -404,13 +477,13 @@ const identificationSchema = z.object({
 
 type IdentificationValues = z.infer<typeof identificationSchema>
 
-function IdentificationForm() {
+function IdentificationForm({ project, onSave }: { project: ReturnType<typeof getLocalProjects>[number]; onSave: (identification: Identification) => void }) {
   const form = useForm<IdentificationValues>({
     resolver: zodResolver(identificationSchema),
-    defaultValues: { name: "", cpf: "", admissionDate: "", siape: "", position: "", institution: "", campus: "", currentLevel: "", degree: "", personalEmail: "", professionalEmail: "", phone: "" },
+    defaultValues: project.identification ?? { name: "", cpf: "", admissionDate: "", siape: "", position: "", institution: "", campus: "", currentLevel: "", degree: "", personalEmail: "", professionalEmail: "", phone: "" },
   })
 
-  return <form className="mt-6 space-y-4" noValidate onSubmit={form.handleSubmit(() => undefined)}>
+  return <form className="mt-6 space-y-4" noValidate onSubmit={form.handleSubmit(onSave)}>
     <FormCard title="Identificação pessoal" description="Informe os dados básicos do servidor.">
       <FormField label="Nome" error={form.formState.errors.name}><Input autoComplete="name" {...form.register("name")} /></FormField>
       <FormField label="CPF" error={form.formState.errors.cpf}><Input inputMode="numeric" placeholder="000.000.000-00" {...form.register("cpf")} /></FormField>
@@ -435,7 +508,7 @@ function IdentificationForm() {
       <FormField label="Telefone" error={form.formState.errors.phone}><Input type="tel" autoComplete="tel" placeholder="(00) 90000-0000" {...form.register("phone")} /></FormField>
     </FormCard>
 
-    <div className="flex justify-end"><Button type="submit">Validar dados</Button></div>
+    <div className="flex justify-end"><Button type="submit">Salvar e validar dados</Button></div>
   </form>
 }
 
