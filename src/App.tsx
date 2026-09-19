@@ -13,6 +13,7 @@ const navigationItems: NavigationItem[] = [
 ]
 
 const processItems: NavigationItem[] = [
+  { id: "overview", label: "Visão geral", icon: "layout-dashboard" },
   { id: "profile", label: "Perfil", icon: "user-round" },
   { id: "education", label: "Formação", icon: "graduation-cap" },
   { id: "requirements", label: "Requerimentos", icon: "search" },
@@ -39,7 +40,7 @@ function App() {
 
   const handlePageChange = (page: string) => {
     setActivePage(page)
-    navigate(isProjectRoute ? `/project/${routeMatch?.[1]}` : "/")
+    navigate("/")
   }
 
   const activeItem = navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
@@ -53,12 +54,12 @@ function App() {
   return (
     <SidebarProvider>
       <AppSidebar
-        activePage={isProjectRoute ? (projectSection === "overview" ? "visao-geral" : "") : activePage}
+        activePage={isProjectRoute ? "" : activePage}
         items={navigationItems}
         onPageChange={handlePageChange}
         processItems={isProjectRoute ? processItems : []}
         activeProcess={projectSection}
-        onProcessChange={(section) => navigate(`/project/${routeMatch?.[1]}/${section}`)}
+        onProcessChange={(section) => navigate(section === "overview" ? `/project/${routeMatch?.[1]}` : `/project/${routeMatch?.[1]}/${section}`)}
         onHomeClick={() => navigate("/")}
       />
       <SidebarInset className="min-w-0">
