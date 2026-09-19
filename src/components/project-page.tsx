@@ -576,7 +576,7 @@ function IdentificationForm({ project, onSave }: { project: LocalProject; onSave
     return () => subscription.unsubscribe()
   }, [form, onSave])
 
-  return <form className="mt-6 space-y-4" noValidate onSubmit={form.handleSubmit(onSave)}>
+  return <form className="mt-6 space-y-4" noValidate onSubmit={(event) => event.preventDefault()}>
     <FormCard title="Identificação pessoal" description="Informe os dados básicos do servidor.">
       <FormField label="Nome" error={form.formState.errors.name}><Input autoComplete="name" {...form.register("name")} /></FormField>
       <FormField label="CPF" error={form.formState.errors.cpf}><Input inputMode="numeric" placeholder="000.000.000-00" {...form.register("cpf")} /></FormField>
@@ -601,7 +601,6 @@ function IdentificationForm({ project, onSave }: { project: LocalProject; onSave
       <FormField label="Telefone" error={form.formState.errors.phone}><Input type="tel" autoComplete="tel" placeholder="(00) 90000-0000" {...form.register("phone")} /></FormField>
     </FormCard>
 
-    <div className="flex justify-end"><Button type="submit">Salvar e validar dados</Button></div>
   </form>
 }
 
