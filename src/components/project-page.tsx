@@ -43,7 +43,7 @@ const pages = [
   { id: "documents", label: "Documentos", icon: HardDrive, description: "PDFs, JSON, backup, ZIP, importação e restauração." },
 ] as const
 
-type ProjectPageProps = { localId: string; section: string; catalog: Regulation }
+type ProjectPageProps = { localId: string; section: string; catalog?: Regulation }
 
 export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
   const [project, setProject] = React.useState(() => getLocalProjects().find((item) => item.localId === localId))
@@ -70,7 +70,7 @@ export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
   </main>
 }
 
-function ProjectSection({ section, project, catalog, onOccurrencesChange }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number]; catalog: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void }) {
+function ProjectSection({ section, project, catalog, onOccurrencesChange }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void }) {
   if (section === "overview") return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento da avaliação</CardTitle><CardDescription>Complete as seções para avançar na revisão.</CardDescription></CardHeader><CardContent><Progress value={0}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
     <Card><CardHeader><CardTitle>Pontuação estimada</CardTitle><CardDescription>Sem lançamentos avaliados.</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold">0 pts</p></CardContent></Card>
@@ -78,7 +78,11 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange }: { se
   </div>
   if (section === "profile") return <IdentificationForm />
   if (section === "education") return project ? <EducationSection project={project} /> : null
-  if (section === "requirements") return project ? <RequirementsSection project={project} catalog={catalog} projections={{ "rsc-i": calculateLevelProjection(catalog, "rsc-i", project.requirementOccurrences ?? []), "rsc-ii": calculateLevelProjection(catalog, "rsc-ii", project.requirementOccurrences ?? []), "rsc-iii": calculateLevelProjection(catalog, "rsc-iii", project.requirementOccurrences ?? []) }} onOccurrencesChange={onOccurrencesChange} /> : null
+  if (section === "requirements") {
+    if (!project) return null
+    if (!catalog) return <Card className="mt-6"><CardHeader><CardTitle>Regulamento indisponível</CardTitle><CardDescription>O regulamento salvo neste projeto não está disponível no catálogo local.</CardDescription></CardHeader><CardContent><p className="text-sm text-muted-foreground">Selecione ou restaure um projeto vinculado a um regulamento instalado antes de cadastrar lançamentos.</p></CardContent></Card>
+    return <RequirementsSection project={project} catalog={catalog} projections={{ "rsc-i": calculateLevelProjection(catalog, "rsc-i", project.requirementOccurrences ?? []), "rsc-ii": calculateLevelProjection(catalog, "rsc-ii", project.requirementOccurrences ?? []), "rsc-iii": calculateLevelProjection(catalog, "rsc-iii", project.requirementOccurrences ?? []) }} onOccurrencesChange={onOccurrencesChange} />
+  }
   if (section === "preview") return <Card className="mt-6"><CardContent className="p-6"><div className="mx-auto aspect-[210/297] max-w-xl border bg-background p-8 shadow-sm"><p className="text-sm font-semibold">Memorial RSC</p><div className="mt-8 space-y-3"><div className="h-2 w-2/3 rounded bg-muted" /><div className="h-2 rounded bg-muted" /><div className="h-2 w-5/6 rounded bg-muted" /></div></div></CardContent></Card>
   return <div className="mt-6 grid gap-4 md:grid-cols-2"><InfoCard title={section === "documents" ? "Arquivos do projeto" : "Nenhum dado cadastrado"} text={section === "documents" ? "Exporte PDFs, JSON e backup ZIP, ou importe uma restauração." : "Adicione informações para compor esta etapa da avaliação."} /><Card><CardHeader><CardTitle>Próxima ação</CardTitle><CardDescription>Esta seção está pronta para receber seus lançamentos.</CardDescription></CardHeader><CardContent><Button><CheckCircle2 /> Adicionar informação</Button></CardContent></Card></div>
 }

@@ -7,9 +7,9 @@ import { ProjectPage } from "@/components/project-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { getLocalProjects } from "@/lib/projects"
-import { loadIfbaRegulation } from "@/data/regulations/load"
+import { loadRegulations } from "@/data/regulations/load"
 
-const regulationCatalog = loadIfbaRegulation()
+const regulationCatalogs = loadRegulations()
 
 const navigationItems: NavigationItem[] = [
   { id: "visao-geral", label: "Visão geral", icon: "layout-dashboard" },
@@ -58,6 +58,9 @@ function App() {
   const project = isProjectRoute
     ? getLocalProjects().find((item) => item.localId === routeMatch?.[1])
     : undefined
+  const projectCatalog = project
+    ? regulationCatalogs.find((catalog) => catalog.metadata.regulation.id === project.regulation)
+    : undefined
 
   return (
     <SidebarProvider>
@@ -77,7 +80,7 @@ function App() {
           revision={project?.revision}
         />
         {isProjectRoute ? (
-          <ProjectPage localId={routeMatch?.[1] ?? ""} section={projectSection} catalog={regulationCatalog} />
+          <ProjectPage localId={routeMatch?.[1] ?? ""} section={projectSection} catalog={projectCatalog} />
         ) : (
           <HomePage onNavigate={navigate} />
         )}
