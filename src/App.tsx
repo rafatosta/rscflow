@@ -18,7 +18,7 @@ function App() {
   const activeItem = navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
 
   return (
-    <TooltipProvider delayDuration={0}>
+    <TooltipProvider delay={0}>
       <SidebarProvider>
         <AppSidebar activePage={activePage} items={navigationItems} onPageChange={setActivePage} />
         <SidebarInset className="min-w-0 bg-slate-50">

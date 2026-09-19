@@ -7,6 +7,7 @@
 - TypeScript
 - Tailwind CSS
 - shadcn/ui
+- Base UI (primitivos do shadcn/ui)
 
 ## Estrutura
 
@@ -21,6 +22,7 @@ src/
 
 ## Regras de interface
 
+- Use Base UI como biblioteca de primitivos para componentes shadcn/ui. Não adicione ou use Radix UI em novos componentes.
 - Para todo elemento de interface, procure primeiro um componente oficial do shadcn/ui.
 - Se ele não estiver instalado, adicione-o pela CLI do shadcn/ui.
 - Não recrie componentes existentes do shadcn/ui e não crie um design system paralelo.
