@@ -29,6 +29,9 @@ src/
 - Crie um componente próprio somente quando não houver equivalente no shadcn/ui ou quando for necessária uma composição específica e reutilizável.
 - Componentes próprios devem ser formados prioritariamente pela combinação de componentes oficiais do shadcn/ui.
 - Se não existir componente shadcn/ui aplicável, use HTML semântico e Tailwind CSS, mantendo os padrões visuais já configurados: cores, tipografia, espaçamentos, bordas, raios e estados.
+- Use os tokens semânticos do tema shadcn (`background`, `foreground`, `primary`, `secondary`, `muted`, `border`, `destructive` e derivados) para cores e estados visuais. Não use paletas fixas do Tailwind, como `slate-*`, `indigo-*`, `blue-*` ou `red-*`, em componentes da aplicação.
+- Prefira as variantes padrão dos componentes shadcn/ui. Use `className` apenas para estrutura e layout (dimensões, espaçamento, grade e posicionamento), sem sobrescrever cores, bordas, fundos, hover ou foco definidos pelo componente.
+- Para alertas, indicadores, badges, progresso e elementos similares, adicione e componha o componente oficial shadcn/ui correspondente em vez de recriá-lo com elementos HTML e classes de cor.
 - Ao implementar uma página a partir de mockup ou imagem, reutilize os componentes existentes e preserve a consistência visual do projeto.
 - Mantenha a alteração limitada ao pedido. Não crie RFC, documentação extra ou arquitetura nova sem solicitação.
 
