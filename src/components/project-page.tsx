@@ -366,6 +366,7 @@ function MemorialSectionEditor({ project, catalog, onChange, onOccurrencesChange
   const [isClearAllDialogOpen, setIsClearAllDialogOpen] = React.useState(false)
   const [isTextBaseDialogOpen, setIsTextBaseDialogOpen] = React.useState(false)
   const [editingNarrativeId, setEditingNarrativeId] = React.useState<string | null>(null)
+  const [activeMemorialTab, setActiveMemorialTab] = React.useState("sections")
   const sections = project.memorialSections ?? []
   const activeIndex = memorialSteps.findIndex((step) => step.id === activeId)
   const activeStep = memorialSteps[activeIndex]
@@ -395,12 +396,10 @@ function MemorialSectionEditor({ project, catalog, onChange, onOccurrencesChange
       </div>
     </div>
 
-    <Card className="mt-6">
-      <CardHeader><CardTitle>Narrativas dos lançamentos</CardTitle><CardDescription>Textos projetados a partir dos lançamentos, critérios e evidências cadastrados. Uma edição aqui preserva sua autoria quando os dados de origem forem atualizados.</CardDescription></CardHeader>
-      <CardContent className="space-y-3">{occurrences.length ? occurrences.map((occurrence) => <div key={occurrence.id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{occurrence.description}</p>{occurrence.isGeneratedTextOutdated && <Badge variant="outline">Texto desatualizado</Badge>}{occurrence.isManuallyEdited && <Badge variant="secondary">Editado manualmente</Badge>}</div><p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">{getOccurrenceText(occurrence, catalog)}</p></div><Button size="sm" variant="outline" className="shrink-0" onClick={() => setEditingNarrativeId(occurrence.id)}><Pencil /> Editar narrativa</Button></div>) : <p className="text-sm text-muted-foreground">Cadastre lançamentos para gerar narrativas baseadas no processo.</p>}</CardContent>
-    </Card>
-
-    <div className="mt-8 grid gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
+    <Tabs value={activeMemorialTab} onValueChange={setActiveMemorialTab} className="mt-6">
+      <TabsList aria-label="Conteúdo do Memorial"><TabsTrigger value="sections">Seções do Memorial</TabsTrigger><TabsTrigger value="narratives">Narrativas dos lançamentos</TabsTrigger></TabsList>
+      <TabsContent value="sections" className="mt-6">
+    <div className="grid gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
       <Card className="h-fit py-5">
         <CardHeader className="px-5"><CardTitle>Seções</CardTitle><CardDescription>{completedCount} de {memorialSteps.length} preenchidas</CardDescription></CardHeader>
         <CardContent className="mt-4 px-3">
@@ -432,6 +431,14 @@ function MemorialSectionEditor({ project, catalog, onChange, onOccurrencesChange
         </CardContent>
       </Card>
     </div>
+      </TabsContent>
+      <TabsContent value="narratives" className="mt-6">
+        <Card>
+          <CardHeader><CardTitle>Narrativas dos lançamentos</CardTitle><CardDescription>Textos projetados a partir dos lançamentos, critérios e evidências cadastrados. Uma edição aqui preserva sua autoria quando os dados de origem forem atualizados.</CardDescription></CardHeader>
+          <CardContent className="space-y-3">{occurrences.length ? occurrences.map((occurrence) => <div key={occurrence.id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{occurrence.description}</p>{occurrence.isGeneratedTextOutdated && <Badge variant="outline">Texto desatualizado</Badge>}{occurrence.isManuallyEdited && <Badge variant="secondary">Editado manualmente</Badge>}</div><p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">{getOccurrenceText(occurrence, catalog)}</p></div><Button size="sm" variant="outline" className="shrink-0" onClick={() => setEditingNarrativeId(occurrence.id)}><Pencil /> Editar narrativa</Button></div>) : <p className="text-sm text-muted-foreground">Cadastre lançamentos para gerar narrativas baseadas no processo.</p>}</CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
 
     <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
       <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
