@@ -37,7 +37,7 @@ function App() {
   return (
     <SidebarProvider>
       <AppSidebar activePage={activePage} items={navigationItems} onPageChange={handlePageChange} />
-      <SidebarInset className="min-w-0 bg-slate-50">
+      <SidebarInset className="min-w-0">
         <AppHeader title={isProjectRoute ? "Projeto" : activeItem.label} />
         {isProjectRoute ? (
           <ProjectPage localId={pathname.split("/").at(-1) ?? ""} onBack={() => navigate("/")} />
