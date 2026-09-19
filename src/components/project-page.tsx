@@ -387,17 +387,17 @@ function MemorialSectionEditor({ project, catalog, onChange, onOccurrencesChange
   return <section className="mt-6">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <p className="max-w-3xl text-base text-muted-foreground">Organize sua trajetória profissional por seções e redija cada etapa do memorial. O conteúdo será consolidado no documento final.</p>
+        <p className="max-w-3xl text-base text-muted-foreground">O Memorial é seu texto autoral. Aplique as narrativas extraídas como ponto de partida e reescreva, complemente ou remova qualquer trecho conforme necessário.</p>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
-        <Button variant="outline" onClick={() => setIsTextBaseDialogOpen(true)}><BookOpen /> Inserir texto-base gerado</Button>
+        <Button variant="outline" onClick={() => setIsTextBaseDialogOpen(true)}><BookOpen /> Aplicar narrativas ao Memorial</Button>
         <Button variant="outline" disabled={completedCount === 0} onClick={() => setIsClearAllDialogOpen(true)}>Limpar tudo</Button>
         <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><FileText /> Pré-visualizar PDF</Button>
       </div>
     </div>
 
     <Tabs value={activeMemorialTab} onValueChange={setActiveMemorialTab} className="mt-6">
-      <TabsList aria-label="Conteúdo do Memorial"><TabsTrigger value="sections">Seções do Memorial</TabsTrigger><TabsTrigger value="narratives">Narrativas dos lançamentos</TabsTrigger></TabsList>
+      <TabsList aria-label="Conteúdo do Memorial"><TabsTrigger value="sections">Seções do Memorial</TabsTrigger><TabsTrigger value="narratives">Narrativas extraídas</TabsTrigger></TabsList>
       <TabsContent value="sections" className="mt-6">
     <div className="grid gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
       <Card className="h-fit py-5">
@@ -434,8 +434,8 @@ function MemorialSectionEditor({ project, catalog, onChange, onOccurrencesChange
       </TabsContent>
       <TabsContent value="narratives" className="mt-6">
         <Card>
-          <CardHeader><CardTitle>Narrativas dos lançamentos</CardTitle><CardDescription>Textos projetados a partir dos lançamentos, critérios e evidências cadastrados. Uma edição aqui preserva sua autoria quando os dados de origem forem atualizados.</CardDescription></CardHeader>
-          <CardContent className="space-y-3">{occurrences.length ? occurrences.map((occurrence) => <div key={occurrence.id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{occurrence.description}</p>{occurrence.isGeneratedTextOutdated && <Badge variant="outline">Texto desatualizado</Badge>}{occurrence.isManuallyEdited && <Badge variant="secondary">Editado manualmente</Badge>}</div><p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">{getOccurrenceText(occurrence, catalog)}</p></div><Button size="sm" variant="outline" className="shrink-0" onClick={() => setEditingNarrativeId(occurrence.id)}><Pencil /> Editar narrativa</Button></div>) : <p className="text-sm text-muted-foreground">Cadastre lançamentos para gerar narrativas baseadas no processo.</p>}</CardContent>
+          <CardHeader><CardTitle>Narrativas extraídas</CardTitle><CardDescription>Esta área organiza fielmente os dados cadastrados nos lançamentos — período, atividade, resultados, competências, critério e evidências. Nenhuma informação nova é criada.</CardDescription></CardHeader>
+          <CardContent className="space-y-3">{occurrences.length ? occurrences.map((occurrence) => <div key={occurrence.id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{occurrence.description}</p><Badge variant="outline">Baseada no lançamento</Badge>{occurrence.isGeneratedTextOutdated && <Badge variant="outline">Texto desatualizado</Badge>}{occurrence.isManuallyEdited && <Badge variant="secondary">Editado manualmente</Badge>}</div><p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">{getOccurrenceText(occurrence, catalog)}</p></div><Button size="sm" variant="outline" className="shrink-0" onClick={() => setEditingNarrativeId(occurrence.id)}><Pencil /> Ajustar narrativa</Button></div>) : <p className="text-sm text-muted-foreground">Cadastre lançamentos para visualizar a extração estruturada dos dados do processo.</p>}</CardContent>
         </Card>
       </TabsContent>
     </Tabs>
@@ -466,14 +466,14 @@ function MemorialSectionEditor({ project, catalog, onChange, onOccurrencesChange
 
     <Dialog open={isTextBaseDialogOpen} onOpenChange={setIsTextBaseDialogOpen}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>Inserir texto-base gerado?</DialogTitle><DialogDescription>Será inserido um rascunho estático nas sete seções, com os dados cadastrados do docente e do processo de RSC. O conteúdo atual será substituído; revise e complemente o texto antes do protocolo.</DialogDescription></DialogHeader>
-        <DialogFooter><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(false)}>Cancelar</Button><Button onClick={() => { onChange(buildMemorialTextBase(project, catalog)); setActiveId("cover"); setIsTextBaseDialogOpen(false) }}>Inserir texto-base</Button></DialogFooter>
+        <DialogHeader><DialogTitle>Aplicar narrativas ao Memorial?</DialogTitle><DialogDescription>Será criado um texto-base editável nas seções do Memorial com os dados já cadastrados no processo. O conteúdo atual será substituído; depois, você poderá reescrever, complementar ou remover qualquer trecho.</DialogDescription></DialogHeader>
+        <DialogFooter><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(false)}>Cancelar</Button><Button onClick={() => { onChange(buildMemorialTextBase(project, catalog)); setActiveId("cover"); setIsTextBaseDialogOpen(false) }}>Aplicar texto-base</Button></DialogFooter>
       </DialogContent>
     </Dialog>
 
     <Dialog open={Boolean(editingNarrative)} onOpenChange={(open) => { if (!open) setEditingNarrativeId(null) }}>
       <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader><DialogTitle>Editar narrativa do lançamento</DialogTitle><DialogDescription>Este texto é exibido na projeção do Memorial. Ao salvá-lo, a versão automática continuará disponível para comparação e regeneração.</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>Ajustar narrativa extraída</DialogTitle><DialogDescription>Esta narrativa parte dos dados cadastrados no lançamento. Ao ajustá-la, sua versão autoral será preservada para comparação com futuras extrações.</DialogDescription></DialogHeader>
         {editingNarrative && <Textarea defaultValue={getOccurrenceText(editingNarrative, catalog)} className="min-h-72 resize-y" aria-label="Narrativa do lançamento" onChange={(event) => { const text = event.target.value; onOccurrencesChange(occurrences.map((occurrence) => occurrence.id === editingNarrative.id ? { ...occurrence, editedText: text, isManuallyEdited: text !== (occurrence.generatedText || buildOccurrenceNarrative(occurrence, getCriterionDescription(catalog, occurrence))), isGeneratedTextOutdated: occurrence.isGeneratedTextOutdated && text !== occurrence.generatedText } : occurrence)) }} />}
         <DialogFooter>{editingNarrative?.isGeneratedTextOutdated && <Button variant="outline" onClick={() => { onOccurrencesChange(occurrences.map((occurrence) => occurrence.id === editingNarrative.id ? { ...occurrence, editedText: occurrence.generatedText, isManuallyEdited: false, isGeneratedTextOutdated: false } : occurrence)); setEditingNarrativeId(null) }}>Usar versão regenerada</Button>}<Button onClick={() => setEditingNarrativeId(null)}>Concluir edição</Button></DialogFooter>
       </DialogContent>
