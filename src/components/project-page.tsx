@@ -1,5 +1,5 @@
 import {
-  ArrowLeft, BookOpen, CheckCircle2, ClipboardCheck, FileOutput,
+  BookOpen, CheckCircle2, ClipboardCheck, FileOutput,
   FileText, GraduationCap, HardDrive, LayoutDashboard, Search, UserRound,
 } from "lucide-react"
 
@@ -19,28 +19,18 @@ const pages = [
   { id: "documents", label: "Documentos", icon: HardDrive, description: "PDFs, JSON, backup, ZIP, importação e restauração." },
 ] as const
 
-type ProjectPageProps = { localId: string; section: string; onNavigate: (path: string) => void }
+type ProjectPageProps = { localId: string; section: string }
 
-export function ProjectPage({ localId, section, onNavigate }: ProjectPageProps) {
+export function ProjectPage({ localId, section }: ProjectPageProps) {
   const project = getLocalProjects().find((item) => item.localId === localId)
   const activePage = pages.find((page) => page.id === section) ?? pages[0]
   const Icon = activePage.icon
-  const basePath = `/project/${localId}`
 
   return <main className="min-h-full px-4 py-6 sm:px-6 lg:px-8">
     <div className="mx-auto max-w-6xl">
-      <Button variant="ghost" size="sm" onClick={() => onNavigate("/")}><ArrowLeft /> Projetos</Button>
-      {!project && <p className="mt-4 text-sm text-muted-foreground">Projeto local não encontrado.</p>}
+      {!project && <p className="text-sm text-muted-foreground">Projeto local não encontrado.</p>}
 
-      <nav className="mt-5 flex gap-1 overflow-x-auto border-b pb-3" aria-label="Seções do projeto">
-        {pages.map((page) => {
-          const PageIcon = page.icon
-          const path = page.id === "overview" ? basePath : `${basePath}/${page.id}`
-          return <Button key={page.id} variant={page.id === activePage.id ? "secondary" : "ghost"} size="sm" onClick={() => onNavigate(path)}><PageIcon /> {page.label}</Button>
-        })}
-      </nav>
-
-      <section className="mt-6">
+      <section className="mt-2">
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-5" /></span>
           <div><h3 className="text-xl font-semibold">{activePage.label}</h3><p className="text-sm text-muted-foreground">{activePage.description}</p></div>
