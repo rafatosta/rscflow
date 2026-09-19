@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { isLocalProject, saveLocalProject, type LocalProject } from "@/lib/projects"
+import { useLocalProjects } from "@/hooks/use-local-projects"
 
 type ImportCandidate = { project: LocalProject; kind: "json" | "backup"; message: string }
 const BACKUP_KEY = "rscflow.last-backup"
@@ -26,6 +27,7 @@ function createCopy(project: LocalProject) {
 }
 
 export function BackupPage({ project }: { project: LocalProject }) {
+  const { refreshProjects } = useLocalProjects()
   const [lastBackup, setLastBackup] = React.useState(() => window.localStorage.getItem(`${BACKUP_KEY}.${project.localId}`))
   const [candidate, setCandidate] = React.useState<ImportCandidate>()
   const [message, setMessage] = React.useState<string>()
@@ -52,7 +54,7 @@ export function BackupPage({ project }: { project: LocalProject }) {
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Não foi possível ler o arquivo selecionado.") }
     event.target.value = ""
   }
-  const restore = () => { if (!candidate) return; saveLocalProject(createCopy(candidate.project)); setMessage(`${candidate.kind === "backup" ? "Backup restaurado" : "JSON importado"} como novo projeto local.`); setCandidate(undefined) }
+  const restore = async () => { if (!candidate) return; await saveLocalProject(createCopy(candidate.project)); await refreshProjects(); setMessage(`${candidate.kind === "backup" ? "Backup restaurado" : "JSON importado"} como novo projeto local.`); setCandidate(undefined) }
 
   return <section className="mt-6 space-y-6">
     <Alert><HardDrive /><AlertTitle>Armazenamento local</AlertTitle><AlertDescription>{lastBackup ? `Último backup: ${new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(lastBackup))}.` : "Nenhum backup registrado neste navegador."} {changed ? "Há alterações desde o último backup." : "Não há alterações desde o último backup."} Os dados pertencem somente a este navegador.</AlertDescription></Alert>
@@ -61,7 +63,7 @@ export function BackupPage({ project }: { project: LocalProject }) {
       <BackupCard icon={Upload} title="Importar JSON" description="Valida a estrutura e permite criar uma nova cópia local, sem substituir o projeto atual." action={<Input type="file" accept="application/json,.json" onChange={(event) => selectFile(event, "json")} />} />
       <BackupCard icon={Upload} title="Restaurar backup .rscflow" description="Lê o manifesto e cria um novo projeto local. Hashes divergentes e arquivos ausentes são informados durante a validação." action={<Input type="file" accept="application/json,.rscflow" onChange={(event) => selectFile(event, "backup")} />} />
     </div>
-    {candidate && <Card><CardHeader><CardTitle>Conteúdo válido encontrado</CardTitle><CardDescription>{candidate.message}</CardDescription></CardHeader><CardContent className="flex flex-wrap items-center justify-between gap-3"><Badge variant="secondary">{candidate.kind === "backup" ? "Backup validado" : "JSON validado"}</Badge><Button onClick={restore}><CheckCircle2 /> Criar nova cópia local</Button></CardContent></Card>}
+    {candidate && <Card><CardHeader><CardTitle>Conteúdo válido encontrado</CardTitle><CardDescription>{candidate.message}</CardDescription></CardHeader><CardContent className="flex flex-wrap items-center justify-between gap-3"><Badge variant="secondary">{candidate.kind === "backup" ? "Backup validado" : "JSON validado"}</Badge><Button onClick={() => void restore()}><CheckCircle2 /> Criar nova cópia local</Button></CardContent></Card>}
     <Card><CardHeader><CardTitle>Cuidados com a cópia local</CardTitle><CardDescription>Limpar dados do navegador, usar modo anônimo, trocar de dispositivo ou exceder o limite de armazenamento pode remover anexos e projetos locais.</CardDescription></CardHeader><CardContent><p className="text-sm text-muted-foreground">Mantenha cópias exportadas em local seguro. Em caso de arquivo ausente, falha de leitura, schema inválido ou hash divergente, exporte novamente a fonte disponível e restaure sempre como um novo projeto.</p></CardContent></Card>
   </section>
 }

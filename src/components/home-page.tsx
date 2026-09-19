@@ -40,14 +40,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  getLocalProjects,
   deleteLocalProject,
   duplicateLocalProject,
   isLocalProject,
-  replaceLocalProjects,
   saveLocalProject,
   type LocalProject,
 } from "@/lib/projects";
+import { useLocalProjects } from "@/hooks/use-local-projects";
 import { loadRegulations } from "@/data/regulations/load";
 
 const rscLevels = ["RSC 1", "RSC 2", "RSC 3"];
@@ -68,12 +67,10 @@ function formatRegulation(regulation: (typeof regulations)[number]) {
 }
 
 export function HomePage({ onNavigate }: HomePageProps) {
-  const [projects, setProjects] = useState<LocalProject[]>(getLocalProjects);
+  const { projects, refreshProjects } = useLocalProjects()
   const [rscLevel, setRscLevel] = useState("");
   const [regulation, setRegulation] = useState("");
   const [showErrors, setShowErrors] = useState(false);
-
-  const refreshProjects = () => setProjects(getLocalProjects())
 
   const exportProject = (project: LocalProject) => {
     const file = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" })
@@ -91,14 +88,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
       const imported: unknown = JSON.parse(await file.text())
       const restored = Array.isArray(imported) ? imported : [imported]
       if (!restored.every(isLocalProject)) throw new Error("invalid")
-      replaceLocalProjects([...restored, ...getLocalProjects()])
-      refreshProjects()
+      await Promise.all(restored.map((project) => saveLocalProject(project)))
+      await refreshProjects()
     } catch {
       setShowErrors(true)
     }
   }
 
-  const createProject = () => {
+  const createProject = async () => {
     if (!rscLevel || !regulation) {
       setShowErrors(true);
       return;
@@ -116,8 +113,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
       schemaVersion: "1.0",
     };
 
-    saveLocalProject(project);
-    setProjects((currentProjects) => [project, ...currentProjects]);
+    await saveLocalProject(project);
+    await refreshProjects()
     onNavigate(`/project/${project.localId}`);
   };
 
@@ -228,7 +225,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   )}
                 </label>
                 <div className="grid">
-                  <Button size="lg" onClick={createProject}>
+                  <Button size="lg" onClick={() => void createProject()}>
                     Criar projeto <ArrowRight />
                   </Button>
                 </div>
@@ -345,7 +342,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         size="icon-sm"
                         variant="ghost"
                         aria-label={`Duplicar ${project.name}`}
-                        onClick={() => { duplicateLocalProject(project); refreshProjects() }}
+                        onClick={() => { void duplicateLocalProject(project).then(refreshProjects) }}
                       >
                         <Copy />
                       </Button>
@@ -361,7 +358,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         size="icon-sm"
                         variant="ghost"
                         aria-label={`Excluir ${project.name}`}
-                        onClick={() => { deleteLocalProject(project.localId); refreshProjects() }}
+                        onClick={() => { void deleteLocalProject(project.localId).then(refreshProjects) }}
                       >
                         <Trash2 />
                       </Button>

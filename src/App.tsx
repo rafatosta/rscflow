@@ -6,8 +6,8 @@ import { HomePage } from "@/components/home-page"
 import { ProjectPage } from "@/components/project-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { getLocalProjects } from "@/lib/projects"
 import { loadRegulations } from "@/data/regulations/load"
+import { LocalProjectsProvider, useLocalProjects } from "@/hooks/use-local-projects"
 
 const regulationCatalogs = loadRegulations()
 
@@ -41,7 +41,9 @@ function App() {
     window.scrollTo(0, 0)
   }, [pathname])
 
-  const navigate = (path: string) => {
+  const { project, saveState, saveError, flush, openProject, retrySave, discardDraft } = useLocalProjects()
+  const navigate = async (path: string) => {
+    if (!(await flush())) return
     window.history.pushState({}, "", path)
     setPathname(path)
     window.scrollTo(0, 0)
@@ -49,16 +51,14 @@ function App() {
 
   const handlePageChange = (page: string) => {
     setActivePage(page)
-    navigate("/")
+    void navigate("/")
   }
 
   const activeItem = navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
   const routeMatch = pathname.match(/^\/project\/([^/]+)(?:\/([^/]+))?\/?$/)
   const isProjectRoute = Boolean(routeMatch)
   const projectSection = routeMatch?.[2] ?? "overview"
-  const project = isProjectRoute
-    ? getLocalProjects().find((item) => item.localId === routeMatch?.[1])
-    : undefined
+  useEffect(() => { if (isProjectRoute && routeMatch?.[1]) void openProject(routeMatch[1]) }, [isProjectRoute, openProject, routeMatch])
   const projectCatalog = project
     ? regulationCatalogs.find((catalog) => catalog.metadata.regulation.id === project.regulation)
     : undefined
@@ -71,17 +71,21 @@ function App() {
         onPageChange={handlePageChange}
         processItems={isProjectRoute ? processItems : []}
         activeProcess={projectSection}
-        onProcessChange={(section) => navigate(section === "overview" ? `/project/${routeMatch?.[1]}` : `/project/${routeMatch?.[1]}/${section}`)}
-        onHomeClick={() => navigate("/")}
+        onProcessChange={(section) => void navigate(section === "overview" ? `/project/${routeMatch?.[1]}` : `/project/${routeMatch?.[1]}/${section}`)}
+        onHomeClick={() => void navigate("/")}
       />
       <SidebarInset className="min-w-0">
         <AppHeader
           title={project?.name ?? (isProjectRoute ? "Projeto" : activeItem.label)}
           subtitle={project ? `${project.rscLevel} · ${project.regulation}` : undefined}
           revision={project?.revision}
+          saveState={isProjectRoute ? saveState : undefined}
+          saveError={saveError}
+          onRetrySave={() => void retrySave()}
+          onDiscardDraft={() => void discardDraft()}
         />
         {isProjectRoute ? (
-          <ProjectPage localId={routeMatch?.[1] ?? ""} section={projectSection} catalog={projectCatalog} />
+          <ProjectPage section={projectSection} catalog={projectCatalog} />
         ) : (
           <HomePage onNavigate={navigate} />
         )}
@@ -91,5 +95,5 @@ function App() {
 }
 
 export default function AppWithProviders() {
-  return <TooltipProvider delay={0}><App /></TooltipProvider>
+  return <TooltipProvider delay={0}><LocalProjectsProvider><App /></LocalProjectsProvider></TooltipProvider>
 }

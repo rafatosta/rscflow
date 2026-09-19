@@ -26,11 +26,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { getLocalProjects } from "@/lib/projects"
-import { type Formation, type Identification, type MemorialSection, updateLocalProject } from "@/lib/projects"
+import { type Formation, type Identification, type LocalProject, type MemorialSection, type RequirementOccurrence } from "@/lib/projects"
+import { useLocalProjects } from "@/hooks/use-local-projects"
 import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection, type LevelProjection } from "@/domain/scoring"
-import type { RequirementOccurrence } from "@/lib/projects"
 import { DocumentsPage } from "@/components/documents-page"
 import { BackupPage } from "@/components/backup-page"
 
@@ -46,10 +45,18 @@ const pages = [
   { id: "backup", label: "Backup e restauração", icon: HardDrive, description: "Exportar, proteger e recuperar cópias locais do processo." },
 ] as const
 
-type ProjectPageProps = { localId: string; section: string; catalog?: Regulation }
+type ProjectPageProps = { section: string; catalog?: Regulation }
 
-export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
-  const [project, setProject] = React.useState(() => getLocalProjects().find((item) => item.localId === localId))
+function useUnsavedFormProtection(isDirty: boolean) {
+  React.useEffect(() => {
+    const protect = (event: BeforeUnloadEvent) => { if (isDirty) { event.preventDefault(); event.returnValue = "" } }
+    window.addEventListener("beforeunload", protect)
+    return () => window.removeEventListener("beforeunload", protect)
+  }, [isDirty])
+}
+
+export function ProjectPage({ section, catalog }: ProjectPageProps) {
+  const { project, updateDraft } = useLocalProjects()
   const activePage = pages.find((page) => page.id === section) ?? pages[0]
   const Icon = activePage.icon
 
@@ -63,32 +70,20 @@ export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
           <div><h3 className="text-xl font-semibold">{activePage.label}</h3><p className="text-sm text-muted-foreground">{activePage.description}</p></div>
         </div>
         <ProjectSection section={activePage.id} project={project} catalog={catalog} onOccurrencesChange={(occurrences) => {
-          if (!project) return
-          const nextProject = { ...project, requirementOccurrences: occurrences, updatedAt: new Date().toISOString() }
-          updateLocalProject(nextProject)
-          setProject(nextProject)
+          updateDraft((current) => ({ ...current, requirementOccurrences: occurrences }))
         }} onMemorialChange={(memorialSections) => {
-          if (!project) return
-          const nextProject = { ...project, memorialSections, updatedAt: new Date().toISOString() }
-          updateLocalProject(nextProject)
-          setProject(nextProject)
+          updateDraft((current) => ({ ...current, memorialSections }))
         }} onIdentificationChange={(identification) => {
-          if (!project) return
-          const nextProject = { ...project, identification, updatedAt: new Date().toISOString() }
-          updateLocalProject(nextProject)
-          setProject(nextProject)
+          updateDraft((current) => ({ ...current, identification }))
         }} onFormationsChange={(formations) => {
-          if (!project) return
-          const nextProject = { ...project, formations, updatedAt: new Date().toISOString() }
-          updateLocalProject(nextProject)
-          setProject(nextProject)
+          updateDraft((current) => ({ ...current, formations }))
         }} />
       </section>
     </div>
   </main>
 }
 
-function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void; onMemorialChange: (sections: MemorialSection[]) => void; onIdentificationChange: (identification: Identification) => void; onFormationsChange: (formations: Formation[]) => void }) {
+function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange }: { section: (typeof pages)[number]["id"]; project?: LocalProject; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void; onMemorialChange: (sections: MemorialSection[]) => void; onIdentificationChange: (identification: Identification) => void; onFormationsChange: (formations: Formation[]) => void }) {
   if (section === "overview") return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento da avaliação</CardTitle><CardDescription>Complete as seções para avançar na revisão.</CardDescription></CardHeader><CardContent><Progress value={0}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
     <Card><CardHeader><CardTitle>Pontuação estimada</CardTitle><CardDescription>Sem lançamentos avaliados.</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold">0 pts</p></CardContent></Card>
@@ -120,7 +115,7 @@ type PreviewDocument = {
 
 type PreviewPage = { title: string; eyebrow: string; blocks: string[] }
 
-function DocumentViewer({ project, catalog }: { project: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation }) {
+function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?: Regulation }) {
   const [documentId, setDocumentId] = React.useState<PreviewDocument["id"]>("memorial")
   const [pageIndex, setPageIndex] = React.useState(0)
   const [zoom, setZoom] = React.useState(85)
@@ -204,11 +199,11 @@ function InfoCard({ title, text }: { title: string; text: string }) {
 type FindingSeverity = "ERROR" | "WARNING" | "INFO"
 type ReviewFinding = { severity: FindingSeverity; title: string; description: string; section: (typeof pages)[number]["id"] }
 
-function projectSectionHref(project: ReturnType<typeof getLocalProjects>[number], section: string) {
+function projectSectionHref(project: LocalProject, section: string) {
   return section === "overview" ? `/project/${project.localId}` : `/project/${project.localId}/${section}`
 }
 
-function ReviewSection({ project, catalog }: { project: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation }) {
+function ReviewSection({ project, catalog }: { project: LocalProject; catalog?: Regulation }) {
   const occurrences = project.requirementOccurrences ?? []
   const formations = project.formations ?? []
   const memorial = project.memorialSections ?? []
@@ -257,7 +252,7 @@ function ReviewSummary({ label, value }: { label: string; value: number }) {
   return <div className="rounded-lg border p-4"><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold">{value}</p></div>
 }
 
-function ReviewFindingCard({ project, finding }: { project: ReturnType<typeof getLocalProjects>[number]; finding: ReviewFinding }) {
+function ReviewFindingCard({ project, finding }: { project: LocalProject; finding: ReviewFinding }) {
   const Icon = finding.severity === "ERROR" ? CircleAlert : finding.severity === "WARNING" ? CircleHelp : CircleCheck
   const variant = finding.severity === "ERROR" ? "destructive" : finding.severity === "WARNING" ? "secondary" : "outline"
   return <div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="flex gap-3"><Icon className="mt-0.5 size-5 shrink-0" /><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{finding.title}</p><Badge variant={variant}>{finding.severity}</Badge></div><p className="mt-1 text-sm text-muted-foreground">{finding.description}</p></div></div><Button size="sm" variant="outline" className="shrink-0" render={<a href={projectSectionHref(project, finding.section)} />}>Corrigir</Button></div>
@@ -273,7 +268,7 @@ const memorialSteps = [
   { id: "conclusion", label: "Conclusão", hint: "Escreva esta parte do memorial com clareza e objetividade." },
 ] as const
 
-function MemorialSectionEditor({ project, onChange }: { project: ReturnType<typeof getLocalProjects>[number]; onChange: (sections: MemorialSection[]) => void }) {
+function MemorialSectionEditor({ project, onChange }: { project: LocalProject; onChange: (sections: MemorialSection[]) => void }) {
   const [activeId, setActiveId] = React.useState("cover")
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false)
@@ -381,7 +376,7 @@ type OccurrenceValues = z.infer<typeof occurrenceSchema>
 type OccurrenceFormValues = z.input<typeof occurrenceSchema>
 const emptyOccurrence: OccurrenceValues = { period: "", quantity: 1, description: "", results: "", competencies: "", evidence: "" }
 
-function RequirementsSection({ project, catalog, projections, onOccurrencesChange }: { project: ReturnType<typeof getLocalProjects>[number]; catalog: Regulation; projections: Record<"rsc-i" | "rsc-ii" | "rsc-iii", LevelProjection>; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void }) {
+function RequirementsSection({ project, catalog, projections, onOccurrencesChange }: { project: LocalProject; catalog: Regulation; projections: Record<"rsc-i" | "rsc-ii" | "rsc-iii", LevelProjection>; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void }) {
   const [levelId, setLevelId] = React.useState<"rsc-i" | "rsc-ii" | "rsc-iii">("rsc-i")
   const [query, setQuery] = React.useState("")
   const [criterionId, setCriterionId] = React.useState<string | null>(null)
@@ -391,6 +386,7 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
   const level = catalog.levels.find((item) => item.section === levelId)!
   const projection = projections[levelId]
   const selectedCriterion = level.criteria.find((item) => item.id === criterionId) ?? null
+  useUnsavedFormProtection(Boolean(selectedCriterion) && form.formState.isDirty)
   const unassignedOccurrences = (project.requirementOccurrences ?? []).filter((item) => !item.criterionId || !item.selectedLevel)
   const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR")
   const matches = (description: string) => !normalizedQuery || description.toLocaleLowerCase("pt-BR").includes(normalizedQuery)
@@ -475,7 +471,7 @@ function formatTimestamp(value: string) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value))
 }
 
-function EducationSection({ project, onChange }: { project: ReturnType<typeof getLocalProjects>[number]; onChange: (formations: Formation[]) => void }) {
+function EducationSection({ project, onChange }: { project: LocalProject; onChange: (formations: Formation[]) => void }) {
   const [formations, setFormations] = React.useState<Formation[]>(project.formations ?? [])
   const [editing, setEditing] = React.useState<Formation | null>(null)
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
@@ -519,6 +515,7 @@ function EducationSection({ project, onChange }: { project: ReturnType<typeof ge
 
 function FormationDialog({ formation, open, onOpenChange, onSave }: { formation: Formation | null; open: boolean; onOpenChange: (open: boolean) => void; onSave: (values: FormationValues) => void }) {
   const form = useForm<FormationValues>({ resolver: zodResolver(formationSchema), defaultValues: emptyFormation })
+  useUnsavedFormProtection(open && form.formState.isDirty)
   React.useEffect(() => { form.reset(formation ? { type: formation.type, title: formation.title, institution: formation.institution, area: formation.area, startDate: formation.startDate, endDate: formation.endDate, status: formation.status, documentReference: formation.documentReference, attachmentName: formation.attachmentName, notes: formation.notes } : emptyFormation) }, [formation, form, open])
 
   return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl" showCloseButton={false}><DialogHeader><DialogTitle>{formation ? "Editar formação" : "Nova formação"}</DialogTitle><DialogDescription>Os campos marcados com asterisco são obrigatórios.</DialogDescription></DialogHeader><form className="grid gap-4" noValidate onSubmit={form.handleSubmit(onSave)}>
@@ -569,11 +566,15 @@ const identificationSchema = z.object({
 
 type IdentificationValues = z.infer<typeof identificationSchema>
 
-function IdentificationForm({ project, onSave }: { project: ReturnType<typeof getLocalProjects>[number]; onSave: (identification: Identification) => void }) {
+function IdentificationForm({ project, onSave }: { project: LocalProject; onSave: (identification: Identification) => void }) {
   const form = useForm<IdentificationValues>({
     resolver: zodResolver(identificationSchema),
     defaultValues: project.identification ?? { name: "", cpf: "", admissionDate: "", siape: "", position: "", institution: "", campus: "", currentLevel: "", degree: "", personalEmail: "", professionalEmail: "", phone: "" },
   })
+  React.useEffect(() => {
+    const subscription = form.watch((values) => onSave(values as Identification))
+    return () => subscription.unsubscribe()
+  }, [form, onSave])
 
   return <form className="mt-6 space-y-4" noValidate onSubmit={form.handleSubmit(onSave)}>
     <FormCard title="Identificação pessoal" description="Informe os dados básicos do servidor.">
