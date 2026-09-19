@@ -2,7 +2,7 @@ import type { Regulation } from "@/domain/regulation"
 import type { LocalProject, StoredAttachment } from "@/lib/projects"
 import { calculateLevelProjection } from "@/domain/scoring"
 
-type PdfPage = { title: string; lines: string[]; eyebrow?: string; cover?: boolean }
+type PdfPage = { title: string; lines: string[]; eyebrow?: string; cover?: boolean; content?: string }
 
 const encoder = new TextEncoder()
 
@@ -40,6 +40,7 @@ function pdfText(value: string) { return value.replace(/\\/g, "\\\\").replace(/\
 /** Produz um PDF A4 com a mesma hierarquia editorial da prévia do processo. */
 export function createPdf(pages: PdfPage[]) {
   const renderedPages = pages.flatMap((page) => {
+    if (page.content) return [page]
     if (page.cover) return [page]
     const lines = page.lines.flatMap((line) => wrap(line, 82))
     return Array.from({ length: Math.max(1, Math.ceil(lines.length / 43)) }, (_, index) => ({ ...page, title: index ? `${page.title} (continuação)` : page.title, lines: lines.slice(index * 43, (index + 1) * 43) }))
@@ -47,7 +48,7 @@ export function createPdf(pages: PdfPage[]) {
   const pageContents = renderedPages.map((page, pageIndex) => {
     const body = page.lines.flatMap((line) => wrap(line, 82))
     const footer = `${page.eyebrow ?? "DOCUMENTO RSC"} - página ${pageIndex + 1} de ${renderedPages.length}`
-    const commands = page.cover
+    const commands = page.content ? [page.content] : page.cover
       ? ["BT", "/F2 12 Tf", "0.2 g", "175 700 Td", "(INSTITUTO FEDERAL DA BAHIA) Tj", "/F2 24 Tf", "0 -92 Td", `(${pdfText(page.title.toUpperCase())}) Tj`, "/F1 13 Tf", "0 -42 Td", ...body.flatMap((line) => ["0 -20 Td", `(${pdfText(line)}) Tj`]), "ET"]
       : ["BT", "/F2 8 Tf", "0.45 g", "50 800 Td", `(${pdfText((page.eyebrow ?? "DOCUMENTO RSC").toUpperCase())}) Tj`, "/F2 18 Tf", "0 g", "0 -34 Td", `(${pdfText(page.title)}) Tj`, "/F1 11 Tf", "0 -38 Td", ...body.flatMap((line) => ["0 -15 Td", `(${pdfText(line)}) Tj`]), "ET", "BT", "0.45 g", "/F1 8 Tf", "50 32 Td", `(${pdfText(footer)}) Tj`, "ET"]
     return latin1(commands.join("\n"))
@@ -78,6 +79,33 @@ export function createPdf(pages: PdfPage[]) {
   return new Blob([joinBytes(chunks)], { type: "application/pdf" })
 }
 
+function tablePage(title: string, eyebrow: string, headers: string[], rows: string[][], widths: number[]): PdfPage {
+  const x = 36; const top = 744; const lineHeight = 8; const padding = 3
+  const line = (text: string, width: number) => wrap(text, Math.max(5, Math.floor(width / 4.8)))
+  const commands = ["0.45 g", "BT", "/F2 8 Tf", `${x} 800 Td`, `(${pdfText(eyebrow.toUpperCase())}) Tj`, "/F2 14 Tf", "0 g", "0 -26 Td", `(${pdfText(title)}) Tj`, "ET"]
+  let y = top
+  const drawRow = (cells: string[], header = false) => {
+    const cellLines = cells.map((cell, index) => line(cell, widths[index]))
+    const height = Math.max(...cellLines.map((item) => item.length)) * lineHeight + padding * 2
+    if (header) commands.push("0.9 g", `${x} ${y - height} ${widths.reduce((total, value) => total + value, 0)} ${height} re f`, "0 g")
+    let cellX = x
+    cells.forEach((_, index) => {
+      commands.push(`${cellX} ${y - height} ${widths[index]} ${height} re S`, "BT", header ? "/F2 6 Tf" : "/F1 6 Tf")
+      cellLines[index].forEach((value, lineIndex) => commands.push(`${cellX + padding} ${y - padding - 6 - lineIndex * lineHeight} Td`, `(${pdfText(value)}) Tj`, `${-(cellX + padding)} ${-(y - padding - 6 - lineIndex * lineHeight)} Td`))
+      commands.push("ET"); cellX += widths[index]
+    })
+    y -= height
+  }
+  drawRow(headers, true)
+  rows.forEach((row) => drawRow(row))
+  return { title, eyebrow, lines: [], content: commands.join("\n") }
+}
+
+function tablePages(title: string, eyebrow: string, headers: string[], rows: string[][], widths: number[]) {
+  const chunks = Array.from({ length: Math.max(1, Math.ceil(rows.length / 12)) }, (_, index) => rows.slice(index * 12, index * 12 + 12))
+  return chunks.map((chunk, index) => tablePage(index ? `${title} (continuação)` : title, eyebrow, headers, chunk, widths))
+}
+
 const identity = (project: LocalProject) => {
   const person = project.identification
   return [`Docente: ${person?.name ?? "Não informado"}`, `SIAPE: ${person?.siape ?? "Não informado"}`, `Cargo: ${person?.position ?? "Não informado"}`, `Instituição/campus: ${person ? `${person.institution} · ${person.campus}` : "Não informado"}`, `Nível solicitado: ${project.rscLevel}`]
@@ -106,38 +134,21 @@ export function createFormsPdf(project: LocalProject, catalog?: Regulation) {
 
   if (!catalog) return createPdf([...pages, { title: "Anexos III a VI", lines: ["Dataset normativo indisponível para preencher os formulários de pontuação."], eyebrow: "Formulários normativos" }])
 
-  pages.push({
-    title: "Anexo III - Formulário para indicar pontuação obtida",
-    lines: catalog.levels.flatMap((level) => {
+  pages.push(...tablePages("Anexo III - Formulário para indicar pontuação obtida", "Anexo III", ["Diretriz", "Peso", "Máximo", "Obtido", "%"], catalog.levels.flatMap((level) => {
       const projection = calculateLevelProjection(catalog, level.section, occurrences)
-      return [
-        `Reconhecimento de Saberes e Competências - ${levelLabels[level.section]}`,
-        ...level.directives.map((directive) => `${directive.code}) ${directive.title} · Peso ${directive.weight} · Máximo ${number(directive.maxScore)} · Obtido ${number(projection.directiveScores[directive.id] ?? 0)}`),
-        `Total ${levelLabels[level.section]}: ${number(projection.total)} pontos`,
-        "",
-      ]
-    }),
-    eyebrow: "Anexo III",
-  })
+      return level.directives.map((directive) => [
+        `${levelLabels[level.section]} · ${directive.code}) ${directive.title}`,
+        number(directive.weight), number(directive.maxScore), number(projection.directiveScores[directive.id] ?? 0),
+        directive.maxScore ? `${number(((projection.directiveScores[directive.id] ?? 0) / directive.maxScore) * 100)}%` : "0%",
+      ])
+    }), [280, 50, 60, 60, 45]))
 
   catalog.levels.forEach((level, index) => {
     const projection = calculateLevelProjection(catalog, level.section, occurrences)
-    pages.push({
-      title: `Anexo ${index + 4} - Quadro de referência de critérios para o ${levelLabels[level.section]}`,
-      lines: level.directives.flatMap((directive) => {
-        const criteria = level.criteria.filter((criterion) => criterion.directiveId === directive.id)
-        return [
-          `${directive.code}) ${directive.title}`,
-          ...criteria.map((criterion) => {
+    pages.push(...tablePages(`Anexo ${index + 4} - Quadro de referência de critérios para o ${levelLabels[level.section]}`, `Anexo ${index + 4}`, ["Critério", "Descrição", "Fator", "UN", "Máx.", "Peso", "Qtd.", "Pontos"], level.directives.flatMap((directive) => level.criteria.filter((criterion) => criterion.directiveId === directive.id).map((criterion) => {
             const score = projection.criterionScores[criterion.id]
-            return `${criterion.code} · ${criterion.description} · Fator ${number(criterion.factor)} · UN ${criterion.unit} · Máximo ${number(criterion.maxQuantity)} · Peso ${number(criterion.weight)} · Quantidade comprovada ${number(score?.quantity ?? 0)} · Pontuação final ${score?.blocked ? "-" : number(score?.score ?? 0)}`
-          }),
-          `Pontuação máxima da diretriz: ${number(directive.maxScore)} pontos · Pontuação obtida: ${number(projection.directiveScores[directive.id] ?? 0)}`,
-          "",
-        ]
-      }),
-      eyebrow: `Anexo ${index + 4}`,
-    })
+            return [`${directive.code} · ${criterion.code}`, criterion.description, number(criterion.factor), criterion.unit, number(criterion.maxQuantity), number(criterion.weight), number(score?.quantity ?? 0), score?.blocked ? "-" : number(score?.score ?? 0)]
+          })), [48, 245, 42, 28, 38, 34, 36, 42]))
   })
   return createPdf(pages)
 }
