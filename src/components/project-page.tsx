@@ -1,7 +1,7 @@
 import * as React from "react"
 import {
-  BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, Copy, FileOutput,
-  ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleHelp, FileText, GraduationCap, HardDrive, LayoutDashboard, Pencil, Plus, Search, Trash2, UserRound,
+  BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, Copy, Download, FileOutput,
+  ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleHelp, FileText, GraduationCap, HardDrive, LayoutDashboard, Minus, PanelLeft, PanelRight, Pencil, Plus, Printer, Search, Trash2, UserRound, ZoomIn,
 } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, type FieldError } from "react-hook-form"
@@ -100,8 +100,96 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemo
     return <RequirementsSection project={project} catalog={catalog} projections={{ "rsc-i": calculateLevelProjection(catalog, "rsc-i", project.requirementOccurrences ?? []), "rsc-ii": calculateLevelProjection(catalog, "rsc-ii", project.requirementOccurrences ?? []), "rsc-iii": calculateLevelProjection(catalog, "rsc-iii", project.requirementOccurrences ?? []) }} onOccurrencesChange={onOccurrencesChange} />
   }
   if (section === "review") return project ? <ReviewSection project={project} catalog={catalog} /> : null
-  if (section === "preview") return <Card className="mt-6"><CardContent className="p-6"><div className="mx-auto aspect-[210/297] max-w-xl border bg-background p-8 shadow-sm"><p className="text-sm font-semibold">Memorial RSC</p><div className="mt-8 space-y-3"><div className="h-2 w-2/3 rounded bg-muted" /><div className="h-2 rounded bg-muted" /><div className="h-2 w-5/6 rounded bg-muted" /></div></div></CardContent></Card>
+  if (section === "preview") return project ? <DocumentViewer project={project} catalog={catalog} /> : null
   return <div className="mt-6 grid gap-4 md:grid-cols-2"><InfoCard title={section === "documents" ? "Arquivos do projeto" : "Nenhum dado cadastrado"} text={section === "documents" ? "Exporte PDFs, JSON e backup ZIP, ou importe uma restauração." : "Adicione informações para compor esta etapa da avaliação."} /><Card><CardHeader><CardTitle>Próxima ação</CardTitle><CardDescription>Esta seção está pronta para receber seus lançamentos.</CardDescription></CardHeader><CardContent><Button><CheckCircle2 /> Adicionar informação</Button></CardContent></Card></div>
+}
+
+type PreviewDocument = {
+  id: "memorial" | "forms" | "evidence"
+  title: string
+  type: string
+  pages: PreviewPage[]
+  warnings: string[]
+  ready: boolean
+}
+
+type PreviewPage = { title: string; eyebrow: string; blocks: string[] }
+
+function DocumentViewer({ project, catalog }: { project: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation }) {
+  const [documentId, setDocumentId] = React.useState<PreviewDocument["id"]>("memorial")
+  const [pageIndex, setPageIndex] = React.useState(0)
+  const [zoom, setZoom] = React.useState(85)
+  const [showThumbnails, setShowThumbnails] = React.useState(true)
+  const [showContext, setShowContext] = React.useState(true)
+  const occurrences = project.requirementOccurrences ?? []
+  const formations = project.formations ?? []
+  const memorial = project.memorialSections ?? []
+  const hasConclusion = memorial.some((section) => section.id === "conclusion" && section.content.trim())
+  const hasEvidenceGaps = occurrences.some((occurrence) => !occurrence.evidence.trim() && occurrence.attachmentNames.length === 0)
+  const attachedFiles = [...formations.map((formation) => formation.attachmentName), ...occurrences.flatMap((occurrence) => occurrence.attachmentNames)].filter(Boolean)
+  const regulationTitle = catalog ? `${catalog.metadata.regulation.authority} · Resolução nº ${catalog.metadata.regulation.number}/${catalog.metadata.regulation.year}` : "Dataset normativo indisponível"
+
+  const documents: PreviewDocument[] = [
+    {
+      id: "memorial",
+      title: "Memorial descritivo",
+      type: "Projeção editorial",
+      ready: Boolean(project.identification && hasConclusion),
+      warnings: [!project.identification && "Identificação do docente não está disponível.", !hasConclusion && "A seção de conclusão ainda não foi preenchida."].filter(Boolean) as string[],
+      pages: [
+        { title: "Capa", eyebrow: "MEMORIAL DESCRITIVO", blocks: [project.identification?.name ?? project.name, project.rscLevel, project.identification ? `${project.identification.position} · ${project.identification.institution}` : "Dados funcionais pendentes"] },
+        ...memorial.filter((section) => section.content.trim()).map((section) => ({ title: memorialSteps.find((step) => step.id === section.id)?.label ?? "Seção do memorial", eyebrow: "MEMORIAL DESCRITIVO", blocks: [section.content] })),
+      ],
+    },
+    {
+      id: "forms",
+      title: "Formulários normativos",
+      type: "Projeção do formulário",
+      ready: Boolean(catalog && project.identification && occurrences.length),
+      warnings: [!catalog && "O dataset normativo vinculado não está disponível.", !project.identification && "Identificação do docente pendente.", !occurrences.length && "Não há lançamentos para compor os campos do formulário."].filter(Boolean) as string[],
+      pages: [
+        { title: "Identificação e norma", eyebrow: "FORMULÁRIO NORMATIVO", blocks: [regulationTitle, `Docente: ${project.identification?.name ?? "Não informado"}`, `Nível solicitado: ${project.rscLevel}`] },
+        ...occurrences.map((occurrence, index) => {
+          const criterion = catalog?.levels.find((level) => level.section === occurrence.selectedLevel)?.criteria.find((item) => item.id === occurrence.criterionId)
+          return { title: `Lançamento ${index + 1}`, eyebrow: criterion ? `${criterion.code} · ${occurrence.selectedLevel?.toUpperCase()}` : "ENQUADRAMENTO PENDENTE", blocks: [criterion?.description ?? occurrence.description, occurrence.period ? `Período: ${occurrence.period}` : "Período não informado", `Quantidade declarada: ${occurrence.quantity}`, occurrence.evidence ? `Evidência: ${occurrence.evidence}` : "Evidência sem referência textual"] }
+        }),
+      ],
+    },
+    {
+      id: "evidence",
+      title: "Comprovantes consolidados",
+      type: "Mapa de anexos",
+      ready: Boolean(occurrences.length && !hasEvidenceGaps && attachedFiles.length),
+      warnings: [!attachedFiles.length && "Nenhum arquivo local foi referenciado.", hasEvidenceGaps && "Há lançamentos sem evidência vinculada.", attachedFiles.length > 0 && "Os nomes dos arquivos foram preservados, mas o resolvedor de arquivos locais não está configurado neste navegador."].filter(Boolean) as string[],
+      pages: attachedFiles.length ? attachedFiles.map((file, index) => ({ title: `Comprovante ${index + 1}`, eyebrow: `ANEXO · PÁGINA ${index + 1}`, blocks: [file, `Referência de página: C-${String(index + 1).padStart(3, "0")}`, "Validação local pendente de um resolvedor de arquivos."] })) : [{ title: "Índice de comprovantes", eyebrow: "ANEXOS", blocks: ["Não há comprovantes locais disponíveis para consolidar."] }],
+    },
+  ]
+
+  const document = documents.find((item) => item.id === documentId) ?? documents[0]
+  const currentPageIndex = Math.min(pageIndex, document.pages.length - 1)
+  const page = document.pages[currentPageIndex]
+  const evidencePageMap = attachedFiles.map((file, index) => `${file} → C-${String(index + 1).padStart(3, "0")}`).join("\n")
+
+  const exportJson = () => {
+    const data = { project, regulation: catalog?.metadata ?? null, artifacts: documents.map(({ id, title, type, ready, warnings, pages }) => ({ id, title, type, ready, warnings, pageCount: pages.length })), evidencePageMap: attachedFiles.map((file, index) => ({ file, page: `C-${String(index + 1).padStart(3, "0")}` })) }
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }))
+    const link = window.document.createElement("a")
+    link.href = url
+    link.download = `${project.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "projeto"}-exportacao.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return <section className="mt-6 space-y-4">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><h2 className="text-2xl font-semibold tracking-tight">Visualizar documentos</h2><p className="mt-1 text-sm text-muted-foreground">Leitura das projeções editoriais e dos artefatos produzidos. Esta área não recalcula pontuação nem altera o projeto.</p></div><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={exportJson}><Download /> Exportar JSON</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
+    <div className="flex flex-wrap gap-2">{documents.map((item) => <Button key={item.id} variant={item.id === documentId ? "secondary" : "outline"} onClick={() => { setDocumentId(item.id); setPageIndex(0) }}><FileText /> {item.title}<Badge variant={item.ready ? "secondary" : "outline"}>{item.ready ? "Pronto" : "Pendente"}</Badge></Button>)}</div>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"><div className="text-sm"><span className="font-medium">{document.title}</span><span className="text-muted-foreground"> · {document.type} · {document.pages.length} página(s)</span></div><div className="flex items-center gap-1"><Button size="icon" variant="ghost" aria-label="Ocultar ou exibir miniaturas" onClick={() => setShowThumbnails((value) => !value)}><PanelLeft /></Button><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 55} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 115} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button><Button size="icon" variant="ghost" aria-label="Ocultar ou exibir contexto" onClick={() => setShowContext((value) => !value)}><PanelRight /></Button></div></div>
+    <div className="grid gap-4 xl:grid-cols-[12rem_minmax(0,1fr)_18rem]">
+      {showThumbnails && <aside className="order-2 xl:order-1"><Card><CardHeader><CardTitle className="text-base">Miniaturas</CardTitle></CardHeader><CardContent className="space-y-2">{document.pages.map((item, index) => <Button key={`${item.title}-${index}`} variant={index === currentPageIndex ? "secondary" : "ghost"} className="h-auto w-full justify-start whitespace-normal p-3 text-left" onClick={() => setPageIndex(index)}><span className="mr-2 text-muted-foreground">{index + 1}</span><span>{item.title}</span></Button>)}</CardContent></Card></aside>}
+      <div className="order-1 min-w-0 xl:order-2"><div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto min-h-[62rem] w-[210mm] max-w-full origin-top bg-background p-8 shadow-sm sm:p-12" style={{ transform: `scale(${zoom / 100})`, marginBottom: `${(zoom - 100) * 6}px` }}><p className="text-xs font-medium tracking-widest text-muted-foreground">{page.eyebrow}</p><h3 className="mt-8 text-2xl font-semibold">{page.title}</h3><div className="mt-10 space-y-6">{page.blocks.map((block, index) => <p key={index} className="whitespace-pre-wrap text-base leading-7">{block}</p>)}</div><footer className="mt-16 border-t pt-4 text-xs text-muted-foreground">{document.title} · página {currentPageIndex + 1} de {document.pages.length}</footer></article></div><div className="mt-3 flex items-center justify-center gap-3"><Button size="sm" variant="outline" disabled={currentPageIndex === 0} onClick={() => setPageIndex((value) => value - 1)}>Anterior</Button><span className="text-sm text-muted-foreground">Página {currentPageIndex + 1} de {document.pages.length}</span><Button size="sm" variant="outline" disabled={currentPageIndex === document.pages.length - 1} onClick={() => setPageIndex((value) => value + 1)}>Próxima</Button></div></div>
+      {showContext && <aside className="order-3"><Card><CardHeader><CardTitle className="text-base">Contexto do documento</CardTitle><CardDescription>Metadados e conferências disponíveis.</CardDescription></CardHeader><CardContent className="space-y-4"><div><p className="text-sm font-medium">Estado</p><Badge className="mt-1" variant={document.ready ? "secondary" : "outline"}>{document.ready ? "Artefato pronto" : "Artefato pendente"}</Badge></div><div><p className="text-sm font-medium">Dataset normativo</p><p className="mt-1 text-sm text-muted-foreground">{regulationTitle}</p></div>{document.warnings.length > 0 && <div><p className="text-sm font-medium">Avisos</p><ul className="mt-1 space-y-2 text-sm text-muted-foreground">{document.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}{evidencePageMap && <div><p className="text-sm font-medium">Mapa de páginas</p><pre className="mt-1 whitespace-pre-wrap font-sans text-xs text-muted-foreground">{evidencePageMap}</pre></div>}</CardContent></Card></aside>}
+    </div>
+  </section>
 }
 
 function InfoCard({ title, text }: { title: string; text: string }) {
