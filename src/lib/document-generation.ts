@@ -1,7 +1,7 @@
 import type { Regulation } from "@/domain/regulation"
 import type { LocalProject, StoredAttachment } from "@/lib/projects"
 
-type PdfPage = { title: string; lines: string[] }
+type PdfPage = { title: string; lines: string[]; eyebrow?: string; cover?: boolean }
 
 const encoder = new TextEncoder()
 
@@ -36,27 +36,31 @@ function wrap(text: string, width = 88) {
 
 function pdfText(value: string) { return value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)") }
 
-/** Produz um PDF A4 simples, sem dependências externas, apropriado para os textos do processo. */
+/** Produz um PDF A4 com a mesma hierarquia editorial da prévia do processo. */
 export function createPdf(pages: PdfPage[]) {
-  const pageContents = pages.map((page) => {
-    const lines = [page.title.toUpperCase(), "", ...page.lines.flatMap((line) => wrap(line))]
-    const commands = ["BT", "/F1 11 Tf", "50 792 Td"]
-    lines.slice(0, 50).forEach((line, index) => {
-      if (index) commands.push("0 -14 Td")
-      commands.push(`(${pdfText(line)}) Tj`)
-    })
-    commands.push("ET")
+  const renderedPages = pages.flatMap((page) => {
+    if (page.cover) return [page]
+    const lines = page.lines.flatMap((line) => wrap(line, 82))
+    return Array.from({ length: Math.max(1, Math.ceil(lines.length / 43)) }, (_, index) => ({ ...page, title: index ? `${page.title} (continuação)` : page.title, lines: lines.slice(index * 43, (index + 1) * 43) }))
+  })
+  const pageContents = renderedPages.map((page, pageIndex) => {
+    const body = page.lines.flatMap((line) => wrap(line, 82))
+    const footer = `${page.eyebrow ?? "DOCUMENTO RSC"} - página ${pageIndex + 1} de ${renderedPages.length}`
+    const commands = page.cover
+      ? ["BT", "/F2 12 Tf", "0.2 g", "175 700 Td", "(INSTITUTO FEDERAL DA BAHIA) Tj", "/F2 24 Tf", "0 -92 Td", `(${pdfText(page.title.toUpperCase())}) Tj`, "/F1 13 Tf", "0 -42 Td", ...body.flatMap((line) => ["0 -20 Td", `(${pdfText(line)}) Tj`]), "ET"]
+      : ["BT", "/F2 8 Tf", "0.45 g", "50 800 Td", `(${pdfText((page.eyebrow ?? "DOCUMENTO RSC").toUpperCase())}) Tj`, "/F2 18 Tf", "0 g", "0 -34 Td", `(${pdfText(page.title)}) Tj`, "/F1 11 Tf", "0 -38 Td", ...body.flatMap((line) => ["0 -15 Td", `(${pdfText(line)}) Tj`]), "ET", "BT", "0.45 g", "/F1 8 Tf", "50 32 Td", `(${pdfText(footer)}) Tj`, "ET"]
     return latin1(commands.join("\n"))
   })
-  const objectCount = 3 + pageContents.length * 2
+  const objectCount = 4 + pageContents.length * 2
   const objects: Uint8Array[] = []
-  const pageObjectIds = pageContents.map((_, index) => 4 + index * 2)
+  const pageObjectIds = pageContents.map((_, index) => 5 + index * 2)
   objects.push(encoder.encode("<< /Type /Catalog /Pages 2 0 R >>"))
   objects.push(encoder.encode(`<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageContents.length} >>`))
   objects.push(encoder.encode("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"))
+  objects.push(encoder.encode("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>"))
   pageContents.forEach((content, index) => {
     const pageId = pageObjectIds[index]
-    objects[pageId - 1] = encoder.encode(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${pageId + 1} 0 R >>`)
+    objects[pageId - 1] = encoder.encode(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${pageId + 1} 0 R >>`)
     objects[pageId] = joinBytes([encoder.encode(`<< /Length ${content.length} >>\nstream\n`), content, encoder.encode("\nendstream")])
   })
   const header = encoder.encode("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n")
@@ -80,16 +84,22 @@ const identity = (project: LocalProject) => {
 
 export function createMemorialPdf(project: LocalProject) {
   const sections = (project.memorialSections ?? []).filter((section) => section.content.trim())
-  return createPdf([{ title: "Memorial descritivo", lines: identity(project) }, ...sections.map((section) => ({ title: section.id, lines: [section.content] }))])
+  const labels: Record<string, string> = { cover: "Apresentação", introduction: "Introdução", career: "Trajetória profissional", teaching: "Atuação docente", outreach: "Extensão e pesquisa", management: "Gestão e contribuição institucional", conclusion: "Conclusão" }
+  const summary = sections.length ? sections.map((section, index) => `${index + 1}. ${labels[section.id] ?? "Seção do memorial"}`) : ["Nenhuma seção preenchida."]
+  return createPdf([
+    { title: "Memorial descritivo", lines: [project.rscLevel, "", project.identification?.name ?? project.name, project.identification?.position ?? "Cargo não informado", project.identification?.campus ?? "Campus não informado"], cover: true, eyebrow: "Memorial descritivo" },
+    { title: "Sumário", lines: summary, eyebrow: "Memorial descritivo" },
+    ...sections.map((section) => ({ title: labels[section.id] ?? "Seção do memorial", lines: [section.content], eyebrow: "Memorial descritivo" })),
+  ])
 }
 
 export function createFormsPdf(project: LocalProject, catalog?: Regulation) {
   const criteria = catalog?.levels.flatMap((level) => level.criteria) ?? []
   const occurrences = project.requirementOccurrences ?? []
-  const pages: PdfPage[] = [{ title: "Formulários normativos", lines: [...identity(project), catalog ? `Regulamento: ${catalog.metadata.regulation.authority} · Resolução nº ${catalog.metadata.regulation.number}/${catalog.metadata.regulation.year}` : "Regulamento local não disponível."] }]
+  const pages: PdfPage[] = [{ title: "Formulários normativos", lines: [project.rscLevel, "", project.identification?.name ?? project.name, project.identification?.siape ? `SIAPE: ${project.identification.siape}` : "SIAPE não informado"], cover: true, eyebrow: "Formulários normativos" }, { title: "Identificação e norma", lines: [...identity(project), catalog ? `Regulamento: ${catalog.metadata.regulation.authority} · Resolução nº ${catalog.metadata.regulation.number}/${catalog.metadata.regulation.year}` : "Regulamento local não disponível."], eyebrow: "Formulário normativo" }]
   occurrences.forEach((occurrence, index) => {
     const criterion = criteria.find((item) => item.id === occurrence.criterionId)
-    pages.push({ title: `Lançamento ${index + 1}`, lines: [`Critério: ${criterion ? `${criterion.code} · ${criterion.description}` : "Não informado"}`, `Período: ${occurrence.period || "Não informado"}`, `Quantidade: ${occurrence.quantity}`, `Atividade: ${occurrence.description}`, occurrence.results && `Resultados: ${occurrence.results}`, occurrence.competencies && `Competências: ${occurrence.competencies}`, occurrence.evidence && `Evidência declarada: ${occurrence.evidence}`].filter(Boolean) as string[] })
+    pages.push({ title: `Lançamento ${index + 1}`, lines: [`Critério: ${criterion ? `${criterion.code} · ${criterion.description}` : "Não informado"}`, `Período: ${occurrence.period || "Não informado"}`, `Quantidade: ${occurrence.quantity}`, `Atividade: ${occurrence.description}`, occurrence.results && `Resultados: ${occurrence.results}`, occurrence.competencies && `Competências: ${occurrence.competencies}`, occurrence.evidence && `Evidência declarada: ${occurrence.evidence}`].filter(Boolean) as string[], eyebrow: "Formulário normativo" })
   })
   return createPdf(pages)
 }
@@ -100,7 +110,7 @@ export function createEvidenceIndexPdf(project: LocalProject, attachments: Store
     const occurrence = occurrences.find((item) => item.id === attachment.occurrenceId)
     return `C-${String(index + 1).padStart(3, "0")} · ${attachment.name}${occurrence ? ` · ${occurrence.description}` : ""}`
   }) : ["Nenhum anexo binário está disponível neste navegador."]
-  return createPdf([{ title: "Índice de comprovantes", lines: [...identity(project), "", ...lines] }])
+  return createPdf([{ title: "Índice de comprovantes", lines: [project.rscLevel, "", project.identification?.name ?? project.name], cover: true, eyebrow: "Comprovantes" }, { title: "Sumário de comprovantes", lines: [...identity(project), "", ...lines], eyebrow: "Comprovantes" }])
 }
 
 function crc32(data: Uint8Array) {
