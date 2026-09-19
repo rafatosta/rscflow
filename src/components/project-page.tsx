@@ -238,6 +238,7 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
   ]
 
   const document = documents.find((item) => item.id === documentId) ?? documents[0]
+  if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDocumentChange={setDocumentId} />
   const currentPageIndex = Math.min(pageIndex, document.pages.length - 1)
   const page = document.pages[currentPageIndex]
   const evidencePageMap = attachedFiles.map((file, index) => `${file} → C-${String(index + 1).padStart(3, "0")}`).join("\n")
@@ -262,6 +263,88 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
       {showContext && <aside className="order-3"><Card><CardHeader><CardTitle className="text-base">Contexto do documento</CardTitle><CardDescription>Metadados e conferências disponíveis.</CardDescription></CardHeader><CardContent className="space-y-4"><div><p className="text-sm font-medium">Estado</p><Badge className="mt-1" variant={document.ready ? "secondary" : "outline"}>{document.ready ? "Artefato pronto" : "Artefato pendente"}</Badge></div><div><p className="text-sm font-medium">Dataset normativo</p><p className="mt-1 text-sm text-muted-foreground">{regulationTitle}</p></div>{document.warnings.length > 0 && <div><p className="text-sm font-medium">Avisos</p><ul className="mt-1 space-y-2 text-sm text-muted-foreground">{document.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}{evidencePageMap && <div><p className="text-sm font-medium">Mapa de páginas</p><pre className="mt-1 whitespace-pre-wrap font-sans text-xs text-muted-foreground">{evidencePageMap}</pre></div>}</CardContent></Card></aside>}
     </div>
   </section>
+}
+
+type NormativeFormId = "request" | "score" | "rsc-i" | "rsc-ii" | "rsc-iii"
+
+const normativeFormTabs: { id: NormativeFormId; label: string }[] = [
+  { id: "request", label: "Anexo II" },
+  { id: "score", label: "Anexo III" },
+  { id: "rsc-i", label: "Anexo IV · RSC I" },
+  { id: "rsc-ii", label: "Anexo V · RSC II" },
+  { id: "rsc-iii", label: "Anexo VI · RSC III" },
+]
+
+function formatFormNumber(value: number) {
+  return value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })
+}
+
+function formatFormDate(value?: string) {
+  if (!value) return "____ de ______________ de ______"
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" }).format(date)
+}
+
+function NormativeFormsViewer({ project, catalog, onDocumentChange }: { project: LocalProject; catalog?: Regulation; onDocumentChange: (id: PreviewDocument["id"]) => void }) {
+  const [formId, setFormId] = React.useState<NormativeFormId>("request")
+  const occurrences = project.requirementOccurrences ?? []
+  const title = normativeFormTabs.find((tab) => tab.id === formId)?.label
+
+  return <section className="mt-6 space-y-4">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Planilhas normativas preenchidas a partir da identificação, dos lançamentos e do catálogo local. Revise antes do protocolo.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => onDocumentChange("memorial")}><FileText /> Memorial</Button><Button variant="outline" onClick={() => onDocumentChange("evidence")}><FileText /> Comprovantes</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
+    <div className="flex flex-wrap gap-2">{normativeFormTabs.map((tab) => <Button key={tab.id} variant={formId === tab.id ? "secondary" : "outline"} onClick={() => setFormId(tab.id)}>{tab.label}</Button>)}</div>
+    <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="normative-form mx-auto w-[210mm] min-w-[210mm] bg-background p-8 text-[10px] shadow-sm sm:p-10">
+      {formId === "request" && <NormativeRequest project={project} />}
+      {formId === "score" && <ScoreForm catalog={catalog} occurrences={occurrences} />}
+      {formId !== "request" && formId !== "score" && <CriteriaForm catalog={catalog} occurrences={occurrences} levelId={formId} />}
+      <footer className="mt-6 border-t pt-3 text-center text-[9px] text-muted-foreground">{title} · formulário normativo preenchido · {project.name}</footer>
+    </article></div>
+  </section>
+}
+
+function NormativeRequest({ project }: { project: LocalProject }) {
+  const person = project.identification
+  const selected = ({ "RSC 1": "RSC I", "RSC 2": "RSC II", "RSC 3": "RSC III" } as Record<string, string>)[project.rscLevel] ?? project.rscLevel
+  return <div className="space-y-5 font-serif text-sm leading-relaxed">
+    <FormHeading annex="ANEXO – II" title="SOLICITAÇÃO DE RECONHECIMENTO DE SABERES E COMPETÊNCIAS À CPPD" subtitle="INSTITUTO FEDERAL DA BAHIA" />
+    <div className="grid grid-cols-12 border border-foreground"><FormCell className="col-span-7" label="Nome do(a) docente:" value={person?.name} /><FormCell className="col-span-3 border-l" label="CPF:" value={person?.cpf} /><FormCell className="col-span-2 border-l" label="Matrícula SIAPE:" value={person?.siape} /><FormCell className="col-span-12 border-t" label="Cargo:" value={person?.position} /><FormCell className="col-span-12 border-t" label="Campus de lotação:" value={person?.campus} /><FormCell className="col-span-6 border-t" label="E-mail:" value={person?.professionalEmail || person?.personalEmail} /><FormCell className="col-span-6 border-l border-t" label="Telefone:" value={person?.phone} /><FormCell className="col-span-5 border-t" label="RT ou RSC (atual) - c/ nº do processo:" value={person?.currentLevel} /><FormCell className="col-span-4 border-l border-t" label="Portaria de concessão:" value="" /><FormCell className="col-span-3 border-l border-t" label="Data de vigência:" value="" /></div>
+    <section className="border border-foreground"><h3 className="border-b border-foreground py-3 text-center text-xl font-bold underline">REQUERIMENTO</h3><div className="space-y-4 p-4 text-base"><p>Venho requerer, conforme disposto no Art. 18, da Lei nº 12.772, e sob os termos do Regulamento de RSC, aprovado pela Resolução CONSUP nº {project.regulation.match(/\d+/)?.[0] ?? "________"}, a concessão do RSC, declarando a veracidade da documentação apresentada neste processo, sob as penas da Lei.</p><div><p>Nível de RSC pretendido:</p>{["RSC I", "RSC II", "RSC III"].map((level) => <p key={level}>{level} &nbsp; ({selected === level ? "X" : " "})</p>)}</div></div></section>
+    <div className="pt-8 text-center text-base">{person?.campus || "________________"}, {formatFormDate(person?.admissionDate)}</div><div className="pt-16 text-center text-base">________________________________________<br /><span className="text-xs">Assinatura</span></div>
+  </div>
+}
+
+function FormHeading({ annex, title, subtitle }: { annex: string; title: string; subtitle?: string }) {
+  return <header className="text-center"><p className="text-lg font-bold">{annex}</p><div className="mt-3 border-2 border-foreground px-4 py-2 text-lg font-bold">{title}{subtitle && <><br />{subtitle}</>}</div></header>
+}
+
+function FormCell({ label, value, className }: { label: string; value?: string; className: string }) {
+  return <div className={`${className} min-h-16 p-2`}><p className="font-bold underline">{label}</p><p className="mt-2 break-words">{value || " "}</p></div>
+}
+
+function ScoreForm({ catalog, occurrences }: { catalog?: Regulation; occurrences: RequirementOccurrence[] }) {
+  return <div className="font-serif"><FormHeading annex="ANEXO – III" title="FORMULÁRIO PARA INDICAR PONTUAÇÃO OBTIDA" />{catalog ? catalog.levels.map((level) => <ScoreLevelTable key={level.section} catalog={catalog} occurrences={occurrences} levelId={level.section} />) : <p className="mt-8 text-center">Dataset normativo indisponível.</p>}</div>
+}
+
+function ScoreLevelTable({ catalog, occurrences, levelId }: { catalog: Regulation; occurrences: RequirementOccurrence[]; levelId: "rsc-i" | "rsc-ii" | "rsc-iii" }) {
+  const level = catalog.levels.find((item) => item.section === levelId)!
+  const projection = calculateLevelProjection(catalog, levelId, occurrences)
+  const label = rscSectionLabels[levelId]
+  return <section className="mt-5 break-inside-avoid"><h3 className="border border-foreground bg-muted py-1 text-center text-xs font-bold">RECONHECIMENTO DE SABERES E COMPETÊNCIAS – {label}</h3><table className="w-full border-collapse text-[10px]"><thead><tr className="bg-muted"><th className="border p-1">DIRETRIZ</th><th className="border p-1">PESO</th><th className="border p-1">PONTUAÇÃO MÁXIMA</th><th className="border p-1">PONTUAÇÃO OBTIDA</th><th className="border p-1">% OBTIDO EM RELAÇÃO AO MÁXIMO</th></tr></thead><tbody>{level.directives.map((directive) => { const score = projection.directiveScores[directive.id] ?? 0; return <tr key={directive.id}><td className="border p-1"><strong>{directive.code})</strong> {directive.title}</td><td className="border p-1 text-center">{directive.weight}</td><td className="border p-1 text-center">{formatFormNumber(directive.maxScore)}</td><td className="border p-1 text-center">{formatFormNumber(score)}</td><td className="border p-1 text-center">{directive.maxScore ? formatFormNumber((score / directive.maxScore) * 100) : "0"}%</td></tr> })}<tr className="bg-muted font-bold"><td className="border p-1 text-center">TOTAL</td><td className="border p-1 text-center">{level.directives.reduce((total, item) => total + item.weight, 0)}</td><td className="border p-1 text-center">{level.directives.reduce((total, item) => total + item.maxScore, 0)}</td><td className="border p-1 text-center">{formatFormNumber(projection.total)}</td><td className="border p-1 text-center">{formatFormNumber(projection.total)}%</td></tr></tbody></table></section>
+}
+
+function CriteriaForm({ catalog, occurrences, levelId }: { catalog?: Regulation; occurrences: RequirementOccurrence[]; levelId: "rsc-i" | "rsc-ii" | "rsc-iii" }) {
+  const annex = { "rsc-i": "ANEXO – IV", "rsc-ii": "ANEXO – V", "rsc-iii": "ANEXO – VI" }[levelId]
+  const label = rscSectionLabels[levelId]
+  if (!catalog) return <p>Dataset normativo indisponível.</p>
+  const level = catalog.levels.find((item) => item.section === levelId)!
+  const projection = calculateLevelProjection(catalog, levelId, occurrences)
+  return <div className="font-serif"><header className="text-center"><p className="text-lg font-bold">{annex}</p><p className="mt-2 text-base">QUADRO DE REFERÊNCIA DE CRITÉRIOS PARA O {label}</p><p className="mt-2 text-base">FORMULÁRIO DE PONTUAÇÃO</p></header><section className="mt-4"><h3 className="border border-foreground bg-muted py-1 text-center text-xs font-bold">RECONHECIMENTO DE SABERES E COMPETÊNCIAS – {label}</h3>{level.directives.map((directive) => <CriteriaDirectiveTable key={directive.id} directive={directive} level={level} projection={projection} />)}</section></div>
+}
+
+function CriteriaDirectiveTable({ directive, level, projection }: { directive: Regulation["levels"][number]["directives"][number]; level: Regulation["levels"][number]; projection: LevelProjection }) {
+  const criteria = level.criteria.filter((criterion) => criterion.directiveId === directive.id)
+  const score = projection.directiveScores[directive.id] ?? 0
+  return <table className="w-full border-collapse text-[9px] break-inside-avoid"><thead><tr className="bg-muted"><th colSpan={2} className="border p-1 text-left">{directive.code}) {directive.title}</th><th className="border p-1">Fator de pontuação p/ unidade</th><th className="border p-1">UN</th><th className="border p-1">Quantidade máxima/UN</th><th className="border p-1">Peso</th><th className="border p-1">Quantidade comprovada (UN)</th><th className="border p-1">Pontuação final</th></tr></thead><tbody>{criteria.map((criterion) => { const item = projection.criterionScores[criterion.id]; return <tr key={criterion.id}><td className="border p-1 align-top">{criterion.code}</td><td className="border p-1">{criterion.description}</td><td className="border p-1 text-center">{formatFormNumber(criterion.factor)}</td><td className="border p-1 text-center">{criterion.unit}</td><td className="border p-1 text-center">{criterion.maxQuantity}</td><td className="border p-1 text-center">{criterion.weight}</td><td className="border p-1 text-center">{item?.quantity ?? 0}</td><td className="border p-1 text-center">{item?.blocked ? "—" : formatFormNumber(item?.score ?? 0)}</td></tr> })}<tr className="bg-muted font-bold"><td colSpan={6} className="border p-1 text-center">Pontuação máxima da diretriz: {directive.maxScore} pontos</td><td colSpan={2} className="border p-1 text-center">Pontuação obtida: {formatFormNumber(score)}</td></tr></tbody></table>
 }
 
 function InfoCard({ title, text }: { title: string; text: string }) {
