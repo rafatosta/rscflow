@@ -31,6 +31,8 @@ import { type Formation, type Identification, type MemorialSection, updateLocalP
 import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection, type LevelProjection } from "@/domain/scoring"
 import type { RequirementOccurrence } from "@/lib/projects"
+import { DocumentsPage } from "@/components/documents-page"
+import { BackupPage } from "@/components/backup-page"
 
 const pages = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard, description: "Progresso, pontuação, comprovantes, pendências e backup." },
@@ -40,7 +42,8 @@ const pages = [
   { id: "memorial", label: "Memorial", icon: FileText, description: "Edição e regeneração do Memorial." },
   { id: "review", label: "Revisão", icon: ClipboardCheck, description: "Checklist e prontidão documental." },
   { id: "preview", label: "Visualizar", icon: FileOutput, description: "Visualizador A4 genérico." },
-  { id: "documents", label: "Documentos", icon: HardDrive, description: "PDFs, JSON, backup, ZIP, importação e restauração." },
+  { id: "documents", label: "Gerar documentos", icon: HardDrive, description: "Preparar, revisar disponibilidade e baixar os artefatos de entrega." },
+  { id: "backup", label: "Backup e restauração", icon: HardDrive, description: "Exportar, proteger e recuperar cópias locais do processo." },
 ] as const
 
 type ProjectPageProps = { localId: string; section: string; catalog?: Regulation }
@@ -101,6 +104,8 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemo
   }
   if (section === "review") return project ? <ReviewSection project={project} catalog={catalog} /> : null
   if (section === "preview") return project ? <DocumentViewer project={project} catalog={catalog} /> : null
+  if (section === "documents") return project ? <DocumentsPage project={project} catalog={catalog} /> : null
+  if (section === "backup") return project ? <BackupPage project={project} /> : null
   return <div className="mt-6 grid gap-4 md:grid-cols-2"><InfoCard title={section === "documents" ? "Arquivos do projeto" : "Nenhum dado cadastrado"} text={section === "documents" ? "Exporte PDFs, JSON e backup ZIP, ou importe uma restauração." : "Adicione informações para compor esta etapa da avaliação."} /><Card><CardHeader><CardTitle>Próxima ação</CardTitle><CardDescription>Esta seção está pronta para receber seus lançamentos.</CardDescription></CardHeader><CardContent><Button><CheckCircle2 /> Adicionar informação</Button></CardContent></Card></div>
 }
 

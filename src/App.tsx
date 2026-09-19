@@ -23,7 +23,8 @@ const processItems: NavigationItem[] = [
   { id: "memorial", label: "Memorial", icon: "file-text" },
   { id: "review", label: "Revisão", icon: "clipboard-check" },
   { id: "preview", label: "Visualizar", icon: "file-output" },
-  { id: "documents", label: "Documentos", icon: "hard-drive" },
+  { id: "documents", label: "Gerar documentos", icon: "file-output" },
+  { id: "backup", label: "Backup e restauração", icon: "hard-drive" },
 ]
 
 function App() {
