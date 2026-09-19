@@ -136,6 +136,57 @@ type PreviewDocument = {
 
 type PreviewPage = { title: string; eyebrow: string; blocks: string[] }
 
+const memorialPageCharacterLimit = 1_500
+
+function splitMemorialBlock(block: string) {
+  const words = block.trim().split(/\s+/)
+  const parts: string[] = []
+  let part = ""
+
+  for (const word of words) {
+    const nextPart = part ? `${part} ${word}` : word
+    if (part && nextPart.length > memorialPageCharacterLimit) {
+      parts.push(part)
+      part = word
+    } else {
+      part = nextPart
+    }
+  }
+
+  if (part) parts.push(part)
+  return parts
+}
+
+function createMemorialPages(sections: MemorialSection[]): PreviewPage[] {
+  return sections
+    .filter((section) => section.content.trim())
+    .flatMap((section) => {
+      const title = memorialSteps.find((step) => step.id === section.id)?.label ?? "Seção do memorial"
+      const blocks = section.content.split(/\n\s*\n/).flatMap(splitMemorialBlock)
+      const pages: string[][] = []
+      let pageBlocks: string[] = []
+      let pageLength = 0
+
+      for (const block of blocks) {
+        const nextLength = pageLength + block.length
+        if (pageBlocks.length && nextLength > memorialPageCharacterLimit) {
+          pages.push(pageBlocks)
+          pageBlocks = []
+          pageLength = 0
+        }
+        pageBlocks.push(block)
+        pageLength += block.length
+      }
+      if (pageBlocks.length) pages.push(pageBlocks)
+
+      return pages.map((pageBlocks, index) => ({
+        title: index === 0 ? title : `${title} (continuação)`,
+        eyebrow: "MEMORIAL DESCRITIVO",
+        blocks: pageBlocks,
+      }))
+    })
+}
+
 function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?: Regulation }) {
   const [documentId, setDocumentId] = React.useState<PreviewDocument["id"]>("memorial")
   const [pageIndex, setPageIndex] = React.useState(0)
@@ -159,7 +210,7 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
       warnings: [!project.identification && "Identificação do docente não está disponível.", !hasConclusion && "A seção de conclusão ainda não foi preenchida."].filter(Boolean) as string[],
       pages: [
         { title: "Capa", eyebrow: "MEMORIAL DESCRITIVO", blocks: [project.identification?.name ?? project.name, project.rscLevel, project.identification ? `${project.identification.position} · ${project.identification.institution}` : "Dados funcionais pendentes"] },
-        ...memorial.filter((section) => section.content.trim()).map((section) => ({ title: memorialSteps.find((step) => step.id === section.id)?.label ?? "Seção do memorial", eyebrow: "MEMORIAL DESCRITIVO", blocks: [section.content] })),
+        ...createMemorialPages(memorial),
       ],
     },
     {
@@ -207,7 +258,7 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"><div className="text-sm"><span className="font-medium">{document.title}</span><span className="text-muted-foreground"> · {document.type} · {document.pages.length} página(s)</span></div><div className="flex items-center gap-1"><Button size="icon" variant="ghost" aria-label="Ocultar ou exibir miniaturas" onClick={() => setShowThumbnails((value) => !value)}><PanelLeft /></Button><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 55} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 115} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button><Button size="icon" variant="ghost" aria-label="Ocultar ou exibir contexto" onClick={() => setShowContext((value) => !value)}><PanelRight /></Button></div></div>
     <div className="grid gap-4 xl:grid-cols-[12rem_minmax(0,1fr)_18rem]">
       {showThumbnails && <aside className="order-2 xl:order-1"><Card><CardHeader><CardTitle className="text-base">Miniaturas</CardTitle></CardHeader><CardContent className="space-y-2">{document.pages.map((item, index) => <Button key={`${item.title}-${index}`} variant={index === currentPageIndex ? "secondary" : "ghost"} className="h-auto w-full justify-start whitespace-normal p-3 text-left" onClick={() => setPageIndex(index)}><span className="mr-2 text-muted-foreground">{index + 1}</span><span>{item.title}</span></Button>)}</CardContent></Card></aside>}
-      <div className="order-1 min-w-0 xl:order-2"><div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto min-h-[62rem] w-[210mm] max-w-full origin-top bg-background p-8 shadow-sm sm:p-12" style={{ transform: `scale(${zoom / 100})`, marginBottom: `${(zoom - 100) * 6}px` }}><p className="text-xs font-medium tracking-widest text-muted-foreground">{page.eyebrow}</p><h3 className="mt-8 text-2xl font-semibold">{page.title}</h3><div className="mt-10 space-y-6">{page.blocks.map((block, index) => <p key={index} className="whitespace-pre-wrap text-base leading-7">{block}</p>)}</div><footer className="mt-16 border-t pt-4 text-xs text-muted-foreground">{document.title} · página {currentPageIndex + 1} de {document.pages.length}</footer></article></div><div className="mt-3 flex items-center justify-center gap-3"><Button size="sm" variant="outline" disabled={currentPageIndex === 0} onClick={() => setPageIndex((value) => value - 1)}>Anterior</Button><span className="text-sm text-muted-foreground">Página {currentPageIndex + 1} de {document.pages.length}</span><Button size="sm" variant="outline" disabled={currentPageIndex === document.pages.length - 1} onClick={() => setPageIndex((value) => value + 1)}>Próxima</Button></div></div>
+      <div className="order-1 min-w-0 xl:order-2"><div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex h-[297mm] w-[210mm] max-w-full origin-top flex-col bg-background p-8 shadow-sm sm:p-12" style={{ transform: `scale(${zoom / 100})`, marginBottom: `${(zoom - 100) * 6}px` }}><p className="text-xs font-medium tracking-widest text-muted-foreground">{page.eyebrow}</p><h3 className="mt-8 text-2xl font-semibold">{page.title}</h3><div className="mt-10 space-y-6 overflow-hidden">{page.blocks.map((block, index) => <p key={index} className="break-words whitespace-pre-wrap text-base leading-7">{block}</p>)}</div><footer className="mt-auto border-t pt-4 text-xs text-muted-foreground">{document.title} · página {currentPageIndex + 1} de {document.pages.length}</footer></article></div><div className="mt-3 flex items-center justify-center gap-3"><Button size="sm" variant="outline" disabled={currentPageIndex === 0} onClick={() => setPageIndex((value) => value - 1)}>Anterior</Button><span className="text-sm text-muted-foreground">Página {currentPageIndex + 1} de {document.pages.length}</span><Button size="sm" variant="outline" disabled={currentPageIndex === document.pages.length - 1} onClick={() => setPageIndex((value) => value + 1)}>Próxima</Button></div></div>
       {showContext && <aside className="order-3"><Card><CardHeader><CardTitle className="text-base">Contexto do documento</CardTitle><CardDescription>Metadados e conferências disponíveis.</CardDescription></CardHeader><CardContent className="space-y-4"><div><p className="text-sm font-medium">Estado</p><Badge className="mt-1" variant={document.ready ? "secondary" : "outline"}>{document.ready ? "Artefato pronto" : "Artefato pendente"}</Badge></div><div><p className="text-sm font-medium">Dataset normativo</p><p className="mt-1 text-sm text-muted-foreground">{regulationTitle}</p></div>{document.warnings.length > 0 && <div><p className="text-sm font-medium">Avisos</p><ul className="mt-1 space-y-2 text-sm text-muted-foreground">{document.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}{evidencePageMap && <div><p className="text-sm font-medium">Mapa de páginas</p><pre className="mt-1 whitespace-pre-wrap font-sans text-xs text-muted-foreground">{evidencePageMap}</pre></div>}</CardContent></Card></aside>}
     </div>
   </section>
