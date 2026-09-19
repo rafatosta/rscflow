@@ -301,11 +301,45 @@ const memorialSteps = [
   { id: "conclusion", label: "Conclusão", hint: "Escreva esta parte do memorial com clareza e objetividade." },
 ] as const
 
+function formatMemorialDate(value: string) {
+  if (!value) return "data de ingresso não informada"
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(date)
+}
+
+function buildMemorialTextBase(project: LocalProject): MemorialSection[] {
+  const identification = project.identification
+  const name = identification?.name || "[nome do(a) docente]"
+  const institution = identification?.institution || "[instituição]"
+  const campus = identification?.campus || "[campus]"
+  const position = identification?.position || "[cargo]"
+  const degree = identification?.degree || "[titulação]"
+  const formations = project.formations ?? []
+  const occurrences = project.requirementOccurrences ?? []
+  const formationSummary = formations.length
+    ? formations.map((formation) => `${formation.type}: ${formation.title}${formation.institution ? ` — ${formation.institution}` : ""}`).join("\n")
+    : "Não há formações complementares cadastradas no processo."
+  const occurrenceSummary = occurrences.length
+    ? occurrences.map((occurrence, index) => `${index + 1}. ${occurrence.description}${occurrence.period ? ` (${occurrence.period})` : ""}`).join("\n")
+    : "Não há lançamentos de atividades cadastrados no processo."
+
+  return [
+    { id: "cover", content: `MEMORIAL DESCRITIVO\n\n${name}\n${position}\n${institution} · ${campus}\nReconhecimento de Saberes e Competências — ${project.rscLevel}` },
+    { id: "introduction", content: `Eu, ${name}, ${position} no(a) ${institution}, campus ${campus}, apresento este Memorial Descritivo para instruir meu processo de Reconhecimento de Saberes e Competências (RSC), no nível ${project.rscLevel}. Este texto-base foi composto a partir dos dados cadastrados no processo e deve ser revisado e complementado antes do protocolo.` },
+    { id: "career", content: `Minha trajetória funcional no(a) ${institution} teve início em ${formatMemorialDate(identification?.admissionDate ?? "")}. Atualmente, informo a titulação ${degree} e o nível funcional ${identification?.currentLevel || "[nível atual não informado]"}.\n\nFormações cadastradas:\n${formationSummary}` },
+    { id: "teaching", content: `Para este processo de ${project.rscLevel}, foram cadastrados ${occurrences.length} lançamento(s) de atividades e experiências. As informações abaixo devem ser contextualizadas, indicando minha participação, os resultados alcançados e os respectivos comprovantes.\n\n${occurrenceSummary}` },
+    { id: "outreach", content: `As ações de extensão, pesquisa e demais experiências relacionadas ao processo devem ser apresentadas com seus objetivos, público envolvido, resultados e evidências. Os lançamentos cadastrados neste processo podem ser usados como referência para detalhar esta seção.\n\nQuantidade de lançamentos disponíveis: ${occurrences.length}.` },
+    { id: "management", content: `Nesta seção, descrevo atividades de gestão, participação em comissões e outras contribuições institucionais pertinentes ao pedido de ${project.rscLevel}. Cada atividade deve ser associada ao período de atuação, às responsabilidades desempenhadas e aos documentos comprobatórios correspondentes.` },
+    { id: "conclusion", content: `Diante da trajetória, formação e atividades apresentadas neste Memorial Descritivo, solicito a apreciação do pedido de Reconhecimento de Saberes e Competências no nível ${project.rscLevel}. Declaro que as informações serão revisadas e acompanhadas das evidências pertinentes antes do protocolo.` },
+  ]
+}
+
 function MemorialSectionEditor({ project, onChange }: { project: LocalProject; onChange: (sections: MemorialSection[]) => void }) {
   const [activeId, setActiveId] = React.useState("cover")
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false)
   const [isClearAllDialogOpen, setIsClearAllDialogOpen] = React.useState(false)
+  const [isTextBaseDialogOpen, setIsTextBaseDialogOpen] = React.useState(false)
   const sections = project.memorialSections ?? []
   const activeIndex = memorialSteps.findIndex((step) => step.id === activeId)
   const activeStep = memorialSteps[activeIndex]
@@ -327,6 +361,7 @@ function MemorialSectionEditor({ project, onChange }: { project: LocalProject; o
         <p className="max-w-3xl text-base text-muted-foreground">Organize sua trajetória profissional por seções e redija cada etapa do memorial. O conteúdo será consolidado no documento final.</p>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
+        <Button variant="outline" onClick={() => setIsTextBaseDialogOpen(true)}><BookOpen /> Inserir texto-base gerado</Button>
         <Button variant="outline" disabled={completedCount === 0} onClick={() => setIsClearAllDialogOpen(true)}>Limpar tudo</Button>
         <Button variant="outline" onClick={() => setIsPreviewOpen(true)}><FileText /> Pré-visualizar PDF</Button>
       </div>
@@ -386,6 +421,13 @@ function MemorialSectionEditor({ project, onChange }: { project: LocalProject; o
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle>Limpar todo o memorial?</DialogTitle><DialogDescription>Todo o conteúdo redigido nas {completedCount} seções preenchidas será removido permanentemente.</DialogDescription></DialogHeader>
         <DialogFooter><Button variant="outline" onClick={() => setIsClearAllDialogOpen(false)}>Cancelar</Button><Button variant="destructive" onClick={() => { onChange([]); setIsClearAllDialogOpen(false) }}>Limpar tudo</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={isTextBaseDialogOpen} onOpenChange={setIsTextBaseDialogOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle>Inserir texto-base gerado?</DialogTitle><DialogDescription>Será inserido um rascunho estático nas sete seções, com os dados cadastrados do docente e do processo de RSC. O conteúdo atual será substituído; revise e complemente o texto antes do protocolo.</DialogDescription></DialogHeader>
+        <DialogFooter><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(false)}>Cancelar</Button><Button onClick={() => { onChange(buildMemorialTextBase(project)); setActiveId("cover"); setIsTextBaseDialogOpen(false) }}>Inserir texto-base</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </section>
