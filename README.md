@@ -2,6 +2,16 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
+## Formulários
+
+Para a entrada e validação de dados em formulários, use exclusivamente a combinação abaixo:
+
+- [`react-hook-form`](https://react-hook-form.com/): gerencia o estado dos campos, a submissão, os erros e o desempenho dos formulários.
+- [`zod`](https://zod.dev/): define os schemas, as regras de validação e os tipos dos dados, incluindo campos obrigatórios, CPF, datas e referências.
+- [`@hookform/resolvers`](https://github.com/react-hook-form/resolvers): conecta os schemas do Zod ao React Hook Form.
+
+Não utilize outra biblioteca para gerenciamento ou validação de formulários sem uma justificativa documentada ou uma limitação comprovada dessas ferramentas.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
