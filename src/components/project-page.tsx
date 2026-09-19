@@ -27,6 +27,9 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getLocalProjects } from "@/lib/projects"
 import { type Formation, updateLocalProject } from "@/lib/projects"
+import type { Regulation } from "@/domain/regulation"
+import { calculateLevelProjection, type LevelProjection } from "@/domain/scoring"
+import type { RequirementOccurrence } from "@/lib/projects"
 
 const pages = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard, description: "Progresso, pontuação, comprovantes, pendências e backup." },
@@ -39,10 +42,10 @@ const pages = [
   { id: "documents", label: "Documentos", icon: HardDrive, description: "PDFs, JSON, backup, ZIP, importação e restauração." },
 ] as const
 
-type ProjectPageProps = { localId: string; section: string }
+type ProjectPageProps = { localId: string; section: string; catalog: Regulation }
 
-export function ProjectPage({ localId, section }: ProjectPageProps) {
-  const project = getLocalProjects().find((item) => item.localId === localId)
+export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
+  const [project, setProject] = React.useState(() => getLocalProjects().find((item) => item.localId === localId))
   const activePage = pages.find((page) => page.id === section) ?? pages[0]
   const Icon = activePage.icon
 
@@ -55,13 +58,18 @@ export function ProjectPage({ localId, section }: ProjectPageProps) {
           <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-5" /></span>
           <div><h3 className="text-xl font-semibold">{activePage.label}</h3><p className="text-sm text-muted-foreground">{activePage.description}</p></div>
         </div>
-        <ProjectSection section={activePage.id} project={project} />
+        <ProjectSection section={activePage.id} project={project} catalog={catalog} onOccurrencesChange={(occurrences) => {
+          if (!project) return
+          const nextProject = { ...project, requirementOccurrences: occurrences, updatedAt: new Date().toISOString() }
+          updateLocalProject(nextProject)
+          setProject(nextProject)
+        }} />
       </section>
     </div>
   </main>
 }
 
-function ProjectSection({ section, project }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number] }) {
+function ProjectSection({ section, project, catalog, onOccurrencesChange }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number]; catalog: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void }) {
   if (section === "overview") return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento da avaliação</CardTitle><CardDescription>Complete as seções para avançar na revisão.</CardDescription></CardHeader><CardContent><Progress value={0}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
     <Card><CardHeader><CardTitle>Pontuação estimada</CardTitle><CardDescription>Sem lançamentos avaliados.</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold">0 pts</p></CardContent></Card>
@@ -69,7 +77,7 @@ function ProjectSection({ section, project }: { section: (typeof pages)[number][
   </div>
   if (section === "profile") return <IdentificationForm />
   if (section === "education") return project ? <EducationSection project={project} /> : null
-  if (section === "requirements") return <RequirementsSection />
+  if (section === "requirements") return project ? <RequirementsSection project={project} catalog={catalog} projections={{ "rsc-i": calculateLevelProjection(catalog, "rsc-i", project.requirementOccurrences ?? []), "rsc-ii": calculateLevelProjection(catalog, "rsc-ii", project.requirementOccurrences ?? []), "rsc-iii": calculateLevelProjection(catalog, "rsc-iii", project.requirementOccurrences ?? []) }} onOccurrencesChange={onOccurrencesChange} /> : null
   if (section === "preview") return <Card className="mt-6"><CardContent className="p-6"><div className="mx-auto aspect-[210/297] max-w-xl border bg-background p-8 shadow-sm"><p className="text-sm font-semibold">Memorial RSC</p><div className="mt-8 space-y-3"><div className="h-2 w-2/3 rounded bg-muted" /><div className="h-2 rounded bg-muted" /><div className="h-2 w-5/6 rounded bg-muted" /></div></div></CardContent></Card>
   return <div className="mt-6 grid gap-4 md:grid-cols-2"><InfoCard title={section === "documents" ? "Arquivos do projeto" : "Nenhum dado cadastrado"} text={section === "documents" ? "Exporte PDFs, JSON e backup ZIP, ou importe uma restauração." : "Adicione informações para compor esta etapa da avaliação."} /><Card><CardHeader><CardTitle>Próxima ação</CardTitle><CardDescription>Esta seção está pronta para receber seus lançamentos.</CardDescription></CardHeader><CardContent><Button><CheckCircle2 /> Adicionar informação</Button></CardContent></Card></div>
 }
@@ -79,62 +87,70 @@ function InfoCard({ title, text }: { title: string; text: string }) {
 }
 
 const requirementLevels = [
-  { id: "rsc-i", label: "RSC I", title: "Reconhecimento de Saberes e Competências I", description: "Explore os requisitos aplicáveis ao primeiro nível de reconhecimento." },
-  { id: "rsc-ii", label: "RSC II", title: "Reconhecimento de Saberes e Competências II", description: "Explore os requisitos aplicáveis ao segundo nível de reconhecimento." },
-  { id: "rsc-iii", label: "RSC III", title: "Reconhecimento de Saberes e Competências III", description: "Explore os requisitos aplicáveis ao terceiro nível de reconhecimento." },
+  { id: "rsc-i", label: "RSC I" },
+  { id: "rsc-ii", label: "RSC II" },
+  { id: "rsc-iii", label: "RSC III" },
 ] as const
 
-function RequirementsSection() {
-  const [level, setLevel] = React.useState<(typeof requirementLevels)[number]["id"]>("rsc-i")
+const occurrenceSchema = z.object({
+  period: z.string(),
+  quantity: z.coerce.number().positive("Informe uma quantidade maior que zero."),
+  description: z.string().trim().min(1, "Descreva a atividade."),
+  results: z.string().trim(),
+  competencies: z.string().trim(),
+  evidence: z.string().trim(),
+})
+type OccurrenceValues = z.infer<typeof occurrenceSchema>
+type OccurrenceFormValues = z.input<typeof occurrenceSchema>
+const emptyOccurrence: OccurrenceValues = { period: "", quantity: 1, description: "", results: "", competencies: "", evidence: "" }
+
+function RequirementsSection({ project, catalog, projections, onOccurrencesChange }: { project: ReturnType<typeof getLocalProjects>[number]; catalog: Regulation; projections: Record<"rsc-i" | "rsc-ii" | "rsc-iii", LevelProjection>; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void }) {
+  const [levelId, setLevelId] = React.useState<"rsc-i" | "rsc-ii" | "rsc-iii">("rsc-i")
+  const [query, setQuery] = React.useState("")
+  const [criterionId, setCriterionId] = React.useState<string | null>(null)
+  const [attachments, setAttachments] = React.useState<string[]>([])
+  const form = useForm<OccurrenceFormValues, unknown, OccurrenceValues>({ resolver: zodResolver(occurrenceSchema), defaultValues: emptyOccurrence })
+  const level = catalog.levels.find((item) => item.section === levelId)!
+  const projection = projections[levelId]
+  const selectedCriterion = level.criteria.find((item) => item.id === criterionId) ?? null
+  const unassignedOccurrences = (project.requirementOccurrences ?? []).filter((item) => !item.criterionId || !item.selectedLevel)
+  const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR")
+  const matches = (description: string) => !normalizedQuery || description.toLocaleLowerCase("pt-BR").includes(normalizedQuery)
+  const openDialog = (id: string) => { form.reset(emptyOccurrence); setAttachments([]); setCriterionId(id) }
+  const saveOccurrence = (values: OccurrenceValues) => {
+    if (!selectedCriterion) return
+    const now = new Date().toISOString()
+    onOccurrencesChange([...(project.requirementOccurrences ?? []), { id: crypto.randomUUID(), criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, createdAt: now, updatedAt: now }])
+    setCriterionId(null)
+  }
 
   return <section className="mt-6">
-    <Tabs value={level} onValueChange={(value) => setLevel(value as typeof level)}>
+    <Tabs value={levelId} onValueChange={(value) => { setLevelId(value as typeof levelId); setQuery("") }}>
       <Card>
-        <CardHeader>
-          <CardTitle>1. Escolha o nível de RSC</CardTitle>
-          <CardDescription>Selecione o nível para navegar pelo catálogo normativo correspondente.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TabsList aria-label="Nível de RSC" className="grid w-full max-w-md grid-cols-3">
-            {requirementLevels.map((item) => <TabsTrigger key={item.id} value={item.id}>{item.label}</TabsTrigger>)}
-          </TabsList>
+        <CardHeader><CardTitle>Catálogo de requisitos</CardTitle><CardDescription>Escolha um nível, pesquise as descrições e vincule suas experiências a um critério normativo.</CardDescription></CardHeader>
+        <CardContent className="space-y-4">
+          <TabsList aria-label="Nível de RSC" className="grid w-full max-w-md grid-cols-3">{requirementLevels.map((item) => <TabsTrigger key={item.id} value={item.id}>{item.label}</TabsTrigger>)}</TabsList>
+          <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Pesquisar nas descrições dos requisitos" aria-label="Pesquisar requisitos" />
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted p-3 text-sm"><span>{catalog.metadata.regulation.authority} nº {catalog.metadata.regulation.number}/{catalog.metadata.regulation.year} · {level.directives.length} diretrizes</span><Badge variant="secondary">Estimativa: {projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</Badge></div>
         </CardContent>
       </Card>
 
-      {requirementLevels.map((item) => <TabsContent key={item.id} value={item.id} className="mt-4">
-        <div className="grid gap-4 lg:grid-cols-5">
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div><CardTitle>{item.title}</CardTitle><CardDescription className="mt-1">{item.description}</CardDescription></div>
-                <Badge variant="secondary">Catálogo normativo</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border border-dashed p-5">
-                <p className="font-medium">Itens organizados por tipo</p>
-                <p className="mt-1 text-sm text-muted-foreground">A listagem de itens e seus agrupamentos será exibida aqui na próxima etapa.</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>2. Registre sua experiência</CardTitle>
-              <CardDescription>Escolha um item do catálogo para vincular a experiência docente.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="grid gap-4" onSubmit={(event) => event.preventDefault()}>
-                <FormField label="Item do requisito"><Input disabled placeholder="Selecione um item do catálogo" /></FormField>
-                <FormField label="Descrição da experiência"><Textarea disabled rows={4} placeholder="Descreva a atividade, período e evidências." /></FormField>
-                <Button type="submit" disabled>Salvar experiência</Button>
-              </form>
-              <p className="mt-3 text-xs text-muted-foreground">O formulário será habilitado após a seleção de um item.</p>
-            </CardContent>
-          </Card>
-        </div>
+      {requirementLevels.map((item) => <TabsContent key={item.id} value={item.id} className="mt-4 space-y-4">
+        {projection.provisional && <Card><CardContent className="p-4 text-sm text-muted-foreground">Este catálogo está pendente de validação humana final. As pontuações exibidas são estimativas provisórias e não representam pontuação oficial.</CardContent></Card>}
+        {level.directives.map((directive) => {
+          const criteria = level.criteria.filter((criterion) => criterion.directiveId === directive.id && matches(criterion.description))
+          if (criteria.length === 0) return null
+          return <Card key={directive.id}><CardHeader><div className="flex flex-wrap items-start justify-between gap-3"><div><CardDescription>Diretriz {directive.code}</CardDescription><CardTitle className="mt-1 text-base">{directive.title}</CardTitle></div><Badge variant="outline">{projection.directiveScores[directive.id].toLocaleString("pt-BR", { maximumFractionDigits: 2 })} / {directive.maxScore} pts</Badge></div></CardHeader><CardContent className="grid gap-3">{criteria.map((criterion) => {
+            const score = projection.criterionScores[criterion.id]
+            return <div key={criterion.id} className="rounded-lg border p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><p className="font-medium"><span className="mr-2 text-muted-foreground">{criterion.code}</span>{criterion.description}</p><div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground"><span>Unidade: {criterion.unit}</span><span>Máximo: {criterion.maxQuantity}</span><span>Fator: {criterion.factor}</span><span>Peso: {criterion.weight}</span></div></div><Button size="sm" onClick={() => openDialog(criterion.id)}>Adicionar lançamento</Button></div><div className="mt-3 flex flex-wrap items-center gap-2 text-sm"><Badge variant="secondary">Quantidade: {score.quantity} de {criterion.maxQuantity}</Badge>{score.blocked ? <Badge variant="destructive">Cálculo bloqueado por conflito normativo</Badge> : <span className="text-muted-foreground">Estimativa do critério: {score.score.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</span>}</div></div>
+          })}</CardContent></Card>
+        })}
       </TabsContent>)}
     </Tabs>
+
+    {unassignedOccurrences.length > 0 && <Card className="mt-4"><CardHeader><CardTitle>Lançamentos aguardando enquadramento</CardTitle><CardDescription>Essas ocorrências ainda não estão vinculadas a um critério e não entram na estimativa.</CardDescription></CardHeader><CardContent className="space-y-2">{unassignedOccurrences.map((occurrence) => <div key={occurrence.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{occurrence.description || "Lançamento sem descrição"}</p><p className="mt-1 text-muted-foreground">Quantidade: {occurrence.quantity}</p></div>)}</CardContent></Card>}
+
+    <Dialog open={Boolean(selectedCriterion)} onOpenChange={(open) => { if (!open) setCriterionId(null) }}><DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>Adicionar lançamento</DialogTitle><DialogDescription>{selectedCriterion ? `${selectedCriterion.code} · ${selectedCriterion.description}` : ""}</DialogDescription></DialogHeader><form className="grid gap-4" noValidate onSubmit={form.handleSubmit(saveOccurrence)}><div className="grid gap-4 sm:grid-cols-2"><FormField label="Período (opcional)" error={form.formState.errors.period}><Input placeholder="Ex.: 2024.1 a 2024.2" {...form.register("period")} /></FormField><FormField label={`Quantidade (${selectedCriterion?.unit ?? ""})`} required error={form.formState.errors.quantity as FieldError | undefined}><Input type="number" min="0.01" step="any" {...form.register("quantity")} /></FormField></div><FormField label="Descrição da atividade" required error={form.formState.errors.description}><Textarea rows={3} {...form.register("description")} /></FormField><FormField label="Resultados alcançados" error={form.formState.errors.results}><Textarea rows={3} {...form.register("results")} /></FormField><FormField label="Competências relacionadas" error={form.formState.errors.competencies}><Textarea rows={3} {...form.register("competencies")} /></FormField><FormField label="Evidências e anexos comprobatórios" error={form.formState.errors.evidence}><Textarea rows={3} placeholder="Informe links, referências ou identificação dos comprovantes." {...form.register("evidence")} /></FormField><div className="grid gap-1.5 text-sm font-medium"><label htmlFor="occurrence-attachments">Adicionar anexos</label><Input id="occurrence-attachments" type="file" multiple onChange={(event) => setAttachments(Array.from(event.target.files ?? []).map((file) => file.name))} /><span className="text-xs font-normal text-muted-foreground">{attachments.length ? attachments.join(", ") : "Nenhum arquivo selecionado."}</span></div><p className="text-sm text-muted-foreground">A pontuação é calculada automaticamente a partir das quantidades lançadas e dos limites do catálogo.</p><DialogFooter><DialogClose render={<Button type="button" variant="outline" />}>Cancelar</DialogClose><Button type="submit">Salvar lançamento</Button></DialogFooter></form></DialogContent></Dialog>
   </section>
 }
 

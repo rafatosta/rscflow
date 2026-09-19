@@ -7,6 +7,9 @@ import { ProjectPage } from "@/components/project-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { getLocalProjects } from "@/lib/projects"
+import { loadIfbaRegulation } from "@/data/regulations/load"
+
+const regulationCatalog = loadIfbaRegulation()
 
 const navigationItems: NavigationItem[] = [
   { id: "visao-geral", label: "Visão geral", icon: "layout-dashboard" },
@@ -74,7 +77,7 @@ function App() {
           revision={project?.revision}
         />
         {isProjectRoute ? (
-          <ProjectPage localId={routeMatch?.[1] ?? ""} section={projectSection} />
+          <ProjectPage localId={routeMatch?.[1] ?? ""} section={projectSection} catalog={regulationCatalog} />
         ) : (
           <HomePage onNavigate={navigate} />
         )}

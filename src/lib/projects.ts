@@ -8,6 +8,7 @@ export type LocalProject = {
   updatedAt: string
   schemaVersion: string
   formations?: Formation[]
+  requirementOccurrences?: RequirementOccurrence[]
 }
 
 export type Formation = {
@@ -22,6 +23,21 @@ export type Formation = {
   documentReference: string
   attachmentName: string
   notes: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type RequirementOccurrence = {
+  id: string
+  criterionId?: string
+  selectedLevel?: "rsc-i" | "rsc-ii" | "rsc-iii"
+  period: string
+  quantity: number
+  description: string
+  results: string
+  competencies: string
+  evidence: string
+  attachmentNames: string[]
   createdAt: string
   updatedAt: string
 }
