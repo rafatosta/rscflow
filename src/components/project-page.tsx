@@ -284,33 +284,14 @@ function DocumentViewer({ project, catalog, documentId, onMemorialChange }: { pr
 function MemorialDocumentViewer({ project, catalog, onChange, onDownload }: { project: LocalProject; catalog?: Regulation; onChange: (sections: MemorialSection[]) => void; onDownload: () => void }) {
   const [pageIndex, setPageIndex] = React.useState(0)
   const [isTextBaseDialogOpen, setIsTextBaseDialogOpen] = React.useState(false)
-  const [isEditingOpen, setIsEditingOpen] = React.useState(false)
-  const [editingSectionId, setEditingSectionId] = React.useState<(typeof memorialSteps)[number]["id"]>("introduction")
-  const [editingContent, setEditingContent] = React.useState("")
   const contentPages = React.useMemo(() => createMemorialPages(project.memorialSections ?? []), [project.memorialSections])
   const totalPages = contentPages.length + 2
   const currentContent = contentPages[pageIndex - 2]
   const summary = contentPages.reduce<{ title: string; page: number }[]>((items, page, index) => page.title.endsWith("(continuação)") ? items : [...items, { title: page.title, page: index + 3 }], [])
   const pageTitle = pageIndex === 0 ? "Capa" : pageIndex === 1 ? "Sumário" : currentContent?.title ?? "Conteúdo"
-  const openEditor = () => {
-    const section = project.memorialSections?.find((item) => item.id === editingSectionId)
-    setEditingContent(section?.content ?? "")
-    setIsEditingOpen(true)
-  }
-  const changeEditingSection = (id: string | null) => {
-    if (!id) return
-    const sectionId = id as (typeof memorialSteps)[number]["id"]
-    setEditingSectionId(sectionId)
-    setEditingContent(project.memorialSections?.find((item) => item.id === sectionId)?.content ?? "")
-  }
-  const saveEditingSection = () => {
-    const remainingSections = (project.memorialSections ?? []).filter((item) => item.id !== editingSectionId)
-    onChange(editingContent.trim() ? [...remainingSections, { id: editingSectionId, content: editingContent }] : remainingSections)
-    setIsEditingOpen(false)
-  }
 
   return <section className="mt-6 space-y-4">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Memorial organizado em capa, sumário e seções editoriais paginadas.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(true)}><BookOpen /> Autopreencher textos</Button><Button variant="outline" onClick={openEditor}><Pencil /> Editar textos</Button><Button variant="outline" onClick={onDownload}><Download /> Baixar</Button></div></div>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Memorial organizado em capa, sumário e seções editoriais paginadas.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(true)}><BookOpen /> Autopreencher textos</Button><Button variant="outline" render={<a href={projectSectionHref(project, "memorial")} />}><Pencil /> Editar textos</Button><Button variant="outline" onClick={onDownload}><Download /> Baixar</Button></div></div>
     <div className="flex gap-2 overflow-x-auto pb-1"><Button variant={pageIndex === 0 ? "secondary" : "outline"} onClick={() => setPageIndex(0)}>Capa</Button><Button variant={pageIndex === 1 ? "secondary" : "outline"} onClick={() => setPageIndex(1)}>Sumário</Button>{contentPages.map((page, index) => <Button key={`${page.title}-${index}`} variant={pageIndex === index + 2 ? "secondary" : "outline"} onClick={() => setPageIndex(index + 2)}>{index + 3} · {page.title}</Button>)}</div>
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex min-h-[297mm] w-[210mm] min-w-[210mm] flex-col bg-background p-10 shadow-sm">
       {pageIndex === 0 && <MemorialCover project={project} />}
@@ -321,9 +302,6 @@ function MemorialDocumentViewer({ project, catalog, onChange, onDownload }: { pr
     {!contentPages.length && <Alert><CircleAlert /><AlertTitle>Conteúdo do memorial pendente</AlertTitle><AlertDescription>Preencha as seções do Memorial para compor as páginas do documento.</AlertDescription></Alert>}
     <Dialog open={isTextBaseDialogOpen} onOpenChange={setIsTextBaseDialogOpen}>
       <DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Autopreencher o Memorial?</DialogTitle><DialogDescription>Um texto-base editável será criado com os dados cadastrados no processo. O conteúdo atual das seções será substituído.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(false)}>Cancelar</Button><Button onClick={() => { onChange(buildMemorialTextBase(project, catalog)); setPageIndex(0); setIsTextBaseDialogOpen(false) }}>Autopreencher</Button></DialogFooter></DialogContent>
-    </Dialog>
-    <Dialog open={isEditingOpen} onOpenChange={setIsEditingOpen}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl"><DialogHeader><DialogTitle>Editar texto do Memorial</DialogTitle><DialogDescription>Selecione uma seção e ajuste o texto que será exibido no documento.</DialogDescription></DialogHeader><div className="grid gap-4"><Select value={editingSectionId} onValueChange={changeEditingSection}><SelectTrigger aria-label="Seção do Memorial"><SelectValue /></SelectTrigger><SelectContent>{memorialSteps.map((step) => <SelectItem key={step.id} value={step.id}>{step.label}</SelectItem>)}</SelectContent></Select><Textarea value={editingContent} onChange={(event) => setEditingContent(event.target.value)} className="min-h-72 resize-y" aria-label="Texto da seção do Memorial" /></div><DialogFooter><Button variant="outline" onClick={() => setIsEditingOpen(false)}>Cancelar</Button><Button onClick={saveEditingSection}>Salvar alterações</Button></DialogFooter></DialogContent>
     </Dialog>
   </section>
 }
