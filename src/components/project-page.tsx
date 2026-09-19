@@ -110,6 +110,7 @@ const memorialSteps = [
 function MemorialSectionEditor({ project, onChange }: { project: ReturnType<typeof getLocalProjects>[number]; onChange: (sections: MemorialSection[]) => void }) {
   const [activeId, setActiveId] = React.useState("cover")
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
+  const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false)
   const sections = project.memorialSections ?? []
   const activeIndex = memorialSteps.findIndex((step) => step.id === activeId)
   const activeStep = memorialSteps[activeIndex]
@@ -158,6 +159,7 @@ function MemorialSectionEditor({ project, onChange }: { project: ReturnType<type
           <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">{activeContent.length} caracteres</p>
             <div className="flex justify-end gap-3">
+              <Button variant="outline" disabled={!activeContent} onClick={() => setIsClearDialogOpen(true)}>Limpar</Button>
               <Button variant="outline" disabled={activeIndex === 0} onClick={() => moveTo(activeIndex - 1)}>Anterior</Button>
               <Button disabled={activeIndex === memorialSteps.length - 1} onClick={() => moveTo(activeIndex + 1)}>Próxima seção <ChevronRight /></Button>
             </div>
@@ -173,6 +175,13 @@ function MemorialSectionEditor({ project, onChange }: { project: ReturnType<type
           {memorialSteps.filter((step) => sections.some((item) => item.id === step.id && item.content.trim())).map((step) => <section key={step.id}><h3 className="font-semibold">{step.label}</h3><p className="mt-2 whitespace-pre-wrap text-muted-foreground">{sections.find((item) => item.id === step.id)?.content}</p></section>)}
           {completedCount === 0 && <p className="text-muted-foreground">Nenhuma seção foi preenchida ainda.</p>}
         </article>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle>Limpar seção?</DialogTitle><DialogDescription>O texto de “{activeStep.label}” será removido do memorial.</DialogDescription></DialogHeader>
+        <DialogFooter><Button variant="outline" onClick={() => setIsClearDialogOpen(false)}>Cancelar</Button><Button variant="destructive" onClick={() => { updateContent(""); setIsClearDialogOpen(false) }}>Limpar seção</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </section>
