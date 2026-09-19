@@ -1,5 +1,6 @@
 import type { Regulation } from "@/domain/regulation"
 import type { LocalProject, StoredAttachment } from "@/lib/projects"
+import { calculateLevelProjection } from "@/domain/scoring"
 
 type PdfPage = { title: string; lines: string[]; eyebrow?: string; cover?: boolean }
 
@@ -94,12 +95,49 @@ export function createMemorialPdf(project: LocalProject) {
 }
 
 export function createFormsPdf(project: LocalProject, catalog?: Regulation) {
-  const criteria = catalog?.levels.flatMap((level) => level.criteria) ?? []
   const occurrences = project.requirementOccurrences ?? []
-  const pages: PdfPage[] = [{ title: "Formulários normativos", lines: [project.rscLevel, "", project.identification?.name ?? project.name, project.identification?.siape ? `SIAPE: ${project.identification.siape}` : "SIAPE não informado"], cover: true, eyebrow: "Formulários normativos" }, { title: "Identificação e norma", lines: [...identity(project), catalog ? `Regulamento: ${catalog.metadata.regulation.authority} · Resolução nº ${catalog.metadata.regulation.number}/${catalog.metadata.regulation.year}` : "Regulamento local não disponível."], eyebrow: "Formulário normativo" }]
-  occurrences.forEach((occurrence, index) => {
-    const criterion = criteria.find((item) => item.id === occurrence.criterionId)
-    pages.push({ title: `Lançamento ${index + 1}`, lines: [`Critério: ${criterion ? `${criterion.code} · ${criterion.description}` : "Não informado"}`, `Período: ${occurrence.period || "Não informado"}`, `Quantidade: ${occurrence.quantity}`, `Atividade: ${occurrence.description}`, occurrence.results && `Resultados: ${occurrence.results}`, occurrence.competencies && `Competências: ${occurrence.competencies}`, occurrence.evidence && `Evidência declarada: ${occurrence.evidence}`].filter(Boolean) as string[], eyebrow: "Formulário normativo" })
+  const number = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })
+  const levelLabels = { "rsc-i": "RSC I", "rsc-ii": "RSC II", "rsc-iii": "RSC III" } as const
+  const pages: PdfPage[] = [{ title: "Formulários normativos", lines: [project.rscLevel, "", project.identification?.name ?? project.name, project.identification?.siape ? `SIAPE: ${project.identification.siape}` : "SIAPE não informado"], cover: true, eyebrow: "Formulários normativos" }, {
+    title: "Anexo II - Solicitação de Reconhecimento de Saberes e Competências à CPPD",
+    lines: [...identity(project), `CPF: ${project.identification?.cpf ?? "Não informado"}`, `E-mail: ${project.identification?.professionalEmail || project.identification?.personalEmail || "Não informado"}`, `Telefone: ${project.identification?.phone ?? "Não informado"}`, "", `Nível de RSC pretendido: ${project.rscLevel}`, `Regulamento: ${catalog ? `${catalog.metadata.regulation.authority} · Resolução nº ${catalog.metadata.regulation.number}/${catalog.metadata.regulation.year}` : "Regulamento local não disponível."}`],
+    eyebrow: "Anexo II",
+  }]
+
+  if (!catalog) return createPdf([...pages, { title: "Anexos III a VI", lines: ["Dataset normativo indisponível para preencher os formulários de pontuação."], eyebrow: "Formulários normativos" }])
+
+  pages.push({
+    title: "Anexo III - Formulário para indicar pontuação obtida",
+    lines: catalog.levels.flatMap((level) => {
+      const projection = calculateLevelProjection(catalog, level.section, occurrences)
+      return [
+        `Reconhecimento de Saberes e Competências - ${levelLabels[level.section]}`,
+        ...level.directives.map((directive) => `${directive.code}) ${directive.title} · Peso ${directive.weight} · Máximo ${number(directive.maxScore)} · Obtido ${number(projection.directiveScores[directive.id] ?? 0)}`),
+        `Total ${levelLabels[level.section]}: ${number(projection.total)} pontos`,
+        "",
+      ]
+    }),
+    eyebrow: "Anexo III",
+  })
+
+  catalog.levels.forEach((level, index) => {
+    const projection = calculateLevelProjection(catalog, level.section, occurrences)
+    pages.push({
+      title: `Anexo ${index + 4} - Quadro de referência de critérios para o ${levelLabels[level.section]}`,
+      lines: level.directives.flatMap((directive) => {
+        const criteria = level.criteria.filter((criterion) => criterion.directiveId === directive.id)
+        return [
+          `${directive.code}) ${directive.title}`,
+          ...criteria.map((criterion) => {
+            const score = projection.criterionScores[criterion.id]
+            return `${criterion.code} · ${criterion.description} · Fator ${number(criterion.factor)} · UN ${criterion.unit} · Máximo ${number(criterion.maxQuantity)} · Peso ${number(criterion.weight)} · Quantidade comprovada ${number(score?.quantity ?? 0)} · Pontuação final ${score?.blocked ? "-" : number(score?.score ?? 0)}`
+          }),
+          `Pontuação máxima da diretriz: ${number(directive.maxScore)} pontos · Pontuação obtida: ${number(projection.directiveScores[directive.id] ?? 0)}`,
+          "",
+        ]
+      }),
+      eyebrow: `Anexo ${index + 4}`,
+    })
   })
   return createPdf(pages)
 }
