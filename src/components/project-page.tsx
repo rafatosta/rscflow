@@ -198,7 +198,7 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
   const [zoom, setZoom] = React.useState(85)
   const [showThumbnails, setShowThumbnails] = React.useState(true)
   const [showContext, setShowContext] = React.useState(true)
-  const occurrences = project.requirementOccurrences ?? []
+  const occurrences = React.useMemo(() => project.requirementOccurrences ?? [], [project.requirementOccurrences])
   const formations = project.formations ?? []
   const memorial = project.memorialSections ?? []
   const hasConclusion = memorial.some((section) => section.id === "conclusion" && section.content.trim())
@@ -439,8 +439,33 @@ function formatFormDate(value?: string) {
 
 function NormativeFormsViewer({ project, catalog, onDocumentChange }: { project: LocalProject; catalog?: Regulation; onDocumentChange: (id: PreviewDocument["id"]) => void }) {
   const [formId, setFormId] = React.useState<NormativeFormId>("request")
-  const occurrences = project.requirementOccurrences ?? []
+  const [storedAttachments, setStoredAttachments] = React.useState<StoredAttachment[]>([])
+  const [evidencePageCounts, setEvidencePageCounts] = React.useState<Record<string, number>>({})
+  const occurrences = React.useMemo(() => project.requirementOccurrences ?? [], [project.requirementOccurrences])
   const title = normativeFormTabs.find((tab) => tab.id === formId)?.label
+  const evidenceEntries = React.useMemo(() => createEvidenceEntries(occurrences, catalog, storedAttachments), [catalog, occurrences, storedAttachments])
+
+  React.useEffect(() => { void getStoredAttachments(project.localId).then(setStoredAttachments) }, [project.localId])
+  React.useEffect(() => {
+    let active = true
+    void Promise.all(evidenceEntries.map(async (entry, index) => {
+      if (!entry.file || !isPdfFile(entry.file)) return [evidenceEntryKey(entry, index), 1] as const
+      const task = getDocument({ data: new Uint8Array(await entry.file.arrayBuffer()) })
+      try { return [evidenceEntryKey(entry, index), (await task.promise).numPages] as const } catch { return [evidenceEntryKey(entry, index), 1] as const } finally { task.destroy() }
+    })).then((counts) => { if (active) setEvidencePageCounts(Object.fromEntries(counts)) })
+    return () => { active = false }
+  }, [evidenceEntries])
+
+  const firstEvidencePages = React.useMemo(() => {
+    const pages: Record<string, number> = {}
+    let page = 3
+    evidenceEntries.forEach((entry, index) => {
+      const criterionId = entry.occurrence.criterionId
+      if (criterionId && pages[criterionId] === undefined) pages[criterionId] = page
+      page += evidencePageCounts[evidenceEntryKey(entry, index)] ?? 1
+    })
+    return pages
+  }, [evidenceEntries, evidencePageCounts])
 
   return <section className="mt-6 space-y-4">
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Planilhas normativas preenchidas a partir da identificação, dos lançamentos e do catálogo local. Revise antes do protocolo.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => onDocumentChange("memorial")}><FileText /> Memorial</Button><Button variant="outline" onClick={() => onDocumentChange("evidence")}><FileText /> Comprovantes</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
@@ -448,7 +473,7 @@ function NormativeFormsViewer({ project, catalog, onDocumentChange }: { project:
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="normative-form mx-auto w-[210mm] min-w-[210mm] bg-background p-8 text-[10px] shadow-sm sm:p-10">
       {formId === "request" && <NormativeRequest project={project} />}
       {formId === "score" && <ScoreForm catalog={catalog} occurrences={occurrences} />}
-      {formId !== "request" && formId !== "score" && <CriteriaForm catalog={catalog} occurrences={occurrences} levelId={formId} />}
+      {formId !== "request" && formId !== "score" && <CriteriaForm catalog={catalog} occurrences={occurrences} levelId={formId} firstEvidencePages={firstEvidencePages} />}
       <footer className="mt-6 border-t pt-3 text-center text-[9px] text-muted-foreground">{title} · formulário normativo preenchido · {project.name}</footer>
     </article></div>
   </section>
@@ -484,19 +509,19 @@ function ScoreLevelTable({ catalog, occurrences, levelId }: { catalog: Regulatio
   return <section className="mt-5 break-inside-avoid"><h3 className="border border-foreground bg-muted py-1 text-center text-xs font-bold">RECONHECIMENTO DE SABERES E COMPETÊNCIAS – {label}</h3><table className="w-full border-collapse text-[10px]"><thead><tr className="bg-muted"><th className="border p-1">DIRETRIZ</th><th className="border p-1">PESO</th><th className="border p-1">PONTUAÇÃO MÁXIMA</th><th className="border p-1">PONTUAÇÃO OBTIDA</th><th className="border p-1">% OBTIDO EM RELAÇÃO AO MÁXIMO</th></tr></thead><tbody>{level.directives.map((directive) => { const score = projection.directiveScores[directive.id] ?? 0; return <tr key={directive.id}><td className="border p-1"><strong>{directive.code})</strong> {directive.title}</td><td className="border p-1 text-center">{directive.weight}</td><td className="border p-1 text-center">{formatFormNumber(directive.maxScore)}</td><td className="border p-1 text-center">{formatFormNumber(score)}</td><td className="border p-1 text-center">{directive.maxScore ? formatFormNumber((score / directive.maxScore) * 100) : "0"}%</td></tr> })}<tr className="bg-muted font-bold"><td className="border p-1 text-center">TOTAL</td><td className="border p-1 text-center">{level.directives.reduce((total, item) => total + item.weight, 0)}</td><td className="border p-1 text-center">{level.directives.reduce((total, item) => total + item.maxScore, 0)}</td><td className="border p-1 text-center">{formatFormNumber(projection.total)}</td><td className="border p-1 text-center">{formatFormNumber(projection.total)}%</td></tr></tbody></table></section>
 }
 
-function CriteriaForm({ catalog, occurrences, levelId }: { catalog?: Regulation; occurrences: RequirementOccurrence[]; levelId: "rsc-i" | "rsc-ii" | "rsc-iii" }) {
+function CriteriaForm({ catalog, occurrences, levelId, firstEvidencePages }: { catalog?: Regulation; occurrences: RequirementOccurrence[]; levelId: "rsc-i" | "rsc-ii" | "rsc-iii"; firstEvidencePages: Record<string, number> }) {
   const annex = { "rsc-i": "ANEXO – IV", "rsc-ii": "ANEXO – V", "rsc-iii": "ANEXO – VI" }[levelId]
   const label = rscSectionLabels[levelId]
   if (!catalog) return <p>Dataset normativo indisponível.</p>
   const level = catalog.levels.find((item) => item.section === levelId)!
   const projection = calculateLevelProjection(catalog, levelId, occurrences)
-  return <div className="font-serif"><header className="text-center"><p className="text-lg font-bold">{annex}</p><p className="mt-2 text-base">QUADRO DE REFERÊNCIA DE CRITÉRIOS PARA O {label}</p><p className="mt-2 text-base">FORMULÁRIO DE PONTUAÇÃO</p></header><section className="mt-4"><h3 className="border border-foreground bg-muted py-1 text-center text-xs font-bold">RECONHECIMENTO DE SABERES E COMPETÊNCIAS – {label}</h3>{level.directives.map((directive) => <CriteriaDirectiveTable key={directive.id} directive={directive} level={level} projection={projection} />)}</section></div>
+  return <div className="font-serif"><header className="text-center"><p className="text-lg font-bold">{annex}</p><p className="mt-2 text-base">QUADRO DE REFERÊNCIA DE CRITÉRIOS PARA O {label}</p><p className="mt-2 text-base">FORMULÁRIO DE PONTUAÇÃO</p></header><section className="mt-4"><h3 className="border border-foreground bg-muted py-1 text-center text-xs font-bold">RECONHECIMENTO DE SABERES E COMPETÊNCIAS – {label}</h3>{level.directives.map((directive) => <CriteriaDirectiveTable key={directive.id} directive={directive} level={level} projection={projection} firstEvidencePages={firstEvidencePages} />)}</section></div>
 }
 
-function CriteriaDirectiveTable({ directive, level, projection }: { directive: Regulation["levels"][number]["directives"][number]; level: Regulation["levels"][number]; projection: LevelProjection }) {
+function CriteriaDirectiveTable({ directive, level, projection, firstEvidencePages }: { directive: Regulation["levels"][number]["directives"][number]; level: Regulation["levels"][number]; projection: LevelProjection; firstEvidencePages: Record<string, number> }) {
   const criteria = level.criteria.filter((criterion) => criterion.directiveId === directive.id)
   const score = projection.directiveScores[directive.id] ?? 0
-  return <table className="w-full border-collapse text-[9px] break-inside-avoid"><thead><tr className="bg-muted"><th colSpan={2} className="border p-1 text-left">{directive.code}) {directive.title}</th><th className="border p-1">Fator de pontuação p/ unidade</th><th className="border p-1">UN</th><th className="border p-1">Quantidade máxima/UN</th><th className="border p-1">Peso</th><th className="border p-1">Quantidade comprovada (UN)</th><th className="border p-1">Pontuação final</th></tr></thead><tbody>{criteria.map((criterion) => { const item = projection.criterionScores[criterion.id]; return <tr key={criterion.id}><td className="border p-1 align-top">{criterion.code}</td><td className="border p-1">{criterion.description}</td><td className="border p-1 text-center">{formatFormNumber(criterion.factor)}</td><td className="border p-1 text-center">{criterion.unit}</td><td className="border p-1 text-center">{criterion.maxQuantity}</td><td className="border p-1 text-center">{criterion.weight}</td><td className="border p-1 text-center">{item?.quantity ?? 0}</td><td className="border p-1 text-center">{item?.blocked ? "—" : formatFormNumber(item?.score ?? 0)}</td></tr> })}<tr className="bg-muted font-bold"><td colSpan={6} className="border p-1 text-center">Pontuação máxima da diretriz: {directive.maxScore} pontos</td><td colSpan={2} className="border p-1 text-center">Pontuação obtida: {formatFormNumber(score)}</td></tr></tbody></table>
+  return <table className="w-full border-collapse text-[9px] break-inside-avoid"><thead><tr className="bg-muted"><th colSpan={2} className="border p-1 text-left">{directive.code}) {directive.title}</th><th className="border p-1">Fator de pontuação p/ unidade</th><th className="border p-1">UN</th><th className="border p-1">Quantidade máxima/UN</th><th className="border p-1">Peso</th><th className="border p-1">Quantidade comprovada (UN)</th><th className="border p-1">Pontuação final</th><th className="border p-1">Página inicial do comprovante</th></tr></thead><tbody>{criteria.map((criterion) => { const item = projection.criterionScores[criterion.id]; return <tr key={criterion.id}><td className="border p-1 align-top">{criterion.code}</td><td className="border p-1">{criterion.description}</td><td className="border p-1 text-center">{formatFormNumber(criterion.factor)}</td><td className="border p-1 text-center">{criterion.unit}</td><td className="border p-1 text-center">{criterion.maxQuantity}</td><td className="border p-1 text-center">{criterion.weight}</td><td className="border p-1 text-center">{item?.quantity ?? 0}</td><td className="border p-1 text-center">{item?.blocked ? "—" : formatFormNumber(item?.score ?? 0)}</td><td className="border p-1 text-center">{firstEvidencePages[criterion.id] ?? "—"}</td></tr> })}<tr className="bg-muted font-bold"><td colSpan={7} className="border p-1 text-center">Pontuação máxima da diretriz: {directive.maxScore} pontos</td><td colSpan={2} className="border p-1 text-center">Pontuação obtida: {formatFormNumber(score)}</td></tr></tbody></table>
 }
 
 function InfoCard({ title, text }: { title: string; text: string }) {
