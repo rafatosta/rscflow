@@ -45,6 +45,8 @@ const pages = [
   { id: "backup", label: "Backup e restauração", icon: HardDrive, description: "Exportar, proteger e recuperar cópias locais do processo." },
 ] as const
 
+const requestedLevelIds = { "RSC 1": "rsc-i", "RSC 2": "rsc-ii", "RSC 3": "rsc-iii", "RSC I": "rsc-i", "RSC II": "rsc-ii", "RSC III": "rsc-iii" } as const
+
 type ProjectPageProps = { section: string; catalog?: Regulation }
 
 function useUnsavedFormProtection(isDirty: boolean) {
@@ -209,7 +211,7 @@ function ReviewSection({ project, catalog }: { project: LocalProject; catalog?: 
   const [occurrencesWithFiles, setOccurrencesWithFiles] = React.useState<Set<string>>(() => new Set())
   const formations = project.formations ?? []
   const memorial = project.memorialSections ?? []
-  const requestedLevel = ({ "RSC I": "rsc-i", "RSC II": "rsc-ii", "RSC III": "rsc-iii" } as const)[project.rscLevel]
+  const requestedLevel = requestedLevelIds[project.rscLevel as keyof typeof requestedLevelIds]
   const requestedCatalogLevel = requestedLevel && catalog?.levels.find((level) => level.section === requestedLevel)
   const invalidOccurrences = occurrences.filter((occurrence) => !occurrence.selectedLevel || !occurrence.criterionId || !catalog?.levels.find((level) => level.section === occurrence.selectedLevel)?.criteria.some((criterion) => criterion.id === occurrence.criterionId))
   const occurrencesWithoutEvidence = occurrences.filter((occurrence) => !occurrence.evidence.trim() && occurrence.attachmentNames.length === 0)

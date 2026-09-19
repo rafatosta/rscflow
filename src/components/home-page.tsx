@@ -49,7 +49,7 @@ import {
 import { useLocalProjects } from "@/hooks/use-local-projects";
 import { loadRegulations } from "@/data/regulations/load";
 
-const rscLevels = ["RSC 1", "RSC 2", "RSC 3"];
+const rscLevels = ["RSC I", "RSC II", "RSC III"];
 const regulations = loadRegulations();
 
 type HomePageProps = { onNavigate: (path: string) => void };

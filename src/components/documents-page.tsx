@@ -12,7 +12,7 @@ import type { LocalProject } from "@/lib/projects"
 type ArtifactId = "memorial" | "forms" | "evidence" | "zip"
 type ArtifactState = "idle" | "processing" | "ready" | "error"
 
-const requestedLevel = { "RSC I": "rsc-i", "RSC II": "rsc-ii", "RSC III": "rsc-iii" } as const
+const requestedLevel = { "RSC 1": "rsc-i", "RSC 2": "rsc-ii", "RSC 3": "rsc-iii", "RSC I": "rsc-i", "RSC II": "rsc-ii", "RSC III": "rsc-iii" } as const
 
 function formatDate(value?: string) {
   return value ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)) : undefined
