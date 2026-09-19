@@ -253,7 +253,10 @@ function DocumentViewer({ project, catalog, documentId, onMemorialChange }: { pr
 
   const document = documents.find((item) => item.id === documentId) ?? documents[0]
   if (documentId === "memorial") return <MemorialDocumentViewer project={project} catalog={catalog} onChange={onMemorialChange} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
-  if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
+  if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDownload={(firstEvidencePages) => {
+    const slug = project.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "projeto"
+    downloadFile(`${slug}-formularios-normativos.pdf`, createFormsPdf(project, catalog, firstEvidencePages))
+  }} />
   if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} />
   const currentPageIndex = Math.min(pageIndex, document.pages.length - 1)
   const page = document.pages[currentPageIndex]
@@ -453,7 +456,7 @@ function formatFormDate(value?: string) {
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" }).format(date)
 }
 
-function NormativeFormsViewer({ project, catalog, onDownload }: { project: LocalProject; catalog?: Regulation; onDownload: () => void }) {
+function NormativeFormsViewer({ project, catalog, onDownload }: { project: LocalProject; catalog?: Regulation; onDownload: (firstEvidencePages: Record<string, number>) => void }) {
   const [formId, setFormId] = React.useState<NormativeFormId>("request")
   const [storedAttachments, setStoredAttachments] = React.useState<StoredAttachment[]>([])
   const [evidencePageCounts, setEvidencePageCounts] = React.useState<Record<string, number>>({})
@@ -484,7 +487,7 @@ function NormativeFormsViewer({ project, catalog, onDownload }: { project: Local
   }, [evidenceEntries, evidencePageCounts])
 
   return <section className="mt-6 space-y-4">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Planilhas normativas preenchidas a partir da identificação, dos lançamentos e do catálogo local. Revise antes do protocolo.</p><Button className="shrink-0" variant="outline" onClick={onDownload}><Download /> Baixar</Button></div>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Planilhas normativas preenchidas a partir da identificação, dos lançamentos e do catálogo local. Revise antes do protocolo.</p><Button className="shrink-0" variant="outline" onClick={() => onDownload(firstEvidencePages)}><Download /> Baixar</Button></div>
     <div className="flex flex-wrap gap-2">{normativeFormTabs.map((tab) => <Button key={tab.id} variant={formId === tab.id ? "secondary" : "outline"} onClick={() => setFormId(tab.id)}>{tab.label}</Button>)}</div>
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="normative-form mx-auto w-[210mm] min-w-[210mm] bg-background p-8 text-[10px] shadow-sm sm:p-10">
       {formId === "request" && <NormativeRequest project={project} />}

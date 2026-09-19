@@ -87,10 +87,10 @@ function tablePage(title: string, eyebrow: string, headers: string[], rows: stri
   const drawRow = (cells: string[], header = false) => {
     const cellLines = cells.map((cell, index) => line(cell, widths[index]))
     const height = Math.max(...cellLines.map((item) => item.length)) * lineHeight + padding * 2
-    if (header) commands.push("0.9 g", `${x} ${y - height} ${widths.reduce((total, value) => total + value, 0)} ${height} re f`, "0 g")
+    if (header) commands.push("0.95 g", `${x} ${y - height} ${widths.reduce((total, value) => total + value, 0)} ${height} re f`, "0 g")
     let cellX = x
     cells.forEach((_, index) => {
-      commands.push(`${cellX} ${y - height} ${widths[index]} ${height} re S`, "BT", header ? "/F2 6 Tf" : "/F1 6 Tf")
+      commands.push("0.65 G", "0.35 w", `${cellX} ${y - height} ${widths[index]} ${height} re S`, "0 g", "BT", header ? "/F2 6 Tf" : "/F1 6 Tf")
       cellLines[index].forEach((value, lineIndex) => commands.push(`${cellX + padding} ${y - padding - 6 - lineIndex * lineHeight} Td`, `(${pdfText(value)}) Tj`, `${-(cellX + padding)} ${-(y - padding - 6 - lineIndex * lineHeight)} Td`))
       commands.push("ET"); cellX += widths[index]
     })
@@ -122,33 +122,32 @@ export function createMemorialPdf(project: LocalProject) {
   ])
 }
 
-export function createFormsPdf(project: LocalProject, catalog?: Regulation) {
+export function createFormsPdf(project: LocalProject, catalog?: Regulation, firstEvidencePages: Record<string, number> = {}) {
   const occurrences = project.requirementOccurrences ?? []
   const number = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })
   const levelLabels = { "rsc-i": "RSC I", "rsc-ii": "RSC II", "rsc-iii": "RSC III" } as const
-  const pages: PdfPage[] = [{ title: "Formulários normativos", lines: [project.rscLevel, "", project.identification?.name ?? project.name, project.identification?.siape ? `SIAPE: ${project.identification.siape}` : "SIAPE não informado"], cover: true, eyebrow: "Formulários normativos" }, {
-    title: "Anexo II - Solicitação de Reconhecimento de Saberes e Competências à CPPD",
-    lines: [...identity(project), `CPF: ${project.identification?.cpf ?? "Não informado"}`, `E-mail: ${project.identification?.professionalEmail || project.identification?.personalEmail || "Não informado"}`, `Telefone: ${project.identification?.phone ?? "Não informado"}`, "", `Nível de RSC pretendido: ${project.rscLevel}`, `Regulamento: ${catalog ? `${catalog.metadata.regulation.authority} · Resolução nº ${catalog.metadata.regulation.number}/${catalog.metadata.regulation.year}` : "Regulamento local não disponível."}`],
-    eyebrow: "Anexo II",
-  }]
+  const annexes = ["IV", "V", "VI"] as const
+  const pages: PdfPage[] = [{ title: "Formulários normativos", lines: [project.rscLevel, "", project.identification?.name ?? project.name, project.identification?.siape ? `SIAPE: ${project.identification.siape}` : "SIAPE não informado"], cover: true, eyebrow: "Formulários normativos" }, ...tablePages("SOLICITAÇÃO DE RECONHECIMENTO DE SABERES E COMPETÊNCIAS À CPPD", "ANEXO - II", ["Campo", "Informação"], [
+    ["Nome do(a) docente", project.identification?.name ?? project.name], ["CPF", project.identification?.cpf ?? "Não informado"], ["Matrícula SIAPE", project.identification?.siape ?? "Não informado"], ["Cargo", project.identification?.position ?? "Não informado"], ["Campus de lotação", project.identification?.campus ?? "Não informado"], ["E-mail", project.identification?.professionalEmail || project.identification?.personalEmail || "Não informado"], ["Telefone", project.identification?.phone ?? "Não informado"], ["RT ou RSC atual", project.identification?.currentLevel ?? "Não informado"], ["Portaria de concessão", ""], ["Data de vigência", ""], ["Nível de RSC pretendido", project.rscLevel], ["Requerimento", `Venho requerer, conforme disposto no Art. 18, da Lei nº 12.772, e sob os termos do Regulamento de RSC, aprovado pela Resolução CONSUP nº ${project.regulation.match(/\d+/)?.[0] ?? "________"}, a concessão do RSC, declarando a veracidade da documentação apresentada neste processo, sob as penas da Lei.`], ["Local e data", `${project.identification?.campus || "________________"}, ${project.identification?.admissionDate || "____ de ______________ de ______"}`], ["Assinatura", "________________________________________"],
+  ], [175, 341])]
 
   if (!catalog) return createPdf([...pages, { title: "Anexos III a VI", lines: ["Dataset normativo indisponível para preencher os formulários de pontuação."], eyebrow: "Formulários normativos" }])
 
-  pages.push(...tablePages("Anexo III - Formulário para indicar pontuação obtida", "Anexo III", ["Diretriz", "Peso", "Máximo", "Obtido", "%"], catalog.levels.flatMap((level) => {
+  pages.push(...tablePages("FORMULÁRIO PARA INDICAR PONTUAÇÃO OBTIDA", "ANEXO - III", ["Diretriz", "Peso", "Pontuação máxima", "Pontuação obtida", "% obtido"], catalog.levels.flatMap((level) => {
       const projection = calculateLevelProjection(catalog, level.section, occurrences)
-      return level.directives.map((directive) => [
+      return [...level.directives.map((directive) => [
         `${levelLabels[level.section]} · ${directive.code}) ${directive.title}`,
         number(directive.weight), number(directive.maxScore), number(projection.directiveScores[directive.id] ?? 0),
         directive.maxScore ? `${number(((projection.directiveScores[directive.id] ?? 0) / directive.maxScore) * 100)}%` : "0%",
-      ])
+      ]), ["TOTAL", number(level.directives.reduce((total, directive) => total + directive.weight, 0)), number(level.directives.reduce((total, directive) => total + directive.maxScore, 0)), number(projection.total), `${number(projection.total)}%`]]
     }), [280, 50, 60, 60, 45]))
 
   catalog.levels.forEach((level, index) => {
     const projection = calculateLevelProjection(catalog, level.section, occurrences)
-    pages.push(...tablePages(`Anexo ${index + 4} - Quadro de referência de critérios para o ${levelLabels[level.section]}`, `Anexo ${index + 4}`, ["Critério", "Descrição", "Fator", "UN", "Máx.", "Peso", "Qtd.", "Pontos"], level.directives.flatMap((directive) => level.criteria.filter((criterion) => criterion.directiveId === directive.id).map((criterion) => {
+    pages.push(...tablePages(`QUADRO DE REFERÊNCIA DE CRITÉRIOS PARA O ${levelLabels[level.section]}`, `ANEXO - ${annexes[index]}`, ["Critério", "Descrição", "Fator", "UN", "Máx.", "Peso", "Qtd.", "Pontos", "Pág."], level.directives.flatMap((directive) => level.criteria.filter((criterion) => criterion.directiveId === directive.id).map((criterion) => {
             const score = projection.criterionScores[criterion.id]
-            return [`${directive.code} · ${criterion.code}`, criterion.description, number(criterion.factor), criterion.unit, number(criterion.maxQuantity), number(criterion.weight), number(score?.quantity ?? 0), score?.blocked ? "-" : number(score?.score ?? 0)]
-          })), [48, 245, 42, 28, 38, 34, 36, 42]))
+            return [`${directive.code} · ${criterion.code}`, criterion.description, number(criterion.factor), criterion.unit, number(criterion.maxQuantity), number(criterion.weight), number(score?.quantity ?? 0), score?.blocked ? "-" : number(score?.score ?? 0), firstEvidencePages[criterion.id] ? String(firstEvidencePages[criterion.id]) : "-"]
+          })), [42, 220, 37, 26, 34, 31, 34, 38, 32]))
   })
   return createPdf(pages)
 }
