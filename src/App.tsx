@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 
 import { AppHeader } from "@/components/app-header"
 import { AppSidebar, type NavigationItem } from "@/components/app-sidebar"
-import { ContentArea } from "@/components/content-area"
 import { HomePage } from "@/components/home-page"
 import { ProjectPage } from "@/components/project-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -10,14 +9,11 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 
 const navigationItems: NavigationItem[] = [
   { id: "visao-geral", label: "Visão geral", icon: "layout-dashboard" },
-  { id: "projetos", label: "Projetos", icon: "folder-kanban" },
-  { id: "equipe", label: "Equipe", icon: "users-round" },
-  { id: "relatorios", label: "Relatórios", icon: "chart-no-axes-combined" },
 ]
 
 function App() {
   const [pathname, setPathname] = useState(window.location.pathname)
-  const [activePage, setActivePage] = useState("projetos")
+  const [activePage, setActivePage] = useState("visao-geral")
 
   useEffect(() => {
     const handlePopState = () => setPathname(window.location.pathname)
@@ -32,10 +28,10 @@ function App() {
 
   const handlePageChange = (page: string) => {
     setActivePage(page)
-    if (page === "projetos") navigate("/")
+    navigate("/")
   }
 
-  const activeItem = navigationItems.find((item) => item.id === activePage) ?? navigationItems[1]
+  const activeItem = navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
   const isProjectRoute = pathname.startsWith("/project/")
 
   return (
@@ -45,10 +41,8 @@ function App() {
         <AppHeader title={isProjectRoute ? "Projeto" : activeItem.label} />
         {isProjectRoute ? (
           <ProjectPage localId={pathname.split("/").at(-1) ?? ""} onBack={() => navigate("/")} />
-        ) : activePage === "projetos" ? (
-          <HomePage onNavigate={navigate} />
         ) : (
-          <ContentArea activePage={activePage} />
+          <HomePage onNavigate={navigate} />
         )}
       </SidebarInset>
     </SidebarProvider>
