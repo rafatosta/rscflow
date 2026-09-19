@@ -7,6 +7,23 @@ export type LocalProject = {
   createdAt: string
   updatedAt: string
   schemaVersion: string
+  formations?: Formation[]
+}
+
+export type Formation = {
+  id: string
+  type: string
+  title: string
+  institution: string
+  area: string
+  startDate: string
+  endDate: string
+  status: string
+  documentReference: string
+  attachmentName: string
+  notes: string
+  createdAt: string
+  updatedAt: string
 }
 
 const STORAGE_KEY = "rscflow.projects"
@@ -26,6 +43,10 @@ export function getLocalProjects(): LocalProject[] {
 export function saveLocalProject(project: LocalProject) {
   const projects = getLocalProjects()
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify([project, ...projects]))
+}
+
+export function updateLocalProject(project: LocalProject) {
+  replaceLocalProjects(getLocalProjects().map((item) => item.localId === project.localId ? project : item))
 }
 
 export function replaceLocalProjects(projects: LocalProject[]) {
