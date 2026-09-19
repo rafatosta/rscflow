@@ -46,6 +46,16 @@ const pages = [
 ] as const
 
 const requestedLevelIds = { "RSC 1": "rsc-i", "RSC 2": "rsc-ii", "RSC 3": "rsc-iii", "RSC I": "rsc-i", "RSC II": "rsc-ii", "RSC III": "rsc-iii" } as const
+const rscSectionLabels = { "rsc-i": "RSC I", "rsc-ii": "RSC II", "rsc-iii": "RSC III" } as const
+
+function calculateProjectProgress(project?: LocalProject) {
+  if (!project) return 0
+  const identificationComplete = project.identification !== undefined && Object.values(project.identification).every((value) => value.trim())
+  const hasFormation = (project.formations?.length ?? 0) > 0
+  const hasRequirement = (project.requirementOccurrences?.length ?? 0) > 0
+  const completedMemorialSections = project.memorialSections?.filter((section) => section.content.trim()).length ?? 0
+  return Math.round(((Number(identificationComplete) + Number(hasFormation) + Number(hasRequirement) + completedMemorialSections) / 10) * 100)
+}
 
 type ProjectPageProps = { section: string; catalog?: Regulation }
 
@@ -88,10 +98,12 @@ export function ProjectPage({ section, catalog }: ProjectPageProps) {
 function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange }: { section: (typeof pages)[number]["id"]; project?: LocalProject; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void; onMemorialChange: (sections: MemorialSection[]) => void; onIdentificationChange: (identification: Identification) => void; onFormationsChange: (formations: Formation[]) => void }) {
   const requestedLevel = project ? requestedLevelIds[project.rscLevel as keyof typeof requestedLevelIds] : undefined
   const requestedProjection = project && catalog && requestedLevel ? calculateLevelProjection(catalog, requestedLevel, project.requirementOccurrences ?? []) : undefined
+  const levelProjections = project && catalog ? catalog.levels.map((level) => ({ level, projection: calculateLevelProjection(catalog, level.section, project.requirementOccurrences ?? []) })) : []
 
   if (section === "overview") return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento da avaliação</CardTitle><CardDescription>Complete as seções para avançar na revisão.</CardDescription></CardHeader><CardContent><Progress value={0}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
+    <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento da avaliação</CardTitle><CardDescription>Complete as seções para avançar na revisão.</CardDescription></CardHeader><CardContent><Progress value={calculateProjectProgress(project)}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
     <Card><CardHeader><CardTitle>Pontuação estimada</CardTitle><CardDescription>{requestedProjection ? requestedProjection.provisional ? "Cálculo sujeito à validação manual do catálogo." : "Cálculo disponível para conferência." : "Selecione um regulamento e um nível RSC disponíveis."}</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold">{requestedProjection ? `${requestedProjection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts` : "—"}</p></CardContent></Card>
+    <Card className="xl:col-span-3"><CardHeader><CardTitle>Resumo de pontuação por RSC</CardTitle><CardDescription>Estimativas calculadas a partir dos lançamentos registrados no projeto.</CardDescription></CardHeader><CardContent className="grid gap-3 md:grid-cols-3">{levelProjections.map(({ level, projection }) => <div key={level.section} className="rounded-lg border p-4"><p className="text-sm text-muted-foreground">{rscSectionLabels[level.section]}</p><p className="mt-1 text-2xl font-semibold">{projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</p><p className="mt-1 text-xs text-muted-foreground">{projection.provisional ? "Requer validação manual do catálogo." : "Cálculo disponível para conferência."}</p></div>)}{levelProjections.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma pontuação está disponível para este regulamento.</p>}</CardContent></Card>
     <InfoCard title="Comprovantes" text="Nenhum comprovante adicionado." /><InfoCard title="Pendências" text="Preencha a identificação e a formação para começar." /><InfoCard title="Backup" text="Gere um backup JSON na seção Documentos." />
   </div>
   if (section === "profile") return project ? <IdentificationForm project={project} onSave={onIdentificationChange} /> : null
