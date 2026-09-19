@@ -54,10 +54,10 @@ export function AppSidebar({
           href="#inicio"
           className="flex items-center gap-2 rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
-          <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-indigo-600 text-sm font-bold text-white shadow-sm">
+          <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm">
             R
           </span>
-          <span className="truncate text-base font-semibold tracking-tight text-slate-900 group-data-[collapsible=icon]:hidden">
+          <span className="truncate text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
             Rscflow
           </span>
         </a>

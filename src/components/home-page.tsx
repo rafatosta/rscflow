@@ -13,6 +13,12 @@ import {
   Upload,
 } from "lucide-react";
 
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +27,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -69,50 +80,51 @@ export function HomePage({ onNavigate }: HomePageProps) {
       updatedAt: now,
       schemaVersion: "1.0",
     };
+
     saveLocalProject(project);
     setProjects((currentProjects) => [project, ...currentProjects]);
     onNavigate(`/project/${project.localId}`);
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 sm:px-6 sm:py-12 lg:px-8">
+    <main className="min-h-full px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="flex flex-col gap-6 border-b border-slate-200 pb-8 sm:flex-row sm:items-start sm:justify-between">
+        <header className="flex flex-col gap-6 border-b pb-8 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-indigo-700">
-              <span className="grid size-7 place-items-center rounded-lg bg-indigo-600 text-xs font-bold text-white">
+            <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-primary">
+              <span className="grid size-7 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
                 R
-              </span>{" "}
+              </span>
               MEUS PROJETOS
             </div>
-            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
               Seus projetos de RSC
             </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
               Crie, acompanhe e retome suas avaliações. Seus dados permanecem
               salvos somente neste navegador.
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800">
-            <ShieldCheck className="size-4" /> Dados locais e privados
-          </div>
+          <Badge variant="secondary" className="h-auto gap-2 px-3 py-1.5">
+            <ShieldCheck /> Dados locais e privados
+          </Badge>
         </header>
-        <section
-          className="mt-7 flex gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm leading-6 text-amber-950"
-          aria-label="Aviso sobre armazenamento local"
-        >
-          <Info className="mt-0.5 size-5 shrink-0 text-amber-700" />
-          <p>
-            <strong>Armazenamento local:</strong> seus projetos não são enviados
-            a um servidor. Exporte um backup em JSON regularmente para mantê-los
-            seguros ao trocar ou limpar o navegador.
-          </p>
-        </section>
+
+        <Alert className="mt-7">
+          <Info />
+          <AlertTitle>Armazenamento local</AlertTitle>
+          <AlertDescription>
+            Seus projetos não são enviados a um servidor. Exporte um backup em
+            JSON regularmente para mantê-los seguros ao trocar ou limpar o
+            navegador.
+          </AlertDescription>
+        </Alert>
+
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-lg bg-indigo-50 text-indigo-700">
+                <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground">
                   <Plus className="size-5" />
                 </span>
                 <div>
@@ -123,78 +135,76 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-5">
-              <label
-                className="block text-sm font-medium text-slate-800"
-                htmlFor="rsc-level"
-              >
-                RSC pretendido <span className="text-rose-600">*</span>
-                <Select
-                  value={rscLevel}
-                  onValueChange={(value) => setRscLevel(value ?? "")}
-                >
-                  <SelectTrigger
-                    id="rsc-level"
-                    aria-invalid={showErrors && !rscLevel}
-                    className="mt-2 h-10 w-full"
+            <CardContent>
+              <div className="space-y-5">
+                <label className="block text-sm font-medium" htmlFor="rsc-level">
+                  RSC pretendido <span className="text-destructive">*</span>
+                  <Select
+                    value={rscLevel}
+                    onValueChange={(value) => setRscLevel(value ?? "")}
                   >
-                    <SelectValue placeholder="Selecione o nível de RSC" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rscLevels.map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {showErrors && !rscLevel && (
-                  <span className="mt-1.5 block text-xs font-normal text-rose-600">
-                    Selecione o RSC pretendido.
-                  </span>
-                )}
-              </label>
-              <label
-                className="block text-sm font-medium text-slate-800"
-                htmlFor="regulation"
-              >
-                Regulamento / dataset <span className="text-rose-600">*</span>
-                <Select
-                  value={regulation}
-                  onValueChange={(value) => setRegulation(value ?? "")}
-                >
-                  <SelectTrigger
-                    id="regulation"
-                    aria-invalid={showErrors && !regulation}
-                    className="mt-2 h-10 w-full"
+                    <SelectTrigger
+                      id="rsc-level"
+                      aria-invalid={showErrors && !rscLevel}
+                      className="mt-2 h-10 w-full"
+                    >
+                      <SelectValue placeholder="Selecione o nível de RSC" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rscLevels.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {showErrors && !rscLevel && (
+                    <span className="mt-1.5 block text-xs font-normal text-destructive">
+                      Selecione o RSC pretendido.
+                    </span>
+                  )}
+                </label>
+                <label className="block text-sm font-medium" htmlFor="regulation">
+                  Regulamento / dataset{" "}
+                  <span className="text-destructive">*</span>
+                  <Select
+                    value={regulation}
+                    onValueChange={(value) => setRegulation(value ?? "")}
                   >
-                    <SelectValue placeholder="Selecione um regulamento ou dataset" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regulations.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {showErrors && !regulation && (
-                  <span className="mt-1.5 block text-xs font-normal text-rose-600">
-                    Selecione o regulamento ou dataset.
-                  </span>
-                )}
-              </label>
-              <div className="grid">
-                <Button size="lg" onClick={createProject}>
-                  Criar projeto <ArrowRight />
-                </Button>
+                    <SelectTrigger
+                      id="regulation"
+                      aria-invalid={showErrors && !regulation}
+                      className="mt-2 h-10 w-full"
+                    >
+                      <SelectValue placeholder="Selecione um regulamento ou dataset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regulations.map((item) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {showErrors && !regulation && (
+                    <span className="mt-1.5 block text-xs font-normal text-destructive">
+                      Selecione o regulamento ou dataset.
+                    </span>
+                  )}
+                </label>
+                <div className="grid">
+                  <Button size="lg" onClick={createProject}>
+                    Criar projeto <ArrowRight />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-lg bg-sky-50 text-sky-700">
+                <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground">
                   <ArchiveRestore className="size-5" />
                 </span>
                 <div>
@@ -206,14 +216,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex min-h-48 flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 text-center">
-                <div className="grid size-11 place-items-center rounded-full bg-white text-slate-500 shadow-sm">
+              <div className="flex min-h-48 flex-col items-center justify-center rounded-xl border border-dashed bg-muted/50 px-6 text-center">
+                <span className="grid size-11 place-items-center rounded-full bg-background text-muted-foreground ring-1 ring-border">
                   <Upload className="size-5" />
-                </div>
-                <p className="mt-4 text-sm font-medium text-slate-800">
+                </span>
+                <p className="mt-4 text-sm font-medium">
                   Arraste seu arquivo JSON aqui
                 </p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
                   ou escolha um arquivo de projeto do seu computador
                 </p>
                 <div className="mt-4">
@@ -223,112 +233,101 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   </Button>
                 </div>
               </div>
-              <p className="mt-4 text-xs leading-5 text-slate-500">
+              <p className="mt-4 text-xs leading-5 text-muted-foreground">
                 A restauração estará disponível em breve. Nenhum arquivo é
                 importado nesta etapa.
               </p>
             </CardContent>
           </Card>
         </section>
+
         <section className="mt-12" aria-labelledby="local-projects-title">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-indigo-700">
-                NESTE NAVEGADOR
-              </p>
-              <h2
-                id="local-projects-title"
-                className="mt-1 text-2xl font-semibold tracking-tight text-slate-950"
-              >
+              <p className="text-sm font-medium text-primary">NESTE NAVEGADOR</p>
+              <h2 id="local-projects-title" className="mt-1 text-2xl font-semibold tracking-tight">
                 Projetos locais
               </h2>
             </div>
-            <div className="flex max-w-md items-center gap-2 text-sm leading-5 text-slate-500">
-              <FileJson2 className="size-4 shrink-0 text-indigo-600" /> Exporte
-              seus projetos regularmente para ter sempre um backup.
-            </div>
+            <p className="flex max-w-md items-center gap-2 text-sm leading-5 text-muted-foreground">
+              <FileJson2 className="size-4 shrink-0 text-primary" />
+              Exporte seus projetos regularmente para ter sempre um backup.
+            </p>
           </div>
+
           {projects.length === 0 ? (
-            <div className="mt-5 grid min-h-64 place-items-center rounded-xl border border-dashed border-slate-300 bg-white px-6 text-center">
-              <div>
-                <span className="mx-auto grid size-12 place-items-center rounded-full bg-slate-100 text-slate-500">
-                  <HardDrive className="size-6" />
-                </span>
-                <h3 className="mt-4 text-base font-semibold text-slate-900">
-                  Ainda não há projetos por aqui
-                </h3>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                  Comece criando seu primeiro projeto de RSC. Ele ficará salvo
-                  somente neste navegador.
-                </p>
-              </div>
-            </div>
+            <Card className="mt-5">
+              <CardContent className="grid min-h-64 place-items-center px-6 text-center">
+                <div>
+                  <span className="mx-auto grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
+                    <HardDrive className="size-6" />
+                  </span>
+                  <h3 className="mt-4 text-base font-semibold">
+                    Ainda não há projetos por aqui
+                  </h3>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+                    Comece criando seu primeiro projeto de RSC. Ele ficará salvo
+                    somente neste navegador.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {projects.map((project) => (
-                <article
-                  key={project.localId}
-                  className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate font-semibold text-slate-900">
-                        {project.name}
-                      </h3>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {project.rscLevel} · {project.regulation}
-                      </p>
+                <Card key={project.localId}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <CardTitle className="truncate">{project.name}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {project.rscLevel} · {project.regulation}
+                        </CardDescription>
+                      </div>
+                      <Badge variant="secondary">rev. {project.revision}</Badge>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
-                      rev. {project.revision}
-                    </span>
-                  </div>
-                  <div className="mt-5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-slate-700">
-                        Progresso
+                  </CardHeader>
+                  <CardContent>
+                    <Progress value={0}>
+                      <ProgressLabel>Progresso</ProgressLabel>
+                      <ProgressValue />
+                    </Progress>
+                    <p className="mt-4 text-xs text-muted-foreground">
+                      Última alteração: {formatDate(project.updatedAt)}
+                    </p>
+                    <div className="mt-5 flex items-center gap-1 border-t pt-4">
+                      <span className="mr-auto">
+                        <Button
+                          size="sm"
+                          onClick={() => onNavigate(`/project/${project.localId}`)}
+                        >
+                          Continuar <ArrowRight />
+                        </Button>
                       </span>
-                      <span className="text-slate-500">0%</span>
-                    </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full w-0 rounded-full bg-indigo-600" />
-                    </div>
-                  </div>
-                  <p className="mt-4 text-xs text-slate-500">
-                    Última alteração: {formatDate(project.updatedAt)}
-                  </p>
-                  <div className="mt-5 flex items-center gap-1 border-t border-slate-100 pt-4">
-                    <span className="mr-auto">
                       <Button
-                        size="sm"
-                        onClick={() => onNavigate(`/project/${project.localId}`)}
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label={`Duplicar ${project.name}`}
                       >
-                        Continuar <ArrowRight />
+                        <Copy />
                       </Button>
-                    </span>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={`Duplicar ${project.name}`}
-                    >
-                      <Copy />
-                    </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={`Exportar ${project.name} em JSON`}
-                    >
-                      <FileJson2 />
-                    </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={`Excluir ${project.name}`}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                </article>
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label={`Exportar ${project.name} em JSON`}
+                      >
+                        <FileJson2 />
+                      </Button>
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label={`Excluir ${project.name}`}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
