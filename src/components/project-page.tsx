@@ -254,7 +254,7 @@ function DocumentViewer({ project, catalog, documentId, onMemorialChange }: { pr
   const document = documents.find((item) => item.id === documentId) ?? documents[0]
   if (documentId === "memorial") return <MemorialDocumentViewer project={project} catalog={catalog} onChange={onMemorialChange} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
   if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
-  if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
+  if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} />
   const currentPageIndex = Math.min(pageIndex, document.pages.length - 1)
   const page = document.pages[currentPageIndex]
   const evidencePageMap = attachedFiles.map((file, index) => `${file} → C-${String(index + 1).padStart(3, "0")}`).join("\n")
@@ -321,7 +321,7 @@ function MemorialContentPage({ page }: { page: PreviewPage }) {
 
 type EvidenceEntry = { occurrence: RequirementOccurrence; criterionCode: string; criterionDescription: string; name: string; file?: File }
 
-function EvidencePackageViewer({ project, catalog, onDownload }: { project: LocalProject; catalog?: Regulation; onDownload: () => void }) {
+function EvidencePackageViewer({ project, catalog }: { project: LocalProject; catalog?: Regulation }) {
   const [storedAttachments, setStoredAttachments] = React.useState<StoredAttachment[]>([])
   const [pageCounts, setPageCounts] = React.useState<Record<string, number>>({})
   const [pageIndex, setPageIndex] = React.useState(0)
@@ -348,9 +348,12 @@ function EvidencePackageViewer({ project, catalog, onDownload }: { project: Loca
   const selectedStartPage = selected ? entryStartPage(selectedIndex) : undefined
   const selectedPageCount = selected ? entryPageCount(selected, selectedIndex) : undefined
   const pageTitle = pageIndex === 0 ? "Capa · página 1" : pageIndex === 1 ? "Sumário · página 2" : `C-${String(pageIndex - 1).padStart(3, "0")} · páginas ${selectedStartPage}${selectedPageCount && selectedPageCount > 1 ? `–${selectedStartPage! + selectedPageCount - 1}` : ""}`
+  const downloadOriginal = () => {
+    if (selected?.file) downloadFile(selected.file.name, selected.file)
+  }
 
   return <section className="mt-6 space-y-4">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Capa, sumário e comprovantes organizados pela sequência dos critérios nos formulários normativos.</p><Button className="shrink-0" variant="outline" onClick={onDownload}><Download /> Baixar</Button></div>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Capa, sumário e comprovantes organizados pela sequência dos critérios nos formulários normativos.</p><Button className="shrink-0" variant="outline" disabled={!selected?.file} onClick={downloadOriginal}><Download /> Baixar original</Button></div>
     <div className="flex gap-2 overflow-x-auto pb-1"><Button variant={pageIndex === 0 ? "secondary" : "outline"} onClick={() => setPageIndex(0)}>Capa</Button><Button variant={pageIndex === 1 ? "secondary" : "outline"} onClick={() => setPageIndex(1)}>Sumário</Button>{entries.map((entry, index) => <Button key={`${entry.occurrence.id}-${entry.name}-${index}`} variant={pageIndex === index + 2 ? "secondary" : "outline"} onClick={() => setPageIndex(index + 2)}>C-{String(index + 1).padStart(3, "0")}</Button>)}</div>
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex min-h-[297mm] w-[210mm] min-w-[210mm] flex-col bg-background p-10 shadow-sm">
       {pageIndex === 0 && <EvidenceCover project={project} catalog={catalog} entryCount={entries.length} />}
