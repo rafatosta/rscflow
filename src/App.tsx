@@ -33,9 +33,14 @@ function App() {
     return () => window.removeEventListener("popstate", handlePopState)
   }, [])
 
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   const navigate = (path: string) => {
     window.history.pushState({}, "", path)
     setPathname(path)
+    window.scrollTo(0, 0)
   }
 
   const handlePageChange = (page: string) => {
