@@ -430,7 +430,12 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
       ? currentOccurrences.map((item) => item.id === editingOccurrenceId ? { ...item, criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, updatedAt: now } : item)
       : [...currentOccurrences, { id: crypto.randomUUID(), criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, createdAt: now, updatedAt: now }]
     onOccurrencesChange(nextOccurrences)
+    const returnToReview = Boolean(editingOccurrenceId)
     closeDialog()
+    if (returnToReview) {
+      window.history.pushState({}, "", window.location.pathname.replace(/\/requirements$/, "/review"))
+      window.dispatchEvent(new PopStateEvent("popstate"))
+    }
   }
 
   return <section className="mt-6">
