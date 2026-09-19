@@ -127,7 +127,7 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemo
     return <RequirementsSection project={project} catalog={catalog} projections={{ "rsc-i": calculateLevelProjection(catalog, "rsc-i", project.requirementOccurrences ?? []), "rsc-ii": calculateLevelProjection(catalog, "rsc-ii", project.requirementOccurrences ?? []), "rsc-iii": calculateLevelProjection(catalog, "rsc-iii", project.requirementOccurrences ?? []) }} onOccurrencesChange={onOccurrencesChange} />
   }
   if (section === "review") return project ? <ReviewSection project={project} catalog={catalog} /> : null
-  if (section === "preview-memorial" || section === "preview-forms" || section === "preview-evidence") return project ? <DocumentViewer project={project} catalog={catalog} documentId={section.replace("preview-", "") as PreviewDocument["id"]} /> : null
+  if (section === "preview-memorial" || section === "preview-forms" || section === "preview-evidence") return project ? <DocumentViewer project={project} catalog={catalog} documentId={section.replace("preview-", "") as PreviewDocument["id"]} onMemorialChange={onMemorialChange} /> : null
   if (section === "documents") return project ? <DocumentsPage project={project} catalog={catalog} /> : null
   if (section === "backup") return project ? <BackupPage project={project} /> : null
   return <div className="mt-6 grid gap-4 md:grid-cols-2"><InfoCard title={section === "documents" ? "Arquivos do projeto" : "Nenhum dado cadastrado"} text={section === "documents" ? "Exporte PDFs, JSON e backup ZIP, ou importe uma restauração." : "Adicione informações para compor esta etapa da avaliação."} /><Card><CardHeader><CardTitle>Próxima ação</CardTitle><CardDescription>Esta seção está pronta para receber seus lançamentos.</CardDescription></CardHeader><CardContent><Button><CheckCircle2 /> Adicionar informação</Button></CardContent></Card></div>
@@ -202,7 +202,7 @@ async function downloadPreviewDocument(project: LocalProject, catalog: Regulatio
   if (documentId === "evidence") downloadFile(`${slug}-indice-comprovantes.pdf`, createEvidenceIndexPdf(project, await getStoredAttachments(project.localId)))
 }
 
-function DocumentViewer({ project, catalog, documentId }: { project: LocalProject; catalog?: Regulation; documentId: PreviewDocument["id"] }) {
+function DocumentViewer({ project, catalog, documentId, onMemorialChange }: { project: LocalProject; catalog?: Regulation; documentId: PreviewDocument["id"]; onMemorialChange: (sections: MemorialSection[]) => void }) {
   const [pageIndex, setPageIndex] = React.useState(0)
   const [zoom, setZoom] = React.useState(85)
   const [showThumbnails, setShowThumbnails] = React.useState(true)
@@ -252,7 +252,7 @@ function DocumentViewer({ project, catalog, documentId }: { project: LocalProjec
   ]
 
   const document = documents.find((item) => item.id === documentId) ?? documents[0]
-  if (documentId === "memorial") return <MemorialDocumentViewer project={project} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
+  if (documentId === "memorial") return <MemorialDocumentViewer project={project} catalog={catalog} onChange={onMemorialChange} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
   if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
   if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
   const currentPageIndex = Math.min(pageIndex, document.pages.length - 1)
@@ -281,16 +281,36 @@ function DocumentViewer({ project, catalog, documentId }: { project: LocalProjec
   </section>
 }
 
-function MemorialDocumentViewer({ project, onDownload }: { project: LocalProject; onDownload: () => void }) {
+function MemorialDocumentViewer({ project, catalog, onChange, onDownload }: { project: LocalProject; catalog?: Regulation; onChange: (sections: MemorialSection[]) => void; onDownload: () => void }) {
   const [pageIndex, setPageIndex] = React.useState(0)
+  const [isTextBaseDialogOpen, setIsTextBaseDialogOpen] = React.useState(false)
+  const [isEditingOpen, setIsEditingOpen] = React.useState(false)
+  const [editingSectionId, setEditingSectionId] = React.useState<(typeof memorialSteps)[number]["id"]>("introduction")
+  const [editingContent, setEditingContent] = React.useState("")
   const contentPages = React.useMemo(() => createMemorialPages(project.memorialSections ?? []), [project.memorialSections])
   const totalPages = contentPages.length + 2
   const currentContent = contentPages[pageIndex - 2]
   const summary = contentPages.reduce<{ title: string; page: number }[]>((items, page, index) => page.title.endsWith("(continuação)") ? items : [...items, { title: page.title, page: index + 3 }], [])
   const pageTitle = pageIndex === 0 ? "Capa" : pageIndex === 1 ? "Sumário" : currentContent?.title ?? "Conteúdo"
+  const openEditor = () => {
+    const section = project.memorialSections?.find((item) => item.id === editingSectionId)
+    setEditingContent(section?.content ?? "")
+    setIsEditingOpen(true)
+  }
+  const changeEditingSection = (id: string | null) => {
+    if (!id) return
+    const sectionId = id as (typeof memorialSteps)[number]["id"]
+    setEditingSectionId(sectionId)
+    setEditingContent(project.memorialSections?.find((item) => item.id === sectionId)?.content ?? "")
+  }
+  const saveEditingSection = () => {
+    const remainingSections = (project.memorialSections ?? []).filter((item) => item.id !== editingSectionId)
+    onChange(editingContent.trim() ? [...remainingSections, { id: editingSectionId, content: editingContent }] : remainingSections)
+    setIsEditingOpen(false)
+  }
 
   return <section className="mt-6 space-y-4">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Memorial organizado em capa, sumário e seções editoriais paginadas.</p><Button className="shrink-0" variant="outline" onClick={onDownload}><Download /> Baixar</Button></div>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Memorial organizado em capa, sumário e seções editoriais paginadas.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(true)}><BookOpen /> Autopreencher textos</Button><Button variant="outline" onClick={openEditor}><Pencil /> Editar textos</Button><Button variant="outline" onClick={onDownload}><Download /> Baixar</Button></div></div>
     <div className="flex gap-2 overflow-x-auto pb-1"><Button variant={pageIndex === 0 ? "secondary" : "outline"} onClick={() => setPageIndex(0)}>Capa</Button><Button variant={pageIndex === 1 ? "secondary" : "outline"} onClick={() => setPageIndex(1)}>Sumário</Button>{contentPages.map((page, index) => <Button key={`${page.title}-${index}`} variant={pageIndex === index + 2 ? "secondary" : "outline"} onClick={() => setPageIndex(index + 2)}>{index + 3} · {page.title}</Button>)}</div>
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex min-h-[297mm] w-[210mm] min-w-[210mm] flex-col bg-background p-10 shadow-sm">
       {pageIndex === 0 && <MemorialCover project={project} />}
@@ -299,6 +319,12 @@ function MemorialDocumentViewer({ project, onDownload }: { project: LocalProject
       <footer className="mt-auto border-t pt-3 text-center text-xs text-muted-foreground">Memorial descritivo · {pageTitle} · página {pageIndex + 1} de {totalPages}</footer>
     </article></div>
     {!contentPages.length && <Alert><CircleAlert /><AlertTitle>Conteúdo do memorial pendente</AlertTitle><AlertDescription>Preencha as seções do Memorial para compor as páginas do documento.</AlertDescription></Alert>}
+    <Dialog open={isTextBaseDialogOpen} onOpenChange={setIsTextBaseDialogOpen}>
+      <DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Autopreencher o Memorial?</DialogTitle><DialogDescription>Um texto-base editável será criado com os dados cadastrados no processo. O conteúdo atual das seções será substituído.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setIsTextBaseDialogOpen(false)}>Cancelar</Button><Button onClick={() => { onChange(buildMemorialTextBase(project, catalog)); setPageIndex(0); setIsTextBaseDialogOpen(false) }}>Autopreencher</Button></DialogFooter></DialogContent>
+    </Dialog>
+    <Dialog open={isEditingOpen} onOpenChange={setIsEditingOpen}>
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl"><DialogHeader><DialogTitle>Editar texto do Memorial</DialogTitle><DialogDescription>Selecione uma seção e ajuste o texto que será exibido no documento.</DialogDescription></DialogHeader><div className="grid gap-4"><Select value={editingSectionId} onValueChange={changeEditingSection}><SelectTrigger aria-label="Seção do Memorial"><SelectValue /></SelectTrigger><SelectContent>{memorialSteps.map((step) => <SelectItem key={step.id} value={step.id}>{step.label}</SelectItem>)}</SelectContent></Select><Textarea value={editingContent} onChange={(event) => setEditingContent(event.target.value)} className="min-h-72 resize-y" aria-label="Texto da seção do Memorial" /></div><DialogFooter><Button variant="outline" onClick={() => setIsEditingOpen(false)}>Cancelar</Button><Button onClick={saveEditingSection}>Salvar alterações</Button></DialogFooter></DialogContent>
+    </Dialog>
   </section>
 }
 
