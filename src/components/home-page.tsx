@@ -41,6 +41,10 @@ import {
 } from "@/components/ui/select";
 import {
   getLocalProjects,
+  deleteLocalProject,
+  duplicateLocalProject,
+  isLocalProject,
+  replaceLocalProjects,
   saveLocalProject,
   type LocalProject,
 } from "@/lib/projects";
@@ -62,6 +66,31 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [rscLevel, setRscLevel] = useState("");
   const [regulation, setRegulation] = useState("");
   const [showErrors, setShowErrors] = useState(false);
+
+  const refreshProjects = () => setProjects(getLocalProjects())
+
+  const exportProject = (project: LocalProject) => {
+    const file = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(file)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `${project.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const restoreProject = async (file?: File) => {
+    if (!file) return
+    try {
+      const imported: unknown = JSON.parse(await file.text())
+      const restored = Array.isArray(imported) ? imported : [imported]
+      if (!restored.every(isLocalProject)) throw new Error("invalid")
+      replaceLocalProjects([...restored, ...getLocalProjects()])
+      refreshProjects()
+    } catch {
+      setShowErrors(true)
+    }
+  }
 
   const createProject = () => {
     if (!rscLevel || !regulation) {
@@ -227,16 +256,18 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   ou escolha um arquivo de projeto do seu computador
                 </p>
                 <div className="mt-4">
-                  <Button variant="outline" type="button">
+                  <Button variant="outline" type="button" onClick={() => document.getElementById("restore-file")?.click()}>
                     <FolderOpen />
                     Selecionar arquivo
                   </Button>
+                  <input id="restore-file" className="sr-only" type="file" accept="application/json,.json" onChange={(event) => void restoreProject(event.target.files?.[0])} />
                 </div>
               </div>
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                A restauração estará disponível em breve. Nenhum arquivo é
-                importado nesta etapa.
+                Selecione um arquivo JSON exportado pelo Rscflow para restaurar
+                seus projetos neste navegador.
               </p>
+              {showErrors && <p className="mt-2 text-xs text-destructive">Não foi possível restaurar este arquivo.</p>}
             </CardContent>
           </Card>
         </section>
@@ -308,6 +339,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         size="icon-sm"
                         variant="ghost"
                         aria-label={`Duplicar ${project.name}`}
+                        onClick={() => { duplicateLocalProject(project); refreshProjects() }}
                       >
                         <Copy />
                       </Button>
@@ -315,6 +347,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         size="icon-sm"
                         variant="ghost"
                         aria-label={`Exportar ${project.name} em JSON`}
+                        onClick={() => exportProject(project)}
                       >
                         <FileJson2 />
                       </Button>
@@ -322,6 +355,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         size="icon-sm"
                         variant="ghost"
                         aria-label={`Excluir ${project.name}`}
+                        onClick={() => { deleteLocalProject(project.localId); refreshProjects() }}
                       >
                         <Trash2 />
                       </Button>

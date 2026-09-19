@@ -32,7 +32,9 @@ function App() {
   }
 
   const activeItem = navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
-  const isProjectRoute = pathname.startsWith("/project/")
+  const routeMatch = pathname.match(/^\/project\/([^/]+)(?:\/([^/]+))?\/?$/)
+  const isProjectRoute = Boolean(routeMatch)
+  const projectSection = routeMatch?.[2] ?? "overview"
 
   return (
     <SidebarProvider>
@@ -40,7 +42,7 @@ function App() {
       <SidebarInset className="min-w-0">
         <AppHeader title={isProjectRoute ? "Projeto" : activeItem.label} />
         {isProjectRoute ? (
-          <ProjectPage localId={pathname.split("/").at(-1) ?? ""} onBack={() => navigate("/")} />
+          <ProjectPage localId={routeMatch?.[1] ?? ""} section={projectSection} onNavigate={navigate} />
         ) : (
           <HomePage onNavigate={navigate} />
         )}
