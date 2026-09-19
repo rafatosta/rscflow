@@ -3,7 +3,7 @@ import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from "pdfjs-d
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.mjs?url"
 import {
   BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, Copy, Download, FileOutput,
-  ChevronDown, ChevronRight, CircleAlert, CircleHelp, FileText, GraduationCap, HardDrive, LayoutDashboard, Minus, PanelLeft, PanelRight, Pencil, Plus, Printer, Search, Trash2, UserRound, ZoomIn,
+  ChevronDown, ChevronRight, CircleAlert, CircleHelp, FileText, GraduationCap, HardDrive, LayoutDashboard, Minus, PanelLeft, PanelRight, Pencil, Plus, Search, Trash2, UserRound, ZoomIn,
 } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, type FieldError } from "react-hook-form"
@@ -35,6 +35,7 @@ import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection, type LevelProjection } from "@/domain/scoring"
 import { DocumentsPage } from "@/components/documents-page"
 import { BackupPage } from "@/components/backup-page"
+import { createEvidenceIndexPdf, createFormsPdf, createMemorialPdf, downloadFile } from "@/lib/document-generation"
 
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
@@ -194,11 +195,14 @@ function createMemorialPages(sections: MemorialSection[]): PreviewPage[] {
     })
 }
 
+async function downloadPreviewDocument(project: LocalProject, catalog: Regulation | undefined, documentId: PreviewDocument["id"]) {
+  const slug = project.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "projeto"
+  if (documentId === "memorial") downloadFile(`${slug}-memorial-descritivo.pdf`, createMemorialPdf(project))
+  if (documentId === "forms") downloadFile(`${slug}-formularios-normativos.pdf`, createFormsPdf(project, catalog))
+  if (documentId === "evidence") downloadFile(`${slug}-indice-comprovantes.pdf`, createEvidenceIndexPdf(project, await getStoredAttachments(project.localId)))
+}
+
 function DocumentViewer({ project, catalog, documentId }: { project: LocalProject; catalog?: Regulation; documentId: PreviewDocument["id"] }) {
-  const navigateToDocument = (id: PreviewDocument["id"]) => {
-    window.history.pushState({}, "", `/project/${project.localId}/preview-${id}`)
-    window.dispatchEvent(new PopStateEvent("popstate"))
-  }
   const [pageIndex, setPageIndex] = React.useState(0)
   const [zoom, setZoom] = React.useState(85)
   const [showThumbnails, setShowThumbnails] = React.useState(true)
@@ -248,9 +252,9 @@ function DocumentViewer({ project, catalog, documentId }: { project: LocalProjec
   ]
 
   const document = documents.find((item) => item.id === documentId) ?? documents[0]
-  if (documentId === "memorial") return <MemorialDocumentViewer project={project} onDocumentChange={navigateToDocument} />
-  if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDocumentChange={navigateToDocument} />
-  if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} onDocumentChange={navigateToDocument} />
+  if (documentId === "memorial") return <MemorialDocumentViewer project={project} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
+  if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
+  if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} onDownload={() => void downloadPreviewDocument(project, catalog, documentId)} />
   const currentPageIndex = Math.min(pageIndex, document.pages.length - 1)
   const page = document.pages[currentPageIndex]
   const evidencePageMap = attachedFiles.map((file, index) => `${file} → C-${String(index + 1).padStart(3, "0")}`).join("\n")
@@ -266,8 +270,8 @@ function DocumentViewer({ project, catalog, documentId }: { project: LocalProjec
   }
 
   return <section className="mt-6 space-y-4">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Leitura das projeções editoriais e dos artefatos produzidos. Esta área não recalcula pontuação nem altera o projeto.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={exportJson}><Download /> Exportar JSON</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
-    <div className="flex flex-wrap gap-2">{documents.map((item) => <Button key={item.id} variant={item.id === documentId ? "secondary" : "outline"} onClick={() => { navigateToDocument(item.id); setPageIndex(0) }}><FileText /> {item.title}<Badge variant={item.ready ? "secondary" : "outline"}>{item.ready ? "Pronto" : "Pendente"}</Badge></Button>)}</div>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Leitura das projeções editoriais e dos artefatos produzidos. Esta área não recalcula pontuação nem altera o projeto.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={exportJson}><Download /> Exportar JSON</Button><Button variant="outline" onClick={() => void downloadPreviewDocument(project, catalog, documentId)}><Download /> Baixar</Button></div></div>
+    <div className="flex flex-wrap gap-2">{documents.map((item) => <Button key={item.id} variant={item.id === documentId ? "secondary" : "outline"} onClick={() => { void downloadPreviewDocument(project, catalog, item.id); setPageIndex(0) }}><Download /> Baixar {item.title}</Button>)}</div>
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"><div className="text-sm"><span className="font-medium">{document.title}</span><span className="text-muted-foreground"> · {document.type} · {document.pages.length} página(s)</span></div><div className="flex items-center gap-1"><Button size="icon" variant="ghost" aria-label="Ocultar ou exibir miniaturas" onClick={() => setShowThumbnails((value) => !value)}><PanelLeft /></Button><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 55} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 115} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button><Button size="icon" variant="ghost" aria-label="Ocultar ou exibir contexto" onClick={() => setShowContext((value) => !value)}><PanelRight /></Button></div></div>
     <div className="grid gap-4 xl:grid-cols-[12rem_minmax(0,1fr)_18rem]">
       {showThumbnails && <aside className="order-2 xl:order-1"><Card><CardHeader><CardTitle className="text-base">Miniaturas</CardTitle></CardHeader><CardContent className="space-y-2">{document.pages.map((item, index) => <Button key={`${item.title}-${index}`} variant={index === currentPageIndex ? "secondary" : "ghost"} className="h-auto w-full justify-start whitespace-normal p-3 text-left" onClick={() => setPageIndex(index)}><span className="mr-2 text-muted-foreground">{index + 1}</span><span>{item.title}</span></Button>)}</CardContent></Card></aside>}
@@ -277,7 +281,7 @@ function DocumentViewer({ project, catalog, documentId }: { project: LocalProjec
   </section>
 }
 
-function MemorialDocumentViewer({ project, onDocumentChange }: { project: LocalProject; onDocumentChange: (id: PreviewDocument["id"]) => void }) {
+function MemorialDocumentViewer({ project, onDownload }: { project: LocalProject; onDownload: () => void }) {
   const [pageIndex, setPageIndex] = React.useState(0)
   const contentPages = React.useMemo(() => createMemorialPages(project.memorialSections ?? []), [project.memorialSections])
   const totalPages = contentPages.length + 2
@@ -286,7 +290,7 @@ function MemorialDocumentViewer({ project, onDocumentChange }: { project: LocalP
   const pageTitle = pageIndex === 0 ? "Capa" : pageIndex === 1 ? "Sumário" : currentContent?.title ?? "Conteúdo"
 
   return <section className="mt-6 space-y-4">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Memorial organizado em capa, sumário e seções editoriais paginadas.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => onDocumentChange("forms")}><FileText /> Formulários</Button><Button variant="outline" onClick={() => onDocumentChange("evidence")}><FileText /> Comprovantes</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Memorial organizado em capa, sumário e seções editoriais paginadas.</p><Button className="shrink-0" variant="outline" onClick={onDownload}><Download /> Baixar</Button></div>
     <div className="flex gap-2 overflow-x-auto pb-1"><Button variant={pageIndex === 0 ? "secondary" : "outline"} onClick={() => setPageIndex(0)}>Capa</Button><Button variant={pageIndex === 1 ? "secondary" : "outline"} onClick={() => setPageIndex(1)}>Sumário</Button>{contentPages.map((page, index) => <Button key={`${page.title}-${index}`} variant={pageIndex === index + 2 ? "secondary" : "outline"} onClick={() => setPageIndex(index + 2)}>{index + 3} · {page.title}</Button>)}</div>
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex min-h-[297mm] w-[210mm] min-w-[210mm] flex-col bg-background p-10 shadow-sm">
       {pageIndex === 0 && <MemorialCover project={project} />}
@@ -313,7 +317,7 @@ function MemorialContentPage({ page }: { page: PreviewPage }) {
 
 type EvidenceEntry = { occurrence: RequirementOccurrence; criterionCode: string; criterionDescription: string; name: string; file?: File }
 
-function EvidencePackageViewer({ project, catalog, onDocumentChange }: { project: LocalProject; catalog?: Regulation; onDocumentChange: (id: PreviewDocument["id"]) => void }) {
+function EvidencePackageViewer({ project, catalog, onDownload }: { project: LocalProject; catalog?: Regulation; onDownload: () => void }) {
   const [storedAttachments, setStoredAttachments] = React.useState<StoredAttachment[]>([])
   const [pageCounts, setPageCounts] = React.useState<Record<string, number>>({})
   const [pageIndex, setPageIndex] = React.useState(0)
@@ -342,7 +346,7 @@ function EvidencePackageViewer({ project, catalog, onDocumentChange }: { project
   const pageTitle = pageIndex === 0 ? "Capa · página 1" : pageIndex === 1 ? "Sumário · página 2" : `C-${String(pageIndex - 1).padStart(3, "0")} · páginas ${selectedStartPage}${selectedPageCount && selectedPageCount > 1 ? `–${selectedStartPage! + selectedPageCount - 1}` : ""}`
 
   return <section className="mt-6 space-y-4">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Capa, sumário e comprovantes organizados pela sequência dos critérios nos formulários normativos.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => onDocumentChange("memorial")}><FileText /> Memorial</Button><Button variant="outline" onClick={() => onDocumentChange("forms")}><FileText /> Formulários</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Capa, sumário e comprovantes organizados pela sequência dos critérios nos formulários normativos.</p><Button className="shrink-0" variant="outline" onClick={onDownload}><Download /> Baixar</Button></div>
     <div className="flex gap-2 overflow-x-auto pb-1"><Button variant={pageIndex === 0 ? "secondary" : "outline"} onClick={() => setPageIndex(0)}>Capa</Button><Button variant={pageIndex === 1 ? "secondary" : "outline"} onClick={() => setPageIndex(1)}>Sumário</Button>{entries.map((entry, index) => <Button key={`${entry.occurrence.id}-${entry.name}-${index}`} variant={pageIndex === index + 2 ? "secondary" : "outline"} onClick={() => setPageIndex(index + 2)}>C-{String(index + 1).padStart(3, "0")}</Button>)}</div>
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex min-h-[297mm] w-[210mm] min-w-[210mm] flex-col bg-background p-10 shadow-sm">
       {pageIndex === 0 && <EvidenceCover project={project} catalog={catalog} entryCount={entries.length} />}
@@ -442,7 +446,7 @@ function formatFormDate(value?: string) {
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" }).format(date)
 }
 
-function NormativeFormsViewer({ project, catalog, onDocumentChange }: { project: LocalProject; catalog?: Regulation; onDocumentChange: (id: PreviewDocument["id"]) => void }) {
+function NormativeFormsViewer({ project, catalog, onDownload }: { project: LocalProject; catalog?: Regulation; onDownload: () => void }) {
   const [formId, setFormId] = React.useState<NormativeFormId>("request")
   const [storedAttachments, setStoredAttachments] = React.useState<StoredAttachment[]>([])
   const [evidencePageCounts, setEvidencePageCounts] = React.useState<Record<string, number>>({})
@@ -473,7 +477,7 @@ function NormativeFormsViewer({ project, catalog, onDocumentChange }: { project:
   }, [evidenceEntries, evidencePageCounts])
 
   return <section className="mt-6 space-y-4">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Planilhas normativas preenchidas a partir da identificação, dos lançamentos e do catálogo local. Revise antes do protocolo.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => onDocumentChange("memorial")}><FileText /> Memorial</Button><Button variant="outline" onClick={() => onDocumentChange("evidence")}><FileText /> Comprovantes</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Planilhas normativas preenchidas a partir da identificação, dos lançamentos e do catálogo local. Revise antes do protocolo.</p><Button className="shrink-0" variant="outline" onClick={onDownload}><Download /> Baixar</Button></div>
     <div className="flex flex-wrap gap-2">{normativeFormTabs.map((tab) => <Button key={tab.id} variant={formId === tab.id ? "secondary" : "outline"} onClick={() => setFormId(tab.id)}>{tab.label}</Button>)}</div>
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="normative-form mx-auto w-[210mm] min-w-[210mm] bg-background p-8 text-[10px] shadow-sm sm:p-10">
       {formId === "request" && <NormativeRequest project={project} />}
