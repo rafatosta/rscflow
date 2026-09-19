@@ -1,7 +1,7 @@
 import * as React from "react"
 import {
   BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, Copy, FileOutput,
-  ChevronDown, FileText, GraduationCap, HardDrive, LayoutDashboard, Pencil, Plus, Search, Trash2, UserRound,
+  ChevronDown, ChevronRight, FileText, GraduationCap, HardDrive, LayoutDashboard, Pencil, Plus, Search, Trash2, UserRound,
 } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, type FieldError } from "react-hook-form"
@@ -27,7 +27,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { getLocalProjects } from "@/lib/projects"
-import { type Formation, updateLocalProject } from "@/lib/projects"
+import { type Formation, type MemorialSection, updateLocalProject } from "@/lib/projects"
 import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection, type LevelProjection } from "@/domain/scoring"
 import type { RequirementOccurrence } from "@/lib/projects"
@@ -55,13 +55,18 @@ export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
       {!project && <p className="text-sm text-muted-foreground">Projeto local não encontrado.</p>}
 
       <section className="mt-2">
-        <div className="flex items-center gap-3">
+        {activePage.id !== "memorial" && <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-5" /></span>
           <div><h3 className="text-xl font-semibold">{activePage.label}</h3><p className="text-sm text-muted-foreground">{activePage.description}</p></div>
-        </div>
+        </div>}
         <ProjectSection section={activePage.id} project={project} catalog={catalog} onOccurrencesChange={(occurrences) => {
           if (!project) return
           const nextProject = { ...project, requirementOccurrences: occurrences, updatedAt: new Date().toISOString() }
+          updateLocalProject(nextProject)
+          setProject(nextProject)
+        }} onMemorialChange={(memorialSections) => {
+          if (!project) return
+          const nextProject = { ...project, memorialSections, updatedAt: new Date().toISOString() }
           updateLocalProject(nextProject)
           setProject(nextProject)
         }} />
@@ -70,7 +75,7 @@ export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
   </main>
 }
 
-function ProjectSection({ section, project, catalog, onOccurrencesChange }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void }) {
+function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange }: { section: (typeof pages)[number]["id"]; project?: ReturnType<typeof getLocalProjects>[number]; catalog?: Regulation; onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void; onMemorialChange: (sections: MemorialSection[]) => void }) {
   if (section === "overview") return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento da avaliação</CardTitle><CardDescription>Complete as seções para avançar na revisão.</CardDescription></CardHeader><CardContent><Progress value={0}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
     <Card><CardHeader><CardTitle>Pontuação estimada</CardTitle><CardDescription>Sem lançamentos avaliados.</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold">0 pts</p></CardContent></Card>
@@ -78,6 +83,7 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange }: { se
   </div>
   if (section === "profile") return <IdentificationForm />
   if (section === "education") return project ? <EducationSection project={project} /> : null
+  if (section === "memorial") return project ? <MemorialSectionEditor project={project} onChange={onMemorialChange} /> : null
   if (section === "requirements") {
     if (!project) return null
     if (!catalog) return <Card className="mt-6"><CardHeader><CardTitle>Regulamento indisponível</CardTitle><CardDescription>O regulamento salvo neste projeto não está disponível no catálogo local.</CardDescription></CardHeader><CardContent><p className="text-sm text-muted-foreground">Selecione ou restaure um projeto vinculado a um regulamento instalado antes de cadastrar lançamentos.</p></CardContent></Card>
@@ -89,6 +95,87 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange }: { se
 
 function InfoCard({ title, text }: { title: string; text: string }) {
   return <Card><CardHeader><CardTitle>{title}</CardTitle><CardDescription>{text}</CardDescription></CardHeader><CardContent><div className="flex items-center gap-2 text-sm text-muted-foreground"><BookOpen className="size-4" /> Os dados serão salvos neste navegador.</div></CardContent></Card>
+}
+
+const memorialSteps = [
+  { id: "cover", label: "Capa", hint: "Informe os dados que identificarão o memorial." },
+  { id: "introduction", label: "Apresentação", hint: "Apresente-se e situe o propósito deste memorial." },
+  { id: "career", label: "Trajetória e formação", hint: "Descreva sua formação e os principais marcos da trajetória profissional." },
+  { id: "teaching", label: "Ensino e experiências", hint: "Relate suas experiências de ensino, inovação e atuação acadêmica." },
+  { id: "outreach", label: "Extensão e pesquisa", hint: "Apresente ações de extensão, pesquisa e seus resultados." },
+  { id: "management", label: "Gestão", hint: "Descreva atividades de gestão, comissões e participação institucional." },
+  { id: "conclusion", label: "Conclusão", hint: "Escreva esta parte do memorial com clareza e objetividade." },
+] as const
+
+function MemorialSectionEditor({ project, onChange }: { project: ReturnType<typeof getLocalProjects>[number]; onChange: (sections: MemorialSection[]) => void }) {
+  const [activeId, setActiveId] = React.useState("cover")
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
+  const sections = project.memorialSections ?? []
+  const activeIndex = memorialSteps.findIndex((step) => step.id === activeId)
+  const activeStep = memorialSteps[activeIndex]
+  const activeContent = sections.find((item) => item.id === activeId)?.content ?? ""
+  const completedCount = memorialSteps.filter((step) => sections.some((item) => item.id === step.id && item.content.trim())).length
+
+  const updateContent = (content: string) => {
+    const next = sections.filter((item) => item.id !== activeId)
+    onChange(content ? [...next, { id: activeId, content }] : next)
+  }
+  const moveTo = (index: number) => {
+    const nextStep = memorialSteps[index]
+    if (nextStep) setActiveId(nextStep.id)
+  }
+
+  return <section className="py-2 sm:py-4">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight">Memorial descritivo</h2>
+        <p className="mt-2 max-w-3xl text-base text-muted-foreground">Organize sua trajetória profissional por seções e redija cada etapa do memorial. O conteúdo será consolidado no documento final.</p>
+      </div>
+      <Button variant="outline" className="shrink-0" onClick={() => setIsPreviewOpen(true)}><FileText /> Pré-visualizar PDF</Button>
+    </div>
+
+    <div className="mt-8 grid gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
+      <Card className="h-fit py-5">
+        <CardHeader className="px-5"><CardTitle>Seções</CardTitle><CardDescription>{completedCount} de {memorialSteps.length} preenchidas</CardDescription></CardHeader>
+        <CardContent className="mt-4 px-3">
+          <nav aria-label="Seções do memorial" className="space-y-1">
+            {memorialSteps.map((step, index) => {
+              const isComplete = sections.some((item) => item.id === step.id && item.content.trim())
+              const isActive = activeId === step.id
+              return <Button key={step.id} variant={isActive ? "secondary" : "ghost"} className="h-12 w-full justify-start px-3 text-sm" onClick={() => setActiveId(step.id)}>
+                <span className={isComplete ? "grid size-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground" : "grid size-7 shrink-0 place-items-center rounded-full border text-xs"}>{isComplete ? <CheckCircle2 className="size-4" /> : index + 1}</span>
+                <span className="min-w-0 flex-1 truncate text-left">{step.label}</span><ChevronRight className="size-4" />
+              </Button>
+            })}
+          </nav>
+        </CardContent>
+      </Card>
+
+      <Card className="min-h-[34rem] py-5">
+        <CardHeader className="px-5"><CardTitle>{activeStep.label}</CardTitle><CardDescription>{activeStep.hint}</CardDescription></CardHeader>
+        <CardContent className="mt-5 flex flex-1 flex-col px-5">
+          <Textarea value={activeContent} onChange={(event) => updateContent(event.target.value)} placeholder={`Descreva: ${activeStep.label.toLocaleLowerCase("pt-BR")}...`} className="min-h-72 flex-1 resize-y text-base" aria-label={`Conteúdo da seção ${activeStep.label}`} />
+          <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">{activeContent.length} caracteres</p>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" disabled={activeIndex === 0} onClick={() => moveTo(activeIndex - 1)}>Anterior</Button>
+              <Button disabled={activeIndex === memorialSteps.length - 1} onClick={() => moveTo(activeIndex + 1)}>Próxima seção <ChevronRight /></Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
+        <DialogHeader><DialogTitle>Pré-visualização do memorial</DialogTitle><DialogDescription>Esta visualização reúne o conteúdo já redigido nas seções.</DialogDescription></DialogHeader>
+        <article className="space-y-6 rounded-lg border bg-background p-6 text-sm leading-relaxed">
+          {memorialSteps.filter((step) => sections.some((item) => item.id === step.id && item.content.trim())).map((step) => <section key={step.id}><h3 className="font-semibold">{step.label}</h3><p className="mt-2 whitespace-pre-wrap text-muted-foreground">{sections.find((item) => item.id === step.id)?.content}</p></section>)}
+          {completedCount === 0 && <p className="text-muted-foreground">Nenhuma seção foi preenchida ainda.</p>}
+        </article>
+      </DialogContent>
+    </Dialog>
+  </section>
 }
 
 const requirementLevels = [

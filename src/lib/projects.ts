@@ -9,6 +9,12 @@ export type LocalProject = {
   schemaVersion: string
   formations?: Formation[]
   requirementOccurrences?: RequirementOccurrence[]
+  memorialSections?: MemorialSection[]
+}
+
+export type MemorialSection = {
+  id: string
+  content: string
 }
 
 export type Formation = {
