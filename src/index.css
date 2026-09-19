@@ -127,4 +127,7 @@
   html {
     @apply font-sans;
     }
+  body {
+    min-width: 320px;
+  }
 }
