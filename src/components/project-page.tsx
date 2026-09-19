@@ -275,28 +275,47 @@ type EvidenceEntry = { occurrence: RequirementOccurrence; criterionCode: string;
 
 function EvidencePackageViewer({ project, catalog, onDocumentChange }: { project: LocalProject; catalog?: Regulation; onDocumentChange: (id: PreviewDocument["id"]) => void }) {
   const [storedAttachments, setStoredAttachments] = React.useState<StoredAttachment[]>([])
+  const [pageCounts, setPageCounts] = React.useState<Record<string, number>>({})
   const [pageIndex, setPageIndex] = React.useState(0)
   const occurrences = React.useMemo(() => project.requirementOccurrences ?? [], [project.requirementOccurrences])
 
   React.useEffect(() => { void getStoredAttachments(project.localId).then(setStoredAttachments) }, [project.localId])
 
   const entries = React.useMemo(() => createEvidenceEntries(occurrences, catalog, storedAttachments), [catalog, occurrences, storedAttachments])
-  const totalPages = entries.length + 2
+  React.useEffect(() => {
+    let active = true
+    void Promise.all(entries.map(async (entry, index) => {
+      if (!entry.file || !isPdfFile(entry.file)) return [evidenceEntryKey(entry, index), 1] as const
+      const task = getDocument({ data: new Uint8Array(await entry.file.arrayBuffer()) })
+      try { return [evidenceEntryKey(entry, index), (await task.promise).numPages] as const } catch { return [evidenceEntryKey(entry, index), 1] as const } finally { task.destroy() }
+    })).then((counts) => { if (active) setPageCounts(Object.fromEntries(counts)) })
+    return () => { active = false }
+  }, [entries])
+
+  const entryPageCount = (entry: EvidenceEntry, index: number) => pageCounts[evidenceEntryKey(entry, index)] ?? 1
+  const entryStartPage = (index: number) => 3 + entries.slice(0, index).reduce((total, entry, entryIndex) => total + entryPageCount(entry, entryIndex), 0)
+  const totalPages = 2 + entries.reduce((total, entry, index) => total + entryPageCount(entry, index), 0)
   const selected = entries[pageIndex - 2]
-  const pageTitle = pageIndex === 0 ? "Capa" : pageIndex === 1 ? "Sumário" : `C-${String(pageIndex - 1).padStart(3, "0")}`
+  const selectedIndex = pageIndex - 2
+  const selectedStartPage = selected ? entryStartPage(selectedIndex) : undefined
+  const selectedPageCount = selected ? entryPageCount(selected, selectedIndex) : undefined
+  const pageTitle = pageIndex === 0 ? "Capa · página 1" : pageIndex === 1 ? "Sumário · página 2" : `C-${String(pageIndex - 1).padStart(3, "0")} · páginas ${selectedStartPage}${selectedPageCount && selectedPageCount > 1 ? `–${selectedStartPage! + selectedPageCount - 1}` : ""}`
 
   return <section className="mt-6 space-y-4">
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Capa, sumário e comprovantes organizados pela sequência dos critérios nos formulários normativos.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => onDocumentChange("memorial")}><FileText /> Memorial</Button><Button variant="outline" onClick={() => onDocumentChange("forms")}><FileText /> Formulários</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
     <div className="flex gap-2 overflow-x-auto pb-1"><Button variant={pageIndex === 0 ? "secondary" : "outline"} onClick={() => setPageIndex(0)}>Capa</Button><Button variant={pageIndex === 1 ? "secondary" : "outline"} onClick={() => setPageIndex(1)}>Sumário</Button>{entries.map((entry, index) => <Button key={`${entry.occurrence.id}-${entry.name}-${index}`} variant={pageIndex === index + 2 ? "secondary" : "outline"} onClick={() => setPageIndex(index + 2)}>C-{String(index + 1).padStart(3, "0")}</Button>)}</div>
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex min-h-[297mm] w-[210mm] min-w-[210mm] flex-col bg-background p-10 shadow-sm">
       {pageIndex === 0 && <EvidenceCover project={project} catalog={catalog} entryCount={entries.length} />}
-      {pageIndex === 1 && <EvidenceSummary entries={entries} />}
-      {selected && <EvidenceAttachment key={`${selected.occurrence.id}-${selected.name}`} entry={selected} index={pageIndex - 1} />}
-      <footer className="mt-auto border-t pt-3 text-center text-xs text-muted-foreground">Comprovantes consolidados · seção {pageTitle} · {totalPages} seção(ões) no volume</footer>
+      {pageIndex === 1 && <EvidenceSummary entries={entries} entryPageCount={entryPageCount} entryStartPage={entryStartPage} />}
+      {selected && <EvidenceAttachment key={`${selected.occurrence.id}-${selected.name}`} entry={selected} index={pageIndex - 1} startPage={selectedStartPage!} />}
+      <footer className="mt-auto border-t pt-3 text-center text-xs text-muted-foreground">Comprovantes consolidados · {pageTitle} · {totalPages} página(s) no volume</footer>
     </article></div>
     {!entries.length && <Alert><CircleAlert /><AlertTitle>Nenhum comprovante disponível</AlertTitle><AlertDescription>Inclua arquivos nos lançamentos para gerar o sumário e as páginas de comprovantes.</AlertDescription></Alert>}
   </section>
 }
+
+function evidenceEntryKey(entry: EvidenceEntry, index: number) { return `${entry.occurrence.id}-${entry.name}-${index}` }
+function isPdfFile(file: File) { return file.type === "application/pdf" || file.name.toLocaleLowerCase().endsWith(".pdf") }
 
 function createEvidenceEntries(occurrences: RequirementOccurrence[], catalog: Regulation | undefined, storedAttachments: StoredAttachment[]): EvidenceEntry[] {
   const criteria = catalog?.levels.flatMap((level) => level.criteria) ?? []
@@ -311,18 +330,18 @@ function EvidenceCover({ project, catalog, entryCount }: { project: LocalProject
   return <div className="flex flex-1 flex-col justify-center text-center"><p className="text-sm font-medium tracking-[0.2em]">INSTITUTO FEDERAL DA BAHIA</p><h3 className="mt-12 text-3xl font-semibold">COMPROVANTES<br />DO PROCESSO DE RSC</h3><p className="mt-6 text-xl">{project.rscLevel}</p><div className="mt-20 space-y-3 text-base"><p className="font-medium">{project.identification?.name || project.name}</p><p>{project.identification?.position || "Cargo não informado"}</p><p>{project.identification?.campus || "Campus não informado"}</p></div><div className="mt-20 space-y-2 text-sm text-muted-foreground"><p>{catalog ? `${catalog.metadata.regulation.authority} · Resolução nº ${catalog.metadata.regulation.number}/${catalog.metadata.regulation.year}` : "Regulamento não disponível"}</p><p>{entryCount} comprovante(s) organizado(s) neste volume</p></div></div>
 }
 
-function EvidenceSummary({ entries }: { entries: EvidenceEntry[] }) {
-  return <div><header className="text-center"><p className="text-lg font-bold">SUMÁRIO DE COMPROVANTES</p><p className="mt-2 text-sm text-muted-foreground">Ordem correspondente aos critérios dos formulários normativos.</p></header>{entries.length ? <table className="mt-8 w-full border-collapse text-xs"><thead><tr className="bg-muted"><th className="border p-2 text-left">PÁGINA</th><th className="border p-2 text-left">CRITÉRIO</th><th className="border p-2 text-left">DOCUMENTO</th></tr></thead><tbody>{entries.map((entry, index) => <tr key={`${entry.occurrence.id}-${entry.name}-${index}`}><td className="border p-2">C-{String(index + 1).padStart(3, "0")}</td><td className="border p-2"><strong>{entry.criterionCode}</strong><br />{entry.criterionDescription}</td><td className="border p-2">{entry.name}{!entry.file && <span className="block text-muted-foreground">Arquivo precisa ser selecionado novamente.</span>}</td></tr>)}</tbody></table> : <p className="mt-10 text-center text-sm text-muted-foreground">Não há arquivos vinculados aos lançamentos.</p>}</div>
+function EvidenceSummary({ entries, entryPageCount, entryStartPage }: { entries: EvidenceEntry[]; entryPageCount: (entry: EvidenceEntry, index: number) => number; entryStartPage: (index: number) => number }) {
+  return <div><header className="text-center"><p className="text-lg font-bold">SUMÁRIO DE COMPROVANTES</p><p className="mt-2 text-sm text-muted-foreground">Ordem correspondente aos critérios dos formulários normativos.</p></header>{entries.length ? <table className="mt-8 w-full border-collapse text-xs"><thead><tr className="bg-muted"><th className="border p-2 text-left">PÁGINAS</th><th className="border p-2 text-left">CRITÉRIO</th><th className="border p-2 text-left">DOCUMENTO</th></tr></thead><tbody>{entries.map((entry, index) => { const start = entryStartPage(index); const count = entryPageCount(entry, index); return <tr key={`${entry.occurrence.id}-${entry.name}-${index}`}><td className="border p-2">{start}{count > 1 ? `–${start + count - 1}` : ""}</td><td className="border p-2"><strong>{entry.criterionCode}</strong><br />{entry.criterionDescription}</td><td className="border p-2">C-{String(index + 1).padStart(3, "0")} · {entry.name}{!entry.file && <span className="block text-muted-foreground">Arquivo precisa ser selecionado novamente.</span>}</td></tr> })}</tbody></table> : <p className="mt-10 text-center text-sm text-muted-foreground">Não há arquivos vinculados aos lançamentos.</p>}</div>
 }
 
-function EvidenceAttachment({ entry, index }: { entry: EvidenceEntry; index: number }) {
+function EvidenceAttachment({ entry, index, startPage }: { entry: EvidenceEntry; index: number; startPage: number }) {
   const [url, setUrl] = React.useState<string>()
-  const isPdf = entry.file?.type === "application/pdf" || entry.file?.name.toLocaleLowerCase().endsWith(".pdf")
+  const isPdf = entry.file ? isPdfFile(entry.file) : false
   React.useEffect(() => { if (!entry.file || isPdf) { setUrl(undefined); return }; const nextUrl = URL.createObjectURL(entry.file); setUrl(nextUrl); return () => URL.revokeObjectURL(nextUrl) }, [entry.file, isPdf])
-  return <div className="flex flex-1 flex-col"><header className="border-b pb-4"><p className="text-sm font-medium tracking-widest">COMPROVANTE C-{String(index).padStart(3, "0")}</p><h3 className="mt-2 text-xl font-semibold">{entry.name}</h3><p className="mt-2 text-sm text-muted-foreground">Critério {entry.criterionCode} · {entry.criterionDescription}</p></header><div className="mt-6 flex flex-1 items-center justify-center">{entry.file && isPdf ? <PdfEvidencePages file={entry.file} /> : entry.file && url ? entry.file.type.startsWith("image/") ? <img src={url} alt={`Prévia de ${entry.name}`} className="max-h-[205mm] max-w-full object-contain" /> : <a className="text-sm underline" href={url} download={entry.name}>Baixar {entry.name}</a> : <div className="max-w-md border p-8 text-center"><p className="font-medium">Arquivo não disponível neste navegador</p><p className="mt-2 text-sm text-muted-foreground">O sumário preserva a referência “{entry.name}”, mas o binário precisa ser selecionado novamente no lançamento para compor este volume.</p></div>}</div></div>
+  return <div className="flex flex-1 flex-col"><header className="border-b pb-4"><p className="text-sm font-medium tracking-widest">COMPROVANTE C-{String(index).padStart(3, "0")} · PÁGINA {startPage}</p><h3 className="mt-2 text-xl font-semibold">{entry.name}</h3><p className="mt-2 text-sm text-muted-foreground">Critério {entry.criterionCode} · {entry.criterionDescription}</p></header><div className="mt-6 flex flex-1 items-center justify-center">{entry.file && isPdf ? <PdfEvidencePages file={entry.file} startPage={startPage} /> : entry.file && url ? entry.file.type.startsWith("image/") ? <img src={url} alt={`Prévia de ${entry.name}`} className="max-h-[205mm] max-w-full object-contain" /> : <a className="text-sm underline" href={url} download={entry.name}>Baixar {entry.name}</a> : <div className="max-w-md border p-8 text-center"><p className="font-medium">Arquivo não disponível neste navegador</p><p className="mt-2 text-sm text-muted-foreground">O sumário preserva a referência “{entry.name}”, mas o binário precisa ser selecionado novamente no lançamento para compor este volume.</p></div>}</div></div>
 }
 
-function PdfEvidencePages({ file }: { file: File }) {
+function PdfEvidencePages({ file, startPage }: { file: File; startPage: number }) {
   const [document, setDocument] = React.useState<PDFDocumentProxy>()
   const [error, setError] = React.useState<string>()
 
@@ -338,10 +357,10 @@ function PdfEvidencePages({ file }: { file: File }) {
 
   if (error) return <p className="text-sm text-muted-foreground">{error}</p>
   if (!document) return <p className="text-sm text-muted-foreground">Renderizando comprovante…</p>
-  return <div className="w-full space-y-6">{Array.from({ length: document.numPages }, (_, index) => <PdfEvidencePage key={index} document={document} pageNumber={index + 1} />)}</div>
+  return <div className="w-full space-y-6">{Array.from({ length: document.numPages }, (_, index) => <PdfEvidencePage key={index} document={document} pageNumber={index + 1} globalPageNumber={startPage + index} />)}</div>
 }
 
-function PdfEvidencePage({ document, pageNumber }: { document: PDFDocumentProxy; pageNumber: number }) {
+function PdfEvidencePage({ document, pageNumber, globalPageNumber }: { document: PDFDocumentProxy; pageNumber: number; globalPageNumber: number }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   React.useEffect(() => {
     const canvas = canvasRef.current
@@ -360,7 +379,7 @@ function PdfEvidencePage({ document, pageNumber }: { document: PDFDocumentProxy;
     }).catch(() => undefined)
     return () => { cancelled = true; renderTask?.cancel() }
   }, [document, pageNumber])
-  return <figure className="space-y-2"><canvas ref={canvasRef} className="mx-auto block max-w-full border" /><figcaption className="text-center text-xs text-muted-foreground">Página {pageNumber}</figcaption></figure>
+  return <figure className="space-y-2"><canvas ref={canvasRef} className="mx-auto block max-w-full border" /><figcaption className="text-center text-xs text-muted-foreground">Página {globalPageNumber}</figcaption></figure>
 }
 
 type NormativeFormId = "request" | "score" | "rsc-i" | "rsc-ii" | "rsc-iii"
