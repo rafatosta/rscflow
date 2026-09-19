@@ -1,4 +1,6 @@
 import * as React from "react"
+import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from "pdfjs-dist"
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.mjs?url"
 import {
   BookOpen, CalendarDays, CheckCircle2, ClipboardCheck, Copy, Download, FileOutput,
   ChevronDown, ChevronRight, CircleAlert, CircleHelp, FileText, GraduationCap, HardDrive, LayoutDashboard, Minus, PanelLeft, PanelRight, Pencil, Plus, Printer, Search, Trash2, UserRound, ZoomIn,
@@ -33,6 +35,8 @@ import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection, type LevelProjection } from "@/domain/scoring"
 import { DocumentsPage } from "@/components/documents-page"
 import { BackupPage } from "@/components/backup-page"
+
+GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
 const pages = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard, description: "Progresso, pontuação, comprovantes, pendências e backup." },
@@ -287,8 +291,8 @@ function EvidencePackageViewer({ project, catalog, onDocumentChange }: { project
     <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex min-h-[297mm] w-[210mm] min-w-[210mm] flex-col bg-background p-10 shadow-sm">
       {pageIndex === 0 && <EvidenceCover project={project} catalog={catalog} entryCount={entries.length} />}
       {pageIndex === 1 && <EvidenceSummary entries={entries} />}
-      {selected && <EvidenceAttachment entry={selected} index={pageIndex - 1} />}
-      <footer className="mt-auto border-t pt-3 text-center text-xs text-muted-foreground">Comprovantes consolidados · {pageTitle} · página {pageIndex + 1} de {totalPages}</footer>
+      {selected && <EvidenceAttachment key={`${selected.occurrence.id}-${selected.name}`} entry={selected} index={pageIndex - 1} />}
+      <footer className="mt-auto border-t pt-3 text-center text-xs text-muted-foreground">Comprovantes consolidados · seção {pageTitle} · {totalPages} seção(ões) no volume</footer>
     </article></div>
     {!entries.length && <Alert><CircleAlert /><AlertTitle>Nenhum comprovante disponível</AlertTitle><AlertDescription>Inclua arquivos nos lançamentos para gerar o sumário e as páginas de comprovantes.</AlertDescription></Alert>}
   </section>
@@ -313,8 +317,50 @@ function EvidenceSummary({ entries }: { entries: EvidenceEntry[] }) {
 
 function EvidenceAttachment({ entry, index }: { entry: EvidenceEntry; index: number }) {
   const [url, setUrl] = React.useState<string>()
-  React.useEffect(() => { if (!entry.file) { setUrl(undefined); return }; const nextUrl = URL.createObjectURL(entry.file); setUrl(nextUrl); return () => URL.revokeObjectURL(nextUrl) }, [entry.file])
-  return <div className="flex flex-1 flex-col"><header className="border-b pb-4"><p className="text-sm font-medium tracking-widest">COMPROVANTE C-{String(index).padStart(3, "0")}</p><h3 className="mt-2 text-xl font-semibold">{entry.name}</h3><p className="mt-2 text-sm text-muted-foreground">Critério {entry.criterionCode} · {entry.criterionDescription}</p></header><div className="mt-6 flex flex-1 items-center justify-center">{entry.file && url ? entry.file.type.startsWith("image/") ? <img src={url} alt={`Prévia de ${entry.name}`} className="max-h-[205mm] max-w-full object-contain" /> : <object data={url} type={entry.file.type || "application/pdf"} className="h-[205mm] w-full border" aria-label={`Documento ${entry.name}`}><a href={url} download={entry.name}>Abrir {entry.name}</a></object> : <div className="max-w-md border p-8 text-center"><p className="font-medium">Arquivo não disponível neste navegador</p><p className="mt-2 text-sm text-muted-foreground">O sumário preserva a referência “{entry.name}”, mas o binário precisa ser selecionado novamente no lançamento para compor este volume.</p></div>}</div></div>
+  const isPdf = entry.file?.type === "application/pdf" || entry.file?.name.toLocaleLowerCase().endsWith(".pdf")
+  React.useEffect(() => { if (!entry.file || isPdf) { setUrl(undefined); return }; const nextUrl = URL.createObjectURL(entry.file); setUrl(nextUrl); return () => URL.revokeObjectURL(nextUrl) }, [entry.file, isPdf])
+  return <div className="flex flex-1 flex-col"><header className="border-b pb-4"><p className="text-sm font-medium tracking-widest">COMPROVANTE C-{String(index).padStart(3, "0")}</p><h3 className="mt-2 text-xl font-semibold">{entry.name}</h3><p className="mt-2 text-sm text-muted-foreground">Critério {entry.criterionCode} · {entry.criterionDescription}</p></header><div className="mt-6 flex flex-1 items-center justify-center">{entry.file && isPdf ? <PdfEvidencePages file={entry.file} /> : entry.file && url ? entry.file.type.startsWith("image/") ? <img src={url} alt={`Prévia de ${entry.name}`} className="max-h-[205mm] max-w-full object-contain" /> : <a className="text-sm underline" href={url} download={entry.name}>Baixar {entry.name}</a> : <div className="max-w-md border p-8 text-center"><p className="font-medium">Arquivo não disponível neste navegador</p><p className="mt-2 text-sm text-muted-foreground">O sumário preserva a referência “{entry.name}”, mas o binário precisa ser selecionado novamente no lançamento para compor este volume.</p></div>}</div></div>
+}
+
+function PdfEvidencePages({ file }: { file: File }) {
+  const [document, setDocument] = React.useState<PDFDocumentProxy>()
+  const [error, setError] = React.useState<string>()
+
+  React.useEffect(() => {
+    let active = true
+    let task: ReturnType<typeof getDocument> | undefined
+    void file.arrayBuffer().then((data) => {
+      task = getDocument({ data: new Uint8Array(data) })
+      return task.promise
+    }).then((loaded) => { if (active) setDocument(loaded) }).catch(() => { if (active) setError("Não foi possível renderizar este PDF.") })
+    return () => { active = false; task?.destroy() }
+  }, [file])
+
+  if (error) return <p className="text-sm text-muted-foreground">{error}</p>
+  if (!document) return <p className="text-sm text-muted-foreground">Renderizando comprovante…</p>
+  return <div className="w-full space-y-6">{Array.from({ length: document.numPages }, (_, index) => <PdfEvidencePage key={index} document={document} pageNumber={index + 1} />)}</div>
+}
+
+function PdfEvidencePage({ document, pageNumber }: { document: PDFDocumentProxy; pageNumber: number }) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null)
+  React.useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    let cancelled = false
+    let renderTask: ReturnType<Awaited<ReturnType<PDFDocumentProxy["getPage"]>>["render"]> | undefined
+    void document.getPage(pageNumber).then((page) => {
+      if (cancelled) return
+      const viewport = page.getViewport({ scale: 1.35 })
+      canvas.width = Math.floor(viewport.width)
+      canvas.height = Math.floor(viewport.height)
+      const context = canvas.getContext("2d")
+      if (!context) return
+      renderTask = page.render({ canvas, canvasContext: context, viewport })
+      return renderTask.promise
+    }).catch(() => undefined)
+    return () => { cancelled = true; renderTask?.cancel() }
+  }, [document, pageNumber])
+  return <figure className="space-y-2"><canvas ref={canvasRef} className="mx-auto block max-w-full border" /><figcaption className="text-center text-xs text-muted-foreground">Página {pageNumber}</figcaption></figure>
 }
 
 type NormativeFormId = "request" | "score" | "rsc-i" | "rsc-ii" | "rsc-iii"
