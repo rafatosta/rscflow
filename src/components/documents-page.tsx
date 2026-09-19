@@ -66,7 +66,7 @@ export function DocumentsPage({ project, catalog }: { project: LocalProject; cat
   }
 
   return <section className="mt-6 space-y-6">
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"><div><h2 className="text-2xl font-semibold tracking-tight">Gerar documentos</h2><p className="mt-1 text-sm text-muted-foreground">{project.name} · {project.identification?.name ?? "Docente não identificado"} · {project.rscLevel}</p></div><Button variant="outline" render={<a href={`/project/${project.localId}/preview`} />}><Eye /> Abrir prévia</Button></div>
+    <div className="flex justify-end"><Button variant="outline" render={<a href={`/project/${project.localId}/preview`} />}><Eye /> Abrir prévia</Button></div>
     <Alert><CheckCircle2 /><AlertTitle>Prontidão geral: {status}</AlertTitle><AlertDescription>{status === "bloqueado" ? "Há requisitos que impedem a emissão. Consulte os bloqueios em cada artefato." : status === "com avisos" ? "É possível seguir apenas após conferir os avisos documentais." : "Os dados disponíveis atendem aos requisitos locais de geração."}</AlertDescription></Alert>
     <div className="grid gap-4 lg:grid-cols-2">{items.map((item) => {
       const Icon = item.icon

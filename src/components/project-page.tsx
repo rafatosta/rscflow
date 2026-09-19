@@ -58,10 +58,10 @@ export function ProjectPage({ localId, section, catalog }: ProjectPageProps) {
       {!project && <p className="text-sm text-muted-foreground">Projeto local não encontrado.</p>}
 
       <section className="mt-2">
-        {activePage.id !== "memorial" && <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-5" /></span>
           <div><h3 className="text-xl font-semibold">{activePage.label}</h3><p className="text-sm text-muted-foreground">{activePage.description}</p></div>
-        </div>}
+        </div>
         <ProjectSection section={activePage.id} project={project} catalog={catalog} onOccurrencesChange={(occurrences) => {
           if (!project) return
           const nextProject = { ...project, requirementOccurrences: occurrences, updatedAt: new Date().toISOString() }
@@ -293,11 +293,10 @@ function MemorialSectionEditor({ project, onChange }: { project: ReturnType<type
     if (nextStep) setActiveId(nextStep.id)
   }
 
-  return <section className="py-2 sm:py-4">
+  return <section className="mt-6">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Memorial descritivo</h2>
-        <p className="mt-2 max-w-3xl text-base text-muted-foreground">Organize sua trajetória profissional por seções e redija cada etapa do memorial. O conteúdo será consolidado no documento final.</p>
+        <p className="max-w-3xl text-base text-muted-foreground">Organize sua trajetória profissional por seções e redija cada etapa do memorial. O conteúdo será consolidado no documento final.</p>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
         <Button variant="outline" disabled={completedCount === 0} onClick={() => setIsClearAllDialogOpen(true)}>Limpar tudo</Button>
