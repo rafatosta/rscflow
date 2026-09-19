@@ -66,6 +66,16 @@ function formatRegulation(regulation: (typeof regulations)[number]) {
   return `${authority} nº ${number}/${year}`
 }
 
+function calculateProjectProgress(project: LocalProject) {
+  const identification = project.identification
+  const identificationComplete = identification !== undefined && Object.values(identification).every((value) => value.trim())
+  const hasFormation = (project.formations?.length ?? 0) > 0
+  const hasRequirement = (project.requirementOccurrences?.length ?? 0) > 0
+  const completedMemorialSections = project.memorialSections?.filter((section) => section.content.trim()).length ?? 0
+
+  return Math.round(((Number(identificationComplete) + Number(hasFormation) + Number(hasRequirement) + completedMemorialSections) / 10) * 100)
+}
+
 export function HomePage({ onNavigate }: HomePageProps) {
   const { projects, refreshProjects } = useLocalProjects()
   const [rscLevel, setRscLevel] = useState("");
@@ -322,7 +332,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Progress value={0}>
+                    <Progress value={calculateProjectProgress(project)}>
                       <ProgressLabel>Progresso</ProgressLabel>
                       <ProgressValue />
                     </Progress>
