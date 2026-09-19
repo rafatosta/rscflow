@@ -243,6 +243,7 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
   ]
 
   const document = documents.find((item) => item.id === documentId) ?? documents[0]
+  if (documentId === "memorial") return <MemorialDocumentViewer project={project} onDocumentChange={setDocumentId} />
   if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDocumentChange={setDocumentId} />
   if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} onDocumentChange={setDocumentId} />
   const currentPageIndex = Math.min(pageIndex, document.pages.length - 1)
@@ -269,6 +270,40 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
       {showContext && <aside className="order-3"><Card><CardHeader><CardTitle className="text-base">Contexto do documento</CardTitle><CardDescription>Metadados e conferências disponíveis.</CardDescription></CardHeader><CardContent className="space-y-4"><div><p className="text-sm font-medium">Estado</p><Badge className="mt-1" variant={document.ready ? "secondary" : "outline"}>{document.ready ? "Artefato pronto" : "Artefato pendente"}</Badge></div><div><p className="text-sm font-medium">Dataset normativo</p><p className="mt-1 text-sm text-muted-foreground">{regulationTitle}</p></div>{document.warnings.length > 0 && <div><p className="text-sm font-medium">Avisos</p><ul className="mt-1 space-y-2 text-sm text-muted-foreground">{document.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}{evidencePageMap && <div><p className="text-sm font-medium">Mapa de páginas</p><pre className="mt-1 whitespace-pre-wrap font-sans text-xs text-muted-foreground">{evidencePageMap}</pre></div>}</CardContent></Card></aside>}
     </div>
   </section>
+}
+
+function MemorialDocumentViewer({ project, onDocumentChange }: { project: LocalProject; onDocumentChange: (id: PreviewDocument["id"]) => void }) {
+  const [pageIndex, setPageIndex] = React.useState(0)
+  const contentPages = React.useMemo(() => createMemorialPages(project.memorialSections ?? []), [project.memorialSections])
+  const totalPages = contentPages.length + 2
+  const currentContent = contentPages[pageIndex - 2]
+  const summary = contentPages.reduce<{ title: string; page: number }[]>((items, page, index) => page.title.endsWith("(continuação)") ? items : [...items, { title: page.title, page: index + 3 }], [])
+  const pageTitle = pageIndex === 0 ? "Capa" : pageIndex === 1 ? "Sumário" : currentContent?.title ?? "Conteúdo"
+
+  return <section className="mt-6 space-y-4">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Memorial organizado em capa, sumário e seções editoriais paginadas.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={() => onDocumentChange("forms")}><FileText /> Formulários</Button><Button variant="outline" onClick={() => onDocumentChange("evidence")}><FileText /> Comprovantes</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
+    <div className="flex gap-2 overflow-x-auto pb-1"><Button variant={pageIndex === 0 ? "secondary" : "outline"} onClick={() => setPageIndex(0)}>Capa</Button><Button variant={pageIndex === 1 ? "secondary" : "outline"} onClick={() => setPageIndex(1)}>Sumário</Button>{contentPages.map((page, index) => <Button key={`${page.title}-${index}`} variant={pageIndex === index + 2 ? "secondary" : "outline"} onClick={() => setPageIndex(index + 2)}>{index + 3} · {page.title}</Button>)}</div>
+    <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8"><article className="mx-auto flex min-h-[297mm] w-[210mm] min-w-[210mm] flex-col bg-background p-10 shadow-sm">
+      {pageIndex === 0 && <MemorialCover project={project} />}
+      {pageIndex === 1 && <MemorialSummary summary={summary} />}
+      {currentContent && <MemorialContentPage page={currentContent} />}
+      <footer className="mt-auto border-t pt-3 text-center text-xs text-muted-foreground">Memorial descritivo · {pageTitle} · página {pageIndex + 1} de {totalPages}</footer>
+    </article></div>
+    {!contentPages.length && <Alert><CircleAlert /><AlertTitle>Conteúdo do memorial pendente</AlertTitle><AlertDescription>Preencha as seções do Memorial para compor as páginas do documento.</AlertDescription></Alert>}
+  </section>
+}
+
+function MemorialCover({ project }: { project: LocalProject }) {
+  const person = project.identification
+  return <div className="flex flex-1 flex-col justify-center text-center"><p className="text-sm font-medium tracking-[0.2em]">INSTITUTO FEDERAL DA BAHIA</p><h3 className="mt-12 text-3xl font-semibold">MEMORIAL<br />DESCRITIVO</h3><p className="mt-6 text-xl">Reconhecimento de Saberes e Competências — {project.rscLevel}</p><div className="mt-24 space-y-3 text-base"><p className="font-medium">{person?.name || project.name}</p><p>SIAPE: {person?.siape || "não informado"}</p><p>{person?.position || "Cargo não informado"}</p><p>{person?.campus || "Campus não informado"}</p></div><p className="mt-24 text-sm text-muted-foreground">{new Intl.DateTimeFormat("pt-BR", { year: "numeric" }).format(new Date())}</p></div>
+}
+
+function MemorialSummary({ summary }: { summary: { title: string; page: number }[] }) {
+  return <div><header className="text-center"><p className="text-lg font-bold">SUMÁRIO</p><p className="mt-2 text-sm text-muted-foreground">Seções que compõem o Memorial Descritivo.</p></header>{summary.length ? <table className="mt-10 w-full border-collapse text-sm"><tbody>{summary.map((item) => <tr key={item.title}><td className="border-b py-3">{item.title}</td><td className="border-b py-3 text-right">{item.page}</td></tr>)}</tbody></table> : <p className="mt-10 text-center text-sm text-muted-foreground">Não há seções preenchidas para listar.</p>}</div>
+}
+
+function MemorialContentPage({ page }: { page: PreviewPage }) {
+  return <div className="flex flex-1 flex-col"><header className="border-b pb-5"><p className="text-xs font-medium tracking-widest text-muted-foreground">{page.eyebrow}</p><h3 className="mt-3 text-2xl font-semibold">{page.title}</h3></header><div className="mt-8 space-y-6 text-base leading-7">{page.blocks.map((block, index) => <p key={index} className="whitespace-pre-wrap">{block}</p>)}</div></div>
 }
 
 type EvidenceEntry = { occurrence: RequirementOccurrence; criterionCode: string; criterionDescription: string; name: string; file?: File }
