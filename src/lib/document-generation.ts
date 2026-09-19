@@ -7,8 +7,17 @@ type PdfPage = { title: string; lines: string[]; eyebrow?: string; cover?: boole
 const encoder = new TextEncoder()
 
 function latin1(value: string) {
-  const bytes = new Uint8Array(value.length)
-  for (let index = 0; index < value.length; index += 1) bytes[index] = value.charCodeAt(index) <= 255 ? value.charCodeAt(index) : 63
+  const winAnsi: Record<number, number> = {
+    0x2013: 0x96, 0x2014: 0x97, 0x2018: 0x91, 0x2019: 0x92,
+    0x201c: 0x93, 0x201d: 0x94, 0x2022: 0x95, 0x2026: 0x85,
+    0x20ac: 0x80,
+  }
+  const normalized = value.normalize("NFC")
+  const bytes = new Uint8Array(normalized.length)
+  for (let index = 0; index < normalized.length; index += 1) {
+    const code = normalized.charCodeAt(index)
+    bytes[index] = code <= 255 ? code : (winAnsi[code] ?? 0x20)
+  }
   return bytes
 }
 
@@ -102,7 +111,22 @@ function tablePage(title: string, eyebrow: string, headers: string[], rows: stri
 }
 
 function tablePages(title: string, eyebrow: string, headers: string[], rows: string[][], widths: number[]) {
-  const chunks = Array.from({ length: Math.max(1, Math.ceil(rows.length / 12)) }, (_, index) => rows.slice(index * 12, index * 12 + 12))
+  const rowHeight = (row: string[]) => Math.max(...row.map((cell, index) => wrap(cell, Math.max(5, Math.floor(widths[index] / 4.8))).length)) * 8 + 6
+  const headerHeight = rowHeight(headers)
+  const chunks: string[][][] = []
+  let chunk: string[][] = []
+  let usedHeight = headerHeight
+  for (const row of rows) {
+    const height = rowHeight(row)
+    if (chunk.length && usedHeight + height > 670) {
+      chunks.push(chunk)
+      chunk = []
+      usedHeight = headerHeight
+    }
+    chunk.push(row)
+    usedHeight += height
+  }
+  if (chunk.length || !chunks.length) chunks.push(chunk)
   return chunks.map((chunk, index) => tablePage(index ? `${title} (continuação)` : title, eyebrow, headers, chunk, widths))
 }
 
@@ -185,5 +209,5 @@ export function createZip(files: { name: string; data: Uint8Array }[]) {
 
 export function downloadFile(name: string, blob: Blob) {
   const url = URL.createObjectURL(blob); const link = document.createElement("a")
-  link.href = url; link.download = name; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 0)
+  link.href = url; link.download = name; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1_000)
 }

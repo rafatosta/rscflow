@@ -29,7 +29,7 @@ const processItems: NavigationItem[] = [
     children: [
       { id: "preview-memorial", label: "Memorial descritivo", icon: "file-text" },
       { id: "preview-forms", label: "Formulários normativos", icon: "file-text" },
-      { id: "preview-evidence", label: "Comprovantes consolidados", icon: "file-text" },
+      { id: "preview-evidence", label: "Índice de comprovantes", icon: "file-text" },
     ],
   },
   { id: "documents", label: "Gerar documentos", icon: "file-output" },

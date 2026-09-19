@@ -18,7 +18,7 @@ export const projectPages = [
   { id: "review", label: "Revisão", icon: ClipboardCheck, description: "Checklist e prontidão documental." },
   { id: "preview-memorial", label: "Memorial descritivo", icon: FileOutput, description: "Visualização do memorial organizado em capa, sumário e seções editoriais." },
   { id: "preview-forms", label: "Formulários normativos", icon: FileOutput, description: "Visualização dos formulários preenchidos com os dados do processo." },
-  { id: "preview-evidence", label: "Comprovantes consolidados", icon: FileOutput, description: "Visualização da capa, do sumário e dos comprovantes vinculados." },
+  { id: "preview-evidence", label: "Índice de comprovantes", icon: FileOutput, description: "Prévia do índice PDF dos comprovantes vinculados." },
   { id: "documents", label: "Gerar documentos", icon: HardDrive, description: "Preparar, revisar disponibilidade e baixar os artefatos de entrega." },
   { id: "backup", label: "Backup e restauração", icon: HardDrive, description: "Exportar, proteger e recuperar cópias locais do processo." },
 ] as const
