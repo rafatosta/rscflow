@@ -26,7 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { type Formation, type Identification, type LocalProject, type MemorialSection, type RequirementOccurrence } from "@/lib/projects"
+import { getOccurrencesWithStoredAttachments, replaceOccurrenceAttachments, type Formation, type Identification, type LocalProject, type MemorialSection, type RequirementOccurrence } from "@/lib/projects"
 import { useLocalProjects } from "@/hooks/use-local-projects"
 import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection, type LevelProjection } from "@/domain/scoring"
@@ -205,6 +205,8 @@ function projectSectionHref(project: LocalProject, section: string) {
 
 function ReviewSection({ project, catalog }: { project: LocalProject; catalog?: Regulation }) {
   const occurrences = project.requirementOccurrences ?? []
+  const occurrenceIds = React.useMemo(() => (project.requirementOccurrences ?? []).map((occurrence) => occurrence.id), [project.requirementOccurrences])
+  const [occurrencesWithFiles, setOccurrencesWithFiles] = React.useState<Set<string>>(() => new Set())
   const formations = project.formations ?? []
   const memorial = project.memorialSections ?? []
   const requestedLevel = ({ "RSC I": "rsc-i", "RSC II": "rsc-ii", "RSC III": "rsc-iii" } as const)[project.rscLevel]
@@ -215,12 +217,16 @@ function ReviewSection({ project, catalog }: { project: LocalProject; catalog?: 
   const hasConclusion = memorial.some((item) => item.id === "conclusion" && item.content.trim())
   const findings: ReviewFinding[] = []
 
+  React.useEffect(() => {
+    void getOccurrencesWithStoredAttachments(project.localId, occurrenceIds).then(setOccurrencesWithFiles)
+  }, [occurrenceIds, project.localId])
+
   if (!project.identification) findings.push({ severity: "bloqueio", title: "Identificação do docente não foi salva", description: "O Memorial e os formulários normativos ficam bloqueados até que os dados funcionais e o nível solicitado sejam confirmados.", section: "profile" })
   if (formations.length === 0) findings.push({ severity: "conferencia", title: "Nenhuma formação cadastrada", description: "A revisão pode continuar, mas a formação deve ser conferida antes da emissão.", section: "education" })
   if (occurrences.length === 0) findings.push({ severity: "bloqueio", title: "Não há lançamentos para pontuar", description: "O resultado e os comprovantes consolidados ficam bloqueados.", section: "requirements" })
   if (invalidOccurrences.length) findings.push({ severity: "bloqueio", title: `${invalidOccurrences.length} lançamento(s) sem critério ou nível válido`, description: "Corrija o enquadramento normativo antes de gerar o resultado.", section: "requirements" })
   if (occurrencesWithoutEvidence.length) findings.push({ severity: "bloqueio", title: `${occurrencesWithoutEvidence.length} lançamento(s) sem evidência vinculada`, description: "Inclua uma referência de evidência ou um comprovante para consolidar os anexos.", section: "requirements" })
-  occurrences.forEach((occurrence) => {
+  occurrences.filter((occurrence) => !occurrencesWithFiles.has(occurrence.id)).forEach((occurrence) => {
     const title = occurrence.description.split(". ")[0] || "Lançamento sem descrição"
     const attachmentNames = occurrence.attachmentNames.filter(Boolean)
     findings.push({
@@ -389,6 +395,7 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
   const [editingOccurrenceId, setEditingOccurrenceId] = React.useState<string | null>(null)
   const [highlightAttachments, setHighlightAttachments] = React.useState(false)
   const [attachments, setAttachments] = React.useState<string[]>([])
+  const [attachmentFiles, setAttachmentFiles] = React.useState<File[]>([])
   const [collapsedDirectiveIds, setCollapsedDirectiveIds] = React.useState<Set<string>>(() => new Set())
   const form = useForm<OccurrenceFormValues, unknown, OccurrenceValues>({ resolver: zodResolver(occurrenceSchema), defaultValues: emptyOccurrence })
   const level = catalog.levels.find((item) => item.section === levelId)!
@@ -398,7 +405,7 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
   const unassignedOccurrences = (project.requirementOccurrences ?? []).filter((item) => !item.criterionId || !item.selectedLevel)
   const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR")
   const matches = (description: string) => !normalizedQuery || description.toLocaleLowerCase("pt-BR").includes(normalizedQuery)
-  const openDialog = (id: string) => { form.reset(emptyOccurrence); setAttachments([]); setEditingOccurrenceId(null); setHighlightAttachments(false); setCriterionId(id) }
+  const openDialog = (id: string) => { form.reset(emptyOccurrence); setAttachments([]); setAttachmentFiles([]); setEditingOccurrenceId(null); setHighlightAttachments(false); setCriterionId(id) }
   const closeDialog = () => { setCriterionId(null); setEditingOccurrenceId(null); setHighlightAttachments(false) }
 
   React.useEffect(() => {
@@ -411,6 +418,7 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
     setCriterionId(occurrence.criterionId)
     setEditingOccurrenceId(occurrence.id)
     setAttachments(occurrence.attachmentNames)
+    setAttachmentFiles([])
     form.reset({ period: occurrence.period, quantity: occurrence.quantity, description: occurrence.description, results: occurrence.results, competencies: occurrence.competencies, evidence: occurrence.evidence })
     window.history.replaceState({}, "", window.location.pathname)
   }, [editingOccurrenceId, form, project.requirementOccurrences])
@@ -422,13 +430,15 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
     return () => window.clearTimeout(timeout)
   }, [editingOccurrenceId])
 
-  const saveOccurrence = (values: OccurrenceValues) => {
+  const saveOccurrence = async (values: OccurrenceValues) => {
     if (!selectedCriterion) return
     const now = new Date().toISOString()
     const currentOccurrences = project.requirementOccurrences ?? []
+    const occurrenceId = editingOccurrenceId ?? crypto.randomUUID()
     const nextOccurrences = editingOccurrenceId
-      ? currentOccurrences.map((item) => item.id === editingOccurrenceId ? { ...item, criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, updatedAt: now } : item)
-      : [...currentOccurrences, { id: crypto.randomUUID(), criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, createdAt: now, updatedAt: now }]
+      ? currentOccurrences.map((item) => item.id === occurrenceId ? { ...item, criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, updatedAt: now } : item)
+      : [...currentOccurrences, { id: occurrenceId, criterionId: selectedCriterion.id, selectedLevel: levelId, ...values, attachmentNames: attachments, createdAt: now, updatedAt: now }]
+    if (attachmentFiles.length) await replaceOccurrenceAttachments(project.localId, occurrenceId, attachmentFiles)
     onOccurrencesChange(nextOccurrences)
     const returnToReview = Boolean(editingOccurrenceId)
     closeDialog()
@@ -462,7 +472,7 @@ function RequirementsSection({ project, catalog, projections, onOccurrencesChang
 
     {unassignedOccurrences.length > 0 && <Card className="mt-4"><CardHeader><CardTitle>Lançamentos aguardando enquadramento</CardTitle><CardDescription>Essas ocorrências ainda não estão vinculadas a um critério e não entram na estimativa.</CardDescription></CardHeader><CardContent className="space-y-2">{unassignedOccurrences.map((occurrence) => <div key={occurrence.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{occurrence.description || "Lançamento sem descrição"}</p><p className="mt-1 text-muted-foreground">Quantidade: {occurrence.quantity}</p></div>)}</CardContent></Card>}
 
-    <Dialog open={Boolean(selectedCriterion)} onOpenChange={(open) => { if (!open) closeDialog() }}><DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>{editingOccurrenceId ? "Corrigir lançamento" : "Adicionar lançamento"}</DialogTitle><DialogDescription>{selectedCriterion ? `${selectedCriterion.code} · ${selectedCriterion.description}` : ""}</DialogDescription></DialogHeader><form className="grid gap-4" noValidate onSubmit={form.handleSubmit(saveOccurrence)}><div className="grid gap-4 sm:grid-cols-2"><FormField label="Período (opcional)" error={form.formState.errors.period}><Input placeholder="Ex.: 2024.1 a 2024.2" {...form.register("period")} /></FormField><FormField label={`Quantidade (${selectedCriterion?.unit ?? ""})`} required error={form.formState.errors.quantity as FieldError | undefined}><Input type="number" min="0.01" step="any" {...form.register("quantity")} /></FormField></div><FormField label="Descrição da atividade" required error={form.formState.errors.description}><Textarea rows={3} {...form.register("description")} /></FormField><FormField label="Resultados alcançados" error={form.formState.errors.results}><Textarea rows={3} {...form.register("results")} /></FormField><FormField label="Competências relacionadas" error={form.formState.errors.competencies}><Textarea rows={3} {...form.register("competencies")} /></FormField><FormField label="Evidências e anexos comprobatórios" error={form.formState.errors.evidence}><Textarea rows={3} placeholder="Informe links, referências ou identificação dos comprovantes." {...form.register("evidence")} /></FormField><div className={`grid gap-1.5 rounded-lg p-3 text-sm font-medium ${highlightAttachments ? "ring-2 ring-primary ring-offset-2" : ""}`}><label htmlFor="occurrence-attachments">Adicionar comprovante</label><Input id="occurrence-attachments" type="file" multiple onChange={(event) => { setAttachments(Array.from(event.target.files ?? []).map((file) => file.name)); setHighlightAttachments(false) }} /><span className="text-xs font-normal text-muted-foreground">{attachments.length ? attachments.join(", ") : "Nenhum arquivo selecionado."}</span></div><p className="text-sm text-muted-foreground">A pontuação é calculada automaticamente a partir das quantidades lançadas e dos limites do catálogo.</p><DialogFooter><DialogClose render={<Button type="button" variant="outline" />}>Cancelar</DialogClose><Button type="submit">Salvar lançamento</Button></DialogFooter></form></DialogContent></Dialog>
+    <Dialog open={Boolean(selectedCriterion)} onOpenChange={(open) => { if (!open) closeDialog() }}><DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>{editingOccurrenceId ? "Corrigir lançamento" : "Adicionar lançamento"}</DialogTitle><DialogDescription>{selectedCriterion ? `${selectedCriterion.code} · ${selectedCriterion.description}` : ""}</DialogDescription></DialogHeader><form className="grid gap-4" noValidate onSubmit={form.handleSubmit(saveOccurrence)}><div className="grid gap-4 sm:grid-cols-2"><FormField label="Período (opcional)" error={form.formState.errors.period}><Input placeholder="Ex.: 2024.1 a 2024.2" {...form.register("period")} /></FormField><FormField label={`Quantidade (${selectedCriterion?.unit ?? ""})`} required error={form.formState.errors.quantity as FieldError | undefined}><Input type="number" min="0.01" step="any" {...form.register("quantity")} /></FormField></div><FormField label="Descrição da atividade" required error={form.formState.errors.description}><Textarea rows={3} {...form.register("description")} /></FormField><FormField label="Resultados alcançados" error={form.formState.errors.results}><Textarea rows={3} {...form.register("results")} /></FormField><FormField label="Competências relacionadas" error={form.formState.errors.competencies}><Textarea rows={3} {...form.register("competencies")} /></FormField><FormField label="Evidências e anexos comprobatórios" error={form.formState.errors.evidence}><Textarea rows={3} placeholder="Informe links, referências ou identificação dos comprovantes." {...form.register("evidence")} /></FormField><div className={`grid gap-1.5 rounded-lg p-3 text-sm font-medium ${highlightAttachments ? "ring-2 ring-primary ring-offset-2" : ""}`}><label htmlFor="occurrence-attachments">Adicionar comprovante</label><Input id="occurrence-attachments" type="file" multiple onChange={(event) => { const files = Array.from(event.target.files ?? []); setAttachmentFiles(files); setAttachments(files.map((file) => file.name)); setHighlightAttachments(false) }} /><span className="text-xs font-normal text-muted-foreground">{attachments.length ? attachments.join(", ") : "Nenhum arquivo selecionado."}</span></div><p className="text-sm text-muted-foreground">A pontuação é calculada automaticamente a partir das quantidades lançadas e dos limites do catálogo.</p><DialogFooter><DialogClose render={<Button type="button" variant="outline" />}>Cancelar</DialogClose><Button type="submit">Salvar lançamento</Button></DialogFooter></form></DialogContent></Dialog>
   </section>
 }
 
