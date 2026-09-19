@@ -45,7 +45,9 @@ const pages = [
   { id: "requirements", label: "Requisitos", icon: Search, description: "Explore o catálogo normativo e registre suas experiências." },
   { id: "memorial", label: "Memorial", icon: FileText, description: "Edição e regeneração do Memorial." },
   { id: "review", label: "Revisão", icon: ClipboardCheck, description: "Checklist e prontidão documental." },
-  { id: "preview", label: "Visualizar", icon: FileOutput, description: "Visualizador A4 genérico." },
+  { id: "preview-memorial", label: "Memorial descritivo", icon: FileOutput, description: "Visualização do memorial organizado em capa, sumário e seções editoriais." },
+  { id: "preview-forms", label: "Formulários normativos", icon: FileOutput, description: "Visualização dos formulários preenchidos com os dados do processo." },
+  { id: "preview-evidence", label: "Comprovantes consolidados", icon: FileOutput, description: "Visualização da capa, do sumário e dos comprovantes vinculados." },
   { id: "documents", label: "Gerar documentos", icon: HardDrive, description: "Preparar, revisar disponibilidade e baixar os artefatos de entrega." },
   { id: "backup", label: "Backup e restauração", icon: HardDrive, description: "Exportar, proteger e recuperar cópias locais do processo." },
 ] as const
@@ -124,7 +126,7 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemo
     return <RequirementsSection project={project} catalog={catalog} projections={{ "rsc-i": calculateLevelProjection(catalog, "rsc-i", project.requirementOccurrences ?? []), "rsc-ii": calculateLevelProjection(catalog, "rsc-ii", project.requirementOccurrences ?? []), "rsc-iii": calculateLevelProjection(catalog, "rsc-iii", project.requirementOccurrences ?? []) }} onOccurrencesChange={onOccurrencesChange} />
   }
   if (section === "review") return project ? <ReviewSection project={project} catalog={catalog} /> : null
-  if (section === "preview") return project ? <DocumentViewer project={project} catalog={catalog} /> : null
+  if (section === "preview-memorial" || section === "preview-forms" || section === "preview-evidence") return project ? <DocumentViewer project={project} catalog={catalog} documentId={section.replace("preview-", "") as PreviewDocument["id"]} /> : null
   if (section === "documents") return project ? <DocumentsPage project={project} catalog={catalog} /> : null
   if (section === "backup") return project ? <BackupPage project={project} /> : null
   return <div className="mt-6 grid gap-4 md:grid-cols-2"><InfoCard title={section === "documents" ? "Arquivos do projeto" : "Nenhum dado cadastrado"} text={section === "documents" ? "Exporte PDFs, JSON e backup ZIP, ou importe uma restauração." : "Adicione informações para compor esta etapa da avaliação."} /><Card><CardHeader><CardTitle>Próxima ação</CardTitle><CardDescription>Esta seção está pronta para receber seus lançamentos.</CardDescription></CardHeader><CardContent><Button><CheckCircle2 /> Adicionar informação</Button></CardContent></Card></div>
@@ -192,8 +194,11 @@ function createMemorialPages(sections: MemorialSection[]): PreviewPage[] {
     })
 }
 
-function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?: Regulation }) {
-  const [documentId, setDocumentId] = React.useState<PreviewDocument["id"]>("memorial")
+function DocumentViewer({ project, catalog, documentId }: { project: LocalProject; catalog?: Regulation; documentId: PreviewDocument["id"] }) {
+  const navigateToDocument = (id: PreviewDocument["id"]) => {
+    window.history.pushState({}, "", `/project/${project.localId}/preview-${id}`)
+    window.dispatchEvent(new PopStateEvent("popstate"))
+  }
   const [pageIndex, setPageIndex] = React.useState(0)
   const [zoom, setZoom] = React.useState(85)
   const [showThumbnails, setShowThumbnails] = React.useState(true)
@@ -243,9 +248,9 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
   ]
 
   const document = documents.find((item) => item.id === documentId) ?? documents[0]
-  if (documentId === "memorial") return <MemorialDocumentViewer project={project} onDocumentChange={setDocumentId} />
-  if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDocumentChange={setDocumentId} />
-  if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} onDocumentChange={setDocumentId} />
+  if (documentId === "memorial") return <MemorialDocumentViewer project={project} onDocumentChange={navigateToDocument} />
+  if (documentId === "forms") return <NormativeFormsViewer project={project} catalog={catalog} onDocumentChange={navigateToDocument} />
+  if (documentId === "evidence") return <EvidencePackageViewer project={project} catalog={catalog} onDocumentChange={navigateToDocument} />
   const currentPageIndex = Math.min(pageIndex, document.pages.length - 1)
   const page = document.pages[currentPageIndex]
   const evidencePageMap = attachedFiles.map((file, index) => `${file} → C-${String(index + 1).padStart(3, "0")}`).join("\n")
@@ -262,7 +267,7 @@ function DocumentViewer({ project, catalog }: { project: LocalProject; catalog?:
 
   return <section className="mt-6 space-y-4">
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">Leitura das projeções editoriais e dos artefatos produzidos. Esta área não recalcula pontuação nem altera o projeto.</p><div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" onClick={exportJson}><Download /> Exportar JSON</Button><Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir</Button></div></div>
-    <div className="flex flex-wrap gap-2">{documents.map((item) => <Button key={item.id} variant={item.id === documentId ? "secondary" : "outline"} onClick={() => { setDocumentId(item.id); setPageIndex(0) }}><FileText /> {item.title}<Badge variant={item.ready ? "secondary" : "outline"}>{item.ready ? "Pronto" : "Pendente"}</Badge></Button>)}</div>
+    <div className="flex flex-wrap gap-2">{documents.map((item) => <Button key={item.id} variant={item.id === documentId ? "secondary" : "outline"} onClick={() => { navigateToDocument(item.id); setPageIndex(0) }}><FileText /> {item.title}<Badge variant={item.ready ? "secondary" : "outline"}>{item.ready ? "Pronto" : "Pendente"}</Badge></Button>)}</div>
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"><div className="text-sm"><span className="font-medium">{document.title}</span><span className="text-muted-foreground"> · {document.type} · {document.pages.length} página(s)</span></div><div className="flex items-center gap-1"><Button size="icon" variant="ghost" aria-label="Ocultar ou exibir miniaturas" onClick={() => setShowThumbnails((value) => !value)}><PanelLeft /></Button><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 55} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 115} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button><Button size="icon" variant="ghost" aria-label="Ocultar ou exibir contexto" onClick={() => setShowContext((value) => !value)}><PanelRight /></Button></div></div>
     <div className="grid gap-4 xl:grid-cols-[12rem_minmax(0,1fr)_18rem]">
       {showThumbnails && <aside className="order-2 xl:order-1"><Card><CardHeader><CardTitle className="text-base">Miniaturas</CardTitle></CardHeader><CardContent className="space-y-2">{document.pages.map((item, index) => <Button key={`${item.title}-${index}`} variant={index === currentPageIndex ? "secondary" : "ghost"} className="h-auto w-full justify-start whitespace-normal p-3 text-left" onClick={() => setPageIndex(index)}><span className="mr-2 text-muted-foreground">{index + 1}</span><span>{item.title}</span></Button>)}</CardContent></Card></aside>}

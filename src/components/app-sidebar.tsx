@@ -1,5 +1,7 @@
+import * as React from "react";
 import {
   BarChart3,
+  ChevronRight,
   ClipboardCheck,
   FileOutput,
   FileText,
@@ -25,7 +27,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export type NavigationItem = {
   id: string;
@@ -42,6 +48,7 @@ export type NavigationItem = {
     | "clipboard-check"
     | "file-output"
     | "hard-drive";
+  children?: NavigationItem[];
 };
 
 type AppSidebarProps = {
@@ -77,6 +84,9 @@ export function AppSidebar({
   onProcessChange,
   onHomeClick,
 }: AppSidebarProps) {
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+  const previewOpen = isPreviewOpen || activeProcess?.startsWith("preview-");
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 group-data-[collapsible=icon]:p-2">
@@ -123,10 +133,34 @@ export function AppSidebar({
               <SidebarMenu>
                 {processItems.map((item) => {
                   const Icon = icons[item.icon];
+                  const hasChildren = Boolean(item.children?.length);
+                  const isActive = activeProcess === item.id || item.children?.some((child) => child.id === activeProcess);
+
+                  if (hasChildren) {
+                    return (
+                      <Collapsible key={item.id} className="group/collapsible" open={previewOpen} onOpenChange={setIsPreviewOpen}>
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger render={<SidebarMenuButton isActive={isActive} tooltip={item.label} />}>
+                            <Icon />
+                            <span>{item.label}</span>
+                            <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              {item.children?.map((child) => {
+                                const ChildIcon = icons[child.icon];
+                                return <SidebarMenuSubItem key={child.id}><SidebarMenuSubButton isActive={activeProcess === child.id} onClick={() => onProcessChange?.(child.id)}><ChildIcon /><span>{child.label}</span></SidebarMenuSubButton></SidebarMenuSubItem>;
+                              })}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    );
+                  }
                   return (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
-                        isActive={activeProcess === item.id}
+                        isActive={isActive}
                         tooltip={item.label}
                         onClick={() => onProcessChange?.(item.id)}
                       >

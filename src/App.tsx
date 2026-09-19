@@ -22,7 +22,16 @@ const processItems: NavigationItem[] = [
   { id: "requirements", label: "Requisitos", icon: "search" },
   { id: "memorial", label: "Memorial", icon: "file-text" },
   { id: "review", label: "Revisão", icon: "clipboard-check" },
-  { id: "preview", label: "Visualizar", icon: "file-output" },
+  {
+    id: "preview",
+    label: "Visualizar",
+    icon: "file-output",
+    children: [
+      { id: "preview-memorial", label: "Memorial descritivo", icon: "file-text" },
+      { id: "preview-forms", label: "Formulários normativos", icon: "file-text" },
+      { id: "preview-evidence", label: "Comprovantes consolidados", icon: "file-text" },
+    ],
+  },
   { id: "documents", label: "Gerar documentos", icon: "file-output" },
   { id: "backup", label: "Backup e restauração", icon: "hard-drive" },
 ]
@@ -57,7 +66,7 @@ function App() {
   const activeItem = navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
   const routeMatch = pathname.match(/^\/project\/([^/]+)(?:\/([^/]+))?\/?$/)
   const isProjectRoute = Boolean(routeMatch)
-  const projectSection = routeMatch?.[2] ?? "overview"
+  const projectSection = routeMatch?.[2] === "preview" ? "preview-memorial" : routeMatch?.[2] ?? "overview"
   useEffect(() => { if (isProjectRoute && routeMatch?.[1]) void openProject(routeMatch[1]) }, [isProjectRoute, openProject, routeMatch])
   const projectCatalog = project
     ? regulationCatalogs.find((catalog) => catalog.metadata.regulation.id === project.regulation)
