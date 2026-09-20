@@ -44,6 +44,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   deleteLocalProject,
   duplicateLocalProject,
   getStoredAttachments,
@@ -381,96 +390,113 @@ export function HomePage({ onNavigate }: HomePageProps) {
               </CardContent>
             </Card>
           ) : (
-            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {projects.map((project) => (
-                <Card key={project.localId}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <CardTitle className="truncate">
+            <div className="mt-5 overflow-hidden rounded-xl border [&_[data-slot=table-container]]:max-h-[28rem] [&_[data-slot=table-container]]:overflow-auto">
+              <Table className="min-w-[64rem]">
+                <TableCaption className="sr-only">
+                  Projetos salvos localmente neste navegador
+                </TableCaption>
+                <TableHeader className="sticky top-0 z-10 bg-background">
+                  <TableRow>
+                    <TableHead>Projeto</TableHead>
+                    <TableHead>RSC</TableHead>
+                    <TableHead>Regulamento</TableHead>
+                    <TableHead>Progresso</TableHead>
+                    <TableHead>Última alteração</TableHead>
+                    <TableHead>Revisão</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projects.map((project) => (
+                    <TableRow key={project.localId} className="h-20">
+                      <TableCell className="max-w-56 font-medium">
+                        <span className="block truncate" title={project.name}>
                           {project.name}
-                        </CardTitle>
-                        <CardDescription className="mt-1">
-                          {project.rscLevel} · {project.regulation}
-                        </CardDescription>
-                      </div>
-                      <Badge variant="secondary">rev. {project.revision}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Progress value={calculateProjectProgress(project)}>
-                      <ProgressLabel>Progresso</ProgressLabel>
-                      <ProgressValue />
-                    </Progress>
-                    <p className="mt-4 text-xs text-muted-foreground">
-                      Última alteração: {formatDate(project.updatedAt)}
-                    </p>
-                    <div className="mt-5 flex items-center gap-1 border-t pt-4">
-                      <span className="mr-auto">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            onNavigate(`/project/${project.localId}`)
-                          }
-                        >
-                          Continuar <ArrowRight />
-                        </Button>
-                      </span>
-                      <Tooltip>
-                        <TooltipTrigger>
+                        </span>
+                      </TableCell>
+                      <TableCell>{project.rscLevel}</TableCell>
+                      <TableCell>{project.regulation}</TableCell>
+                      <TableCell className="w-48">
+                        <Progress value={calculateProjectProgress(project)}>
+                         
+                          <ProgressValue />
+                        </Progress>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDate(project.updatedAt)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          rev. {project.revision}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
                           <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={`Duplicar ${project.name}`}
-                            onClick={() => {
-                              void duplicateLocalProject(project).then(
-                                refreshProjects,
-                              );
-                            }}
+                            size="sm"
+                            onClick={() =>
+                              onNavigate(`/project/${project.localId}`)
+                            }
                           >
-                            <Copy />
+                            Continuar <ArrowRight />
                           </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Duplicar projeto</p>
-                        </TooltipContent>
-                      </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Button
+                                size="icon-sm"
+                                variant="ghost"
+                                aria-label={`Duplicar ${project.name}`}
+                                onClick={() => {
+                                  void duplicateLocalProject(project).then(
+                                    refreshProjects,
+                                  );
+                                }}
+                              >
+                                <Copy />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Duplicar projeto</p>
+                            </TooltipContent>
+                          </Tooltip>
 
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={`Criar backup de ${project.name}`}
-                            onClick={() => void backupProject(project)}
-                          >
-                            <FileArchive />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Criar backup</p>
-                        </TooltipContent>
-                      </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Button
+                                size="icon-sm"
+                                variant="ghost"
+                                aria-label={`Criar backup de ${project.name}`}
+                                onClick={() => void backupProject(project)}
+                              >
+                                <FileArchive />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Criar backup</p>
+                            </TooltipContent>
+                          </Tooltip>
 
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={`Excluir ${project.name}`}
-                            onClick={() => setProjectToDelete(project)}
-                          >
-                            <Trash2 />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Excluir projeto</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Button
+                                size="icon-sm"
+                                variant="ghost"
+                                aria-label={`Excluir ${project.name}`}
+                                onClick={() => setProjectToDelete(project)}
+                              >
+                                <Trash2 />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Excluir projeto</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </section>
