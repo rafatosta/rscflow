@@ -29,6 +29,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ThemeSettingsDialog } from "@/components/theme-settings-dialog";
@@ -85,14 +86,19 @@ export function AppSidebar({
   onHomeClick,
 }: AppSidebarProps) {
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+  const { isMobile, setOpenMobile } = useSidebar();
   const previewOpen = isPreviewOpen || activeProcess?.startsWith("preview-");
+  const navigateAndClose = (navigate: () => void) => {
+    navigate();
+    if (isMobile) setOpenMobile(false);
+  };
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 group-data-[collapsible=icon]:p-2">
         <button
           type="button"
-          onClick={onHomeClick}
+          onClick={() => navigateAndClose(onHomeClick)}
           className="flex items-center gap-2 rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm">
@@ -115,7 +121,7 @@ export function AppSidebar({
                     <SidebarMenuButton
                       isActive={activePage === item.id}
                       tooltip={item.label}
-                      onClick={() => onPageChange(item.id)}
+                      onClick={() => navigateAndClose(() => onPageChange(item.id))}
                     >
                       <Icon />
                       <span>{item.label}</span>
@@ -149,7 +155,7 @@ export function AppSidebar({
                             <SidebarMenuSub>
                               {item.children?.map((child) => {
                                 const ChildIcon = icons[child.icon];
-                                return <SidebarMenuSubItem key={child.id}><SidebarMenuSubButton isActive={activeProcess === child.id} onClick={() => onProcessChange?.(child.id)}><ChildIcon /><span>{child.label}</span></SidebarMenuSubButton></SidebarMenuSubItem>;
+                                return <SidebarMenuSubItem key={child.id}><SidebarMenuSubButton isActive={activeProcess === child.id} onClick={() => navigateAndClose(() => onProcessChange?.(child.id))}><ChildIcon /><span>{child.label}</span></SidebarMenuSubButton></SidebarMenuSubItem>;
                               })}
                             </SidebarMenuSub>
                           </CollapsibleContent>
@@ -162,7 +168,7 @@ export function AppSidebar({
                       <SidebarMenuButton
                         isActive={isActive}
                         tooltip={item.label}
-                        onClick={() => onProcessChange?.(item.id)}
+                        onClick={() => navigateAndClose(() => onProcessChange?.(item.id))}
                       >
                         <Icon />
                         <span>{item.label}</span>
