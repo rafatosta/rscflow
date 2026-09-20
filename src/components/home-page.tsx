@@ -398,7 +398,21 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </TableHeader>
                 <TableBody>
                   {projects.map((project) => (
-                    <TableRow key={project.localId} className="h-20">
+                    <TableRow
+                      key={project.localId}
+                      className="h-20 cursor-pointer"
+                      onClick={(event) => {
+                        if (
+                          (event.target as HTMLElement).closest(
+                            "button, a, input, select, textarea",
+                          )
+                        ) {
+                          return;
+                        }
+
+                        onNavigate(`/project/${project.localId}`);
+                      }}
+                    >
                       <TableCell className="max-w-56 font-medium">
                         <span className="block truncate" title={project.name}>
                           {project.name}
