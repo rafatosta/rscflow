@@ -6,6 +6,7 @@ export type MemorialSection = { id: string; content: string }
 export type Formation = { id: string; type: string; title: string; institution: string; area: string; startDate: string; endDate: string; status: string; documentReference: string; attachmentName: string; notes: string; createdAt: string; updatedAt: string }
 export type RequirementOccurrence = { id: string; criterionId?: string; selectedLevel?: "rsc-i" | "rsc-ii" | "rsc-iii"; period: string; quantity: number; description: string; results: string; competencies: string; evidence: string; attachmentNames: string[]; generatedText?: string; editedText?: string; isManuallyEdited?: boolean; isGeneratedTextOutdated?: boolean; createdAt: string; updatedAt: string }
 export type LocalProject = { localId: string; name: string; rscLevel: string; regulation: string; revision: number; createdAt: string; updatedAt: string; schemaVersion: string; formations?: Formation[]; requirementOccurrences?: RequirementOccurrence[]; memorialSections?: MemorialSection[]; identification?: Identification }
+export type ProjectSettings = Pick<LocalProject, "name" | "rscLevel" | "regulation">
 export type StoredAttachment = { id: string; projectId: string; occurrenceId: string; name: string; file: File }
 
 const string = z.string()
@@ -40,3 +41,18 @@ export async function deleteOccurrenceAttachments(projectId: string, occurrenceI
 export async function getOccurrencesWithStoredAttachments(projectId: string, occurrenceIds: string[]) { const attachments = await db.attachments.where("projectId").equals(projectId).toArray(); const requested = new Set(occurrenceIds); return new Set(attachments.filter((attachment) => requested.has(attachment.occurrenceId)).map((attachment) => attachment.occurrenceId)) }
 export async function getStoredAttachments(projectId: string) { return db.attachments.where("projectId").equals(projectId).toArray() }
 export function isLocalProject(value: unknown): value is LocalProject { return localProjectSchema.safeParse(value).success }
+export function applyProjectSettings(project: LocalProject, settings: ProjectSettings): LocalProject {
+  if (project.regulation === settings.regulation) return { ...project, ...settings }
+  const updatedAt = new Date().toISOString()
+  return {
+    ...project,
+    ...settings,
+    requirementOccurrences: project.requirementOccurrences?.map((occurrence) => ({
+      ...occurrence,
+      criterionId: undefined,
+      selectedLevel: undefined,
+      isGeneratedTextOutdated: Boolean(occurrence.generatedText || occurrence.editedText),
+      updatedAt,
+    })),
+  }
+}

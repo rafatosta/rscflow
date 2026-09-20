@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { calculateLevelProjection } from "@/domain/scoring"
 import type { Regulation } from "@/domain/regulation"
 import { useLocalProjects } from "@/hooks/use-local-projects"
-import type { Formation, Identification, LocalProject, MemorialSection, RequirementOccurrence } from "@/lib/projects"
+import { applyProjectSettings, type Formation, type Identification, type LocalProject, type MemorialSection, type RequirementOccurrence } from "@/lib/projects"
 
 type ProjectPageProps = { section: string; catalog?: Regulation }
 
@@ -38,6 +38,7 @@ export function ProjectPage({ section, catalog }: ProjectPageProps) {
           onMemorialChange={(memorialSections) => updateDraft((current) => ({ ...current, memorialSections }))}
           onIdentificationChange={(identification) => updateDraft((current) => ({ ...current, identification }))}
           onFormationsChange={(formations) => updateDraft((current) => ({ ...current, formations }))}
+          onProjectSettingsChange={(settings) => updateDraft((current) => applyProjectSettings(current, settings))}
         />
       </section>
     </div>
@@ -52,10 +53,11 @@ type ProjectSectionProps = {
   onMemorialChange: (sections: MemorialSection[]) => void
   onIdentificationChange: (identification: Identification) => void
   onFormationsChange: (formations: Formation[]) => void
+  onProjectSettingsChange: (settings: Pick<LocalProject, "name" | "rscLevel" | "regulation">) => void
 }
 
-function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange }: ProjectSectionProps) {
-  if (section === "overview") return <OverviewPage project={project} catalog={catalog} />
+function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange, onProjectSettingsChange }: ProjectSectionProps) {
+  if (section === "overview") return <OverviewPage project={project} catalog={catalog} onProjectSettingsChange={onProjectSettingsChange} />
   if (!project) return null
   if (section === "profile") return <IdentificationPage project={project} onSave={onIdentificationChange} />
   if (section === "education") return <EducationPage project={project} onChange={onFormationsChange} />
