@@ -8,7 +8,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -77,7 +76,7 @@ export function OverviewPage({ project, catalog, onProjectSettingsChange }: { pr
   const pendingCount = getPendingCount(project, catalog)
 
   return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    <ProjectSettingsCard project={project} onSave={onProjectSettingsChange} />
+    <ProjectSettingsCard key={project.localId} project={project} onSave={onProjectSettingsChange} />
     <CompletionCard completion={completion} />
     <ProfileCard project={project} />
     <ScoreCard catalog={catalog} requestedProjection={requestedProjection} cumulativeScore={cumulativeScore} levelProjections={levelProjections} meetsResolutionCriteria={meetsResolutionCriteria} />
@@ -137,41 +136,15 @@ function SummaryCard({ icon: Icon, title, value, description }: { icon: React.Co
 }
 
 function ProjectSettingsCard({ project, onSave }: { project: LocalProject; onSave: (settings: ProjectSettings) => void }) {
-  const [open, setOpen] = React.useState(false)
-  const [name, setName] = React.useState(project.name)
-  const [rscLevel, setRscLevel] = React.useState(project.rscLevel)
-  const [regulation, setRegulation] = React.useState(project.regulation)
-  const regulationChanged = regulation !== project.regulation
-  const selectedRegulation = regulations.find((item) => item.metadata.regulation.id === project.regulation)
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen)
-    if (nextOpen) {
-      setName(project.name)
-      setRscLevel(project.rscLevel)
-      setRegulation(project.regulation)
-    }
-  }
-
-  const save = (event: React.FormEvent) => {
-    event.preventDefault()
-    const trimmedName = name.trim()
-    if (!trimmedName || !rscLevel || !regulation) return
-    onSave({ name: trimmedName, rscLevel, regulation })
-    setOpen(false)
-  }
-
-  return <>
-    <Card className="md:col-span-2 xl:col-span-3">
-      <CardHeader className="sm:flex-row sm:items-start sm:justify-between"><div><CardTitle>Dados do projeto</CardTitle><CardDescription>Informações usadas em todas as etapas, cálculos e documentos deste projeto.</CardDescription></div><Button variant="outline" onClick={() => handleOpenChange(true)}><Pencil /> Editar dados</Button></CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-3"><ProjectSetting label="Nome do projeto" value={project.name} /><ProjectSetting label="Regulamento" value={selectedRegulation ? formatRegulation(selectedRegulation) : project.regulation} /><ProjectSetting label="RSC pretendido" value={project.rscLevel} /></CardContent>
-    </Card>
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md"><form onSubmit={save}><DialogHeader><DialogTitle>Editar dados do projeto</DialogTitle><DialogDescription>As alterações serão aplicadas a todas as seções, cálculos e documentos.</DialogDescription></DialogHeader><div className="mt-5 space-y-4"><label className="grid gap-1.5 text-sm font-medium" htmlFor="project-name">Nome do projeto<Input id="project-name" value={name} maxLength={120} onChange={(event) => setName(event.target.value)} required /></label><label className="grid gap-1.5 text-sm font-medium" htmlFor="project-regulation">Regulamento<Select value={regulation} onValueChange={(value) => setRegulation(value ?? "")}><SelectTrigger id="project-regulation" className="w-full"><SelectValue placeholder="Selecione um regulamento" /></SelectTrigger><SelectContent>{regulations.map((item) => <SelectItem key={item.metadata.regulation.id} value={item.metadata.regulation.id}>{formatRegulation(item)}</SelectItem>)}</SelectContent></Select></label><label className="grid gap-1.5 text-sm font-medium" htmlFor="project-rsc-level">RSC pretendido<Select value={rscLevel} onValueChange={(value) => setRscLevel(value ?? "")}><SelectTrigger id="project-rsc-level" className="w-full"><SelectValue placeholder="Selecione o nível" /></SelectTrigger><SelectContent>{rscLevels.map((level) => <SelectItem key={level} value={level}>{level}</SelectItem>)}</SelectContent></Select></label>{regulationChanged && <Alert><TriangleAlert /><AlertTitle>Os lançamentos precisarão ser reenquadrados</AlertTitle><AlertDescription>A troca de regulamento remove os vínculos atuais com critérios para impedir cálculos usando regras incompatíveis. As descrições e evidências serão preservadas.</AlertDescription></Alert>}</div><DialogFooter className="mt-5"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button type="submit" disabled={!name.trim() || !rscLevel || !regulation}>Salvar alterações</Button></DialogFooter></form></DialogContent>
-    </Dialog>
-  </>
-}
-
-function ProjectSetting({ label, value }: { label: string; value: string }) {
-  return <div><p className="text-xs font-medium text-muted-foreground">{label}</p><p className="mt-1 text-sm font-medium">{value}</p></div>
+  return <Card className="md:col-span-2 xl:col-span-3">
+    <CardHeader><CardTitle>Dados do projeto</CardTitle><CardDescription>Edite os campos diretamente. As alterações são salvas automaticamente e aplicadas a todas as seções.</CardDescription></CardHeader>
+    <CardContent className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <label className="grid gap-1.5 text-sm font-medium" htmlFor="project-name">Nome do projeto<Input id="project-name" defaultValue={project.name} maxLength={120} onChange={(event) => { if (event.target.value.trim()) onSave({ name: event.target.value, rscLevel: project.rscLevel, regulation: project.regulation }) }} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== project.name) { event.target.value = name; onSave({ name, rscLevel: project.rscLevel, regulation: project.regulation }) } }} /></label>
+        <label className="grid gap-1.5 text-sm font-medium" htmlFor="project-regulation">Regulamento<Select value={project.regulation} onValueChange={(regulation) => { if (regulation) onSave({ name: project.name, rscLevel: project.rscLevel, regulation }) }}><SelectTrigger id="project-regulation" className="w-full"><SelectValue placeholder="Selecione um regulamento" /></SelectTrigger><SelectContent>{regulations.map((item) => <SelectItem key={item.metadata.regulation.id} value={item.metadata.regulation.id}>{formatRegulation(item)}</SelectItem>)}</SelectContent></Select></label>
+        <label className="grid gap-1.5 text-sm font-medium" htmlFor="project-rsc-level">RSC pretendido<Select value={project.rscLevel} onValueChange={(rscLevel) => { if (rscLevel) onSave({ name: project.name, rscLevel, regulation: project.regulation }) }}><SelectTrigger id="project-rsc-level" className="w-full"><SelectValue placeholder="Selecione o nível" /></SelectTrigger><SelectContent>{rscLevels.map((level) => <SelectItem key={level} value={level}>{level}</SelectItem>)}</SelectContent></Select></label>
+      </div>
+      <Alert><TriangleAlert /><AlertTitle>Atenção ao trocar o regulamento</AlertTitle><AlertDescription>Os vínculos atuais com critérios serão removidos para impedir cálculos incompatíveis. As descrições e evidências dos lançamentos serão preservadas.</AlertDescription></Alert>
+    </CardContent>
+  </Card>
 }
