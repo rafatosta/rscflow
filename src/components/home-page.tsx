@@ -31,10 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Progress,
-  ProgressValue,
-} from "@/components/ui/progress";
+import { Progress, ProgressValue } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -176,16 +173,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
   };
 
   return (
-    <main className="min-h-full px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <main className="min-h-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-primary">
-              <span className="grid size-7 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
-                R
-              </span>
-              MEUS PROJETOS
-            </div>
             <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
               Seus projetos de RSC
             </h1>
@@ -417,7 +408,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       <TableCell>{project.regulation}</TableCell>
                       <TableCell className="w-48">
                         <Progress value={calculateProjectProgress(project)}>
-                         
                           <ProgressValue />
                         </Progress>
                       </TableCell>
