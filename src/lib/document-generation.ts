@@ -1,5 +1,6 @@
 import type { Regulation } from "@/domain/regulation";
 import type { LocalProject, StoredAttachment } from "@/lib/projects";
+import { generateEvidenceIndexPdf } from "@/lib/pdf/evidence-index-generator";
 import { generateMemorialPdf } from "@/lib/pdf/memorial-generator";
 import { generateNormativeFormsPdf } from "@/lib/pdf/normative-forms-generator";
 import { buildNormativeProcessDocument } from "@/lib/pdf/normative-model";
@@ -183,17 +184,6 @@ export function createPdf(pages: PdfPage[]) {
   return new Blob([joinBytes(chunks)], { type: "application/pdf" });
 }
 
-const identity = (project: LocalProject) => {
-  const person = project.identification;
-  return [
-    `Docente: ${person?.name ?? "Não informado"}`,
-    `SIAPE: ${person?.siape ?? "Não informado"}`,
-    `Cargo: ${person?.position ?? "Não informado"}`,
-    `Instituição/campus: ${person ? `${person.institution} · ${person.campus}` : "Não informado"}`,
-    `Nível solicitado: ${project.rscLevel}`,
-  ];
-};
-
 export function createMemorialPdf(project: LocalProject) {
   const bytes = generateMemorialPdf(project);
   return new Blob([bytes as BlobPart], { type: "application/pdf" });
@@ -224,32 +214,8 @@ export function createEvidenceIndexPdf(
   project: LocalProject,
   attachments: StoredAttachment[],
 ) {
-  const occurrences = project.requirementOccurrences ?? [];
-  const lines = attachments.length
-    ? attachments.map((attachment, index) => {
-        const occurrence = occurrences.find(
-          (item) => item.id === attachment.occurrenceId,
-        );
-        return `C-${String(index + 1).padStart(3, "0")} · ${attachment.name}${occurrence ? ` · ${occurrence.description}` : ""}`;
-      })
-    : ["Nenhum anexo binário está disponível neste navegador."];
-  return createPdf([
-    {
-      title: "Índice de comprovantes",
-      lines: [
-        project.rscLevel,
-        "",
-        project.identification?.name ?? project.name,
-      ],
-      cover: true,
-      eyebrow: "Comprovantes",
-    },
-    {
-      title: "Sumário de comprovantes",
-      lines: [...identity(project), "", ...lines],
-      eyebrow: "Comprovantes",
-    },
-  ]);
+  const bytes = generateEvidenceIndexPdf(project, attachments);
+  return new Blob([bytes as BlobPart], { type: "application/pdf" });
 }
 
 function crc32(data: Uint8Array) {
