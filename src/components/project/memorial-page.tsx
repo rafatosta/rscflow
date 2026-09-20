@@ -2,6 +2,7 @@ import * as React from "react"
 import { BookOpen, CheckCircle2, ChevronRight, FileText, Pencil } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -103,19 +104,19 @@ export function MemorialPage({ project, catalog, onChange, onOccurrencesChange }
       </DialogContent>
     </Dialog>
 
-    <Dialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>Limpar seção?</DialogTitle><DialogDescription>O texto de “{activeStep.label}” será removido do memorial.</DialogDescription></DialogHeader>
-        <DialogFooter><Button variant="outline" onClick={() => setIsClearDialogOpen(false)}>Cancelar</Button><Button variant="destructive" onClick={() => { updateContent(""); setIsClearDialogOpen(false) }}>Limpar seção</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AlertDialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader><AlertDialogTitle>Limpar seção?</AlertDialogTitle><AlertDialogDescription>O texto de “{activeStep.label}” será removido permanentemente do memorial. Essa ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
+        <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => { updateContent(""); setIsClearDialogOpen(false) }}>Limpar seção</AlertDialogAction></AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
-    <Dialog open={isClearAllDialogOpen} onOpenChange={setIsClearAllDialogOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>Limpar todo o memorial?</DialogTitle><DialogDescription>Todo o conteúdo redigido nas {completedCount} seções preenchidas será removido permanentemente.</DialogDescription></DialogHeader>
-        <DialogFooter><Button variant="outline" onClick={() => setIsClearAllDialogOpen(false)}>Cancelar</Button><Button variant="destructive" onClick={() => { onChange([]); setIsClearAllDialogOpen(false) }}>Limpar tudo</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AlertDialog open={isClearAllDialogOpen} onOpenChange={setIsClearAllDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader><AlertDialogTitle>Limpar todo o memorial?</AlertDialogTitle><AlertDialogDescription>Todo o conteúdo redigido nas {completedCount} seções preenchidas será removido permanentemente. Essa ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
+        <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => { onChange([]); setIsClearAllDialogOpen(false) }}>Limpar tudo</AlertDialogAction></AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     <Dialog open={isTextBaseDialogOpen} onOpenChange={setIsTextBaseDialogOpen}>
       <DialogContent className="sm:max-w-md">

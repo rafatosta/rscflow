@@ -51,6 +51,8 @@ export function RequirementsPage({
   const [attachmentFiles, setAttachmentFiles] = React.useState<File[]>([]);
   const [occurrencesWithStoredAttachments, setOccurrencesWithStoredAttachments] =
     React.useState<Set<string> | null>(null);
+  const [occurrenceToDelete, setOccurrenceToDelete] =
+    React.useState<RequirementOccurrence | null>(null);
   const [collapsedDirectiveIds, setCollapsedDirectiveIds] = React.useState<
     Set<string>
   >(() => new Set());
@@ -115,18 +117,13 @@ export function RequirementsPage({
     setHighlightAttachments(false);
   };
   const deleteOccurrence = async (occurrence: RequirementOccurrence) => {
-    if (
-      !window.confirm(
-        `Excluir o lançamento “${occurrence.description || "Sem descrição"}”?`,
-      )
-    )
-      return;
     await deleteOccurrenceAttachments(project.localId, occurrence.id);
     onOccurrencesChange(
       (project.requirementOccurrences ?? []).filter(
         (item) => item.id !== occurrence.id,
       ),
     );
+    setOccurrenceToDelete(null);
   };
 
   React.useEffect(() => {
@@ -388,7 +385,7 @@ export function RequirementsPage({
                   }
                   onAdd={openDialog}
                   onEdit={openEditDialog}
-                  onDelete={(occurrence) => void deleteOccurrence(occurrence)}
+                  onDelete={setOccurrenceToDelete}
                 />
               );
             })}
@@ -431,7 +428,7 @@ export function RequirementsPage({
                   variant="ghost"
                   size="icon-sm"
                   aria-label={`Excluir ${occurrence.description || "lançamento"}`}
-                  onClick={() => void deleteOccurrence(occurrence)}
+                  onClick={() => setOccurrenceToDelete(occurrence)}
                 >
                   <Trash2 />
                 </Button>
@@ -602,6 +599,12 @@ export function RequirementsPage({
           </form>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={Boolean(occurrenceToDelete)} onOpenChange={(open) => { if (!open) setOccurrenceToDelete(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Excluir lançamento?</AlertDialogTitle><AlertDialogDescription>O lançamento “{occurrenceToDelete?.description || "Sem descrição"}” e seus comprovantes armazenados serão removidos permanentemente. Essa ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => { if (occurrenceToDelete) void deleteOccurrence(occurrenceToDelete) }}>Excluir lançamento</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
@@ -814,6 +817,16 @@ import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,

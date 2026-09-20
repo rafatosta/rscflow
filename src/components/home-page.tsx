@@ -13,6 +13,16 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -90,6 +100,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [regulation, setRegulation] = useState("");
   const [showErrors, setShowErrors] = useState(false);
   const [restoreError, setRestoreError] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<LocalProject | null>(
+    null,
+  );
 
   const backupProject = async (project: LocalProject) => {
     const attachments = await getStoredAttachments(project.localId);
@@ -412,11 +425,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         size="icon-sm"
                         variant="ghost"
                         aria-label={`Excluir ${project.name}`}
-                        onClick={() => {
-                          void deleteLocalProject(project.localId).then(
-                            refreshProjects,
-                          );
-                        }}
+                        onClick={() => setProjectToDelete(project)}
                       >
                         <Trash2 />
                       </Button>
@@ -428,6 +437,38 @@ export function HomePage({ onNavigate }: HomePageProps) {
           )}
         </section>
       </div>
+      <AlertDialog
+        open={Boolean(projectToDelete)}
+        onOpenChange={(open) => {
+          if (!open) setProjectToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir projeto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O projeto “{projectToDelete?.name}” e todos os dados associados a
+              ele serão removidos permanentemente deste navegador. Essa ação não
+              pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (!projectToDelete) return;
+                void deleteLocalProject(projectToDelete.localId).then(() => {
+                  setProjectToDelete(null);
+                  return refreshProjects();
+                });
+              }}
+            >
+              Excluir projeto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }
