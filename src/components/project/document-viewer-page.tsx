@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Regulation } from "@/domain/regulation"
 import { usePdfArtifact } from "@/hooks/use-pdf-artifact"
-import { createEvidenceIndexPdf, createFormsPdf, createMemorialPdf } from "@/lib/document-generation"
+import { createEvidenceIndexPdf, createEvidencePageReferences, createFormsPdf, createMemorialPdf } from "@/lib/document-generation"
 import { getStoredAttachments, type LocalProject, type MemorialSection, type StoredAttachment } from "@/lib/projects"
 
 export type PreviewDocument = { id: "memorial" | "forms" | "evidence" }
@@ -20,7 +20,7 @@ function projectSlug(project: LocalProject) {
 export function DocumentViewer({ project, catalog, documentId, onMemorialChange }: { project: LocalProject; catalog?: Regulation; documentId: PreviewDocument["id"]; onMemorialChange: (sections: MemorialSection[]) => void }) {
   if (documentId === "memorial") return <MemorialPdfPreview project={project} catalog={catalog} onMemorialChange={onMemorialChange} />
   if (documentId === "forms") return <FormsPdfPreview project={project} catalog={catalog} />
-  return <EvidenceIndexPdfPreview project={project} />
+  return <EvidenceIndexPdfPreview project={project} catalog={catalog} />
 }
 
 function MemorialPdfPreview({ project, catalog, onMemorialChange }: { project: LocalProject; catalog?: Regulation; onMemorialChange: (sections: MemorialSection[]) => void }) {
@@ -37,16 +37,16 @@ function MemorialPdfPreview({ project, catalog, onMemorialChange }: { project: L
 function FormsPdfPreview({ project, catalog }: { project: LocalProject; catalog?: Regulation }) {
   const evidence = useEvidencePageMap(project, catalog)
   if (evidence.loading || evidence.error) return <PdfArtifactViewer loading={evidence.loading} error={evidence.error} />
-  return <FormsArtifact project={project} catalog={catalog} firstEvidencePages={evidence.firstEvidencePages} />
+  return <FormsArtifact project={project} catalog={catalog} evidencePageReferences={evidence.evidencePageReferences} />
 }
 
-function FormsArtifact({ project, catalog, firstEvidencePages }: { project: LocalProject; catalog?: Regulation; firstEvidencePages: Record<string, number> }) {
+function FormsArtifact({ project, catalog, evidencePageReferences }: { project: LocalProject; catalog?: Regulation; evidencePageReferences: Record<string, string> }) {
   const filename = `${projectSlug(project)}-formularios-normativos.pdf`
-  const artifact = usePdfArtifact(filename, () => createFormsPdf(project, catalog, firstEvidencePages), [filename, project, catalog, firstEvidencePages])
+  const artifact = usePdfArtifact(filename, () => createFormsPdf(project, catalog, evidencePageReferences), [filename, project, catalog, evidencePageReferences])
   return <PdfArtifactViewer {...artifact} />
 }
 
-function EvidenceIndexPdfPreview({ project }: { project: LocalProject }) {
+function EvidenceIndexPdfPreview({ project, catalog }: { project: LocalProject; catalog?: Regulation }) {
   const [attachments, setAttachments] = React.useState<StoredAttachment[]>()
   const [error, setError] = React.useState<Error>()
   React.useEffect(() => {
@@ -56,44 +56,25 @@ function EvidenceIndexPdfPreview({ project }: { project: LocalProject }) {
     return () => { active = false }
   }, [project.localId])
   if (!attachments || error) return <PdfArtifactViewer loading={!attachments && !error} error={error} />
-  return <EvidenceIndexArtifact project={project} attachments={attachments} />
+  return <EvidenceIndexArtifact project={project} catalog={catalog} attachments={attachments} />
 }
 
-function EvidenceIndexArtifact({ project, attachments }: { project: LocalProject; attachments: StoredAttachment[] }) {
+function EvidenceIndexArtifact({ project, catalog, attachments }: { project: LocalProject; catalog?: Regulation; attachments: StoredAttachment[] }) {
   const filename = `${projectSlug(project)}-indice-comprovantes.pdf`
-  const state = usePdfArtifact(filename, () => createEvidenceIndexPdf(project, attachments), [filename, project, attachments])
-  return <><p className="mt-6 text-sm text-muted-foreground">Este documento é um índice. Os arquivos originais permanecem separados no pacote ZIP.</p><PdfArtifactViewer {...state} /></>
+  const state = usePdfArtifact(filename, () => createEvidenceIndexPdf(project, attachments, catalog), [filename, project, attachments, catalog])
+  return <><p className="mt-6 text-sm text-muted-foreground">O índice e os comprovantes estão reunidos neste PDF. Os arquivos originais também permanecem disponíveis no pacote ZIP.</p><PdfArtifactViewer {...state} /></>
 }
 
 function useEvidencePageMap(project: LocalProject, catalog?: Regulation) {
-  const [state, setState] = React.useState<{ firstEvidencePages: Record<string, number>; loading: boolean; error?: Error }>({ firstEvidencePages: {}, loading: true })
+  const [state, setState] = React.useState<{ evidencePageReferences: Record<string, string>; loading: boolean; error?: Error }>({ evidencePageReferences: {}, loading: true })
   React.useEffect(() => {
     let active = true
-    const tasks: Array<{ destroy: () => Promise<void> }> = []
     setState((value) => ({ ...value, loading: true, error: undefined }))
     void getStoredAttachments(project.localId).then(async (attachments) => {
-      const ordered = orderAttachments(project, catalog, attachments)
-      let page = 3
-      const firstEvidencePages: Record<string, number> = {}
-      for (const attachment of ordered) {
-        const occurrence = (project.requirementOccurrences ?? []).find((item) => item.id === attachment.occurrenceId)
-        if (occurrence?.criterionId && firstEvidencePages[occurrence.criterionId] === undefined) firstEvidencePages[occurrence.criterionId] = page
-        if (attachment.file.type === "application/pdf" || attachment.name.toLowerCase().endsWith(".pdf")) {
-          const { getDocument } = await import("pdfjs-dist")
-          const task = getDocument({ data: new Uint8Array(await attachment.file.arrayBuffer()) })
-          tasks.push(task)
-          try { const document = await task.promise; page += document.numPages; document.cleanup() } catch { page += 1 }
-        } else page += 1
-      }
-      if (active) setState({ firstEvidencePages, loading: false })
-    }).catch((reason: unknown) => { if (active) setState({ firstEvidencePages: {}, loading: false, error: reason instanceof Error ? reason : new Error("Não foi possível mapear os comprovantes.") }) })
-    return () => { active = false; tasks.forEach((task) => { void task.destroy() }) }
+      const evidencePageReferences = await createEvidencePageReferences(project, attachments, catalog)
+      if (active) setState({ evidencePageReferences, loading: false })
+    }).catch((reason: unknown) => { if (active) setState({ evidencePageReferences: {}, loading: false, error: reason instanceof Error ? reason : new Error("Não foi possível mapear os comprovantes.") }) })
+    return () => { active = false }
   }, [project, catalog])
   return state
-}
-
-function orderAttachments(project: LocalProject, catalog: Regulation | undefined, attachments: StoredAttachment[]) {
-  const criterionOrder = new Map((catalog?.levels.flatMap((level) => level.criteria) ?? []).map((criterion, index) => [criterion.id, index]))
-  const occurrenceOrder = new Map([...(project.requirementOccurrences ?? [])].sort((a, b) => (criterionOrder.get(a.criterionId ?? "") ?? Number.MAX_SAFE_INTEGER) - (criterionOrder.get(b.criterionId ?? "") ?? Number.MAX_SAFE_INTEGER) || a.createdAt.localeCompare(b.createdAt)).map((item, index) => [item.id, index]))
-  return [...attachments].sort((a, b) => (occurrenceOrder.get(a.occurrenceId) ?? Number.MAX_SAFE_INTEGER) - (occurrenceOrder.get(b.occurrenceId) ?? Number.MAX_SAFE_INTEGER) || a.name.localeCompare(b.name, "pt-BR"))
 }

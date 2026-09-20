@@ -1,6 +1,13 @@
 import type { Regulation } from "@/domain/regulation";
 import type { LocalProject, StoredAttachment } from "@/lib/projects";
-import { generateEvidenceIndexPdf } from "@/lib/pdf/evidence-index-generator";
+import {
+  countEvidenceIndexPages,
+  generateEvidenceIndexPdf,
+} from "@/lib/pdf/evidence-index-generator";
+import {
+  buildEvidencePagePlan,
+  orderEvidenceAttachments,
+} from "@/lib/pdf/evidence-plan";
 import { generateMemorialPdf } from "@/lib/pdf/memorial-generator";
 import { generateNormativeFormsPdf } from "@/lib/pdf/normative-forms-generator";
 import { buildNormativeProcessDocument } from "@/lib/pdf/normative-model";
@@ -192,7 +199,7 @@ export function createMemorialPdf(project: LocalProject) {
 export function createFormsPdf(
   project: LocalProject,
   catalog?: Regulation,
-  firstEvidencePages: Record<string, number> = {},
+  evidencePageReferences: Record<string, string> = {},
 ) {
   if (!catalog)
     return createPdf([
@@ -205,17 +212,55 @@ export function createFormsPdf(
       },
     ]);
   const bytes = generateNormativeFormsPdf(
-    buildNormativeProcessDocument(project, catalog, firstEvidencePages),
+    buildNormativeProcessDocument(project, catalog, evidencePageReferences),
   );
   return new Blob([bytes as BlobPart], { type: "application/pdf" });
 }
 
-export function createEvidenceIndexPdf(
+async function prepareEvidence(
   project: LocalProject,
   attachments: StoredAttachment[],
+  catalog?: Regulation,
 ) {
-  const bytes = generateEvidenceIndexPdf(project, attachments);
-  return new Blob([bytes as BlobPart], { type: "application/pdf" });
+  const ordered = orderEvidenceAttachments(project, catalog, attachments);
+  const indexPageCount = countEvidenceIndexPages(project, ordered);
+  const plan = await buildEvidencePagePlan(
+    project,
+    catalog,
+    ordered,
+    indexPageCount,
+  );
+  return plan;
+}
+
+export async function createEvidencePageReferences(
+  project: LocalProject,
+  attachments: StoredAttachment[],
+  catalog?: Regulation,
+) {
+  return (await prepareEvidence(project, attachments, catalog)).pageReferences;
+}
+
+export async function createEvidenceIndexPdf(
+  project: LocalProject,
+  attachments: StoredAttachment[],
+  catalog?: Regulation,
+) {
+  return (await createEvidenceBundle(project, attachments, catalog)).pdf;
+}
+
+export async function createEvidenceBundle(
+  project: LocalProject,
+  attachments: StoredAttachment[],
+  catalog?: Regulation,
+) {
+  const plan = await prepareEvidence(project, attachments, catalog);
+  const bytes = await generateEvidenceIndexPdf(project, plan.entries);
+  return {
+    pdf: new Blob([bytes as BlobPart], { type: "application/pdf" }),
+    pageReferences: plan.pageReferences,
+    entries: plan.entries,
+  };
 }
 
 function crc32(data: Uint8Array) {

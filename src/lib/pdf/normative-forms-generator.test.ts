@@ -33,7 +33,9 @@ const project: LocalProject = {
 
 describe("gerador dos formulários normativos", () => {
   it("abre os bytes definitivos no pdfjs e preserva estrutura, metadados e glifos", async () => {
-    const blob = createFormsPdf(project, loadIfbaRegulation())
+    const catalog = loadIfbaRegulation()
+    const criterionId = catalog.levels[0]?.criteria[0]?.id
+    const blob = createFormsPdf(project, catalog, criterionId ? { [criterionId]: "2–4, 5" } : {})
     const bytes = new Uint8Array(await blob.arrayBuffer())
     const task = getDocument({ data: bytes })
     const pdf = await task.promise
@@ -53,6 +55,7 @@ describe("gerador dos formulários normativos", () => {
     expect(texts.join(" ")).toContain("RECONHECIMENTO DE SABERES E COMPETÊNCIAS - RSC I")
     expect(texts.join(" ")).toContain("Subtotal")
     expect(texts.join(" ")).toContain("TOTAL GERAL")
+    expect(texts.join(" ")).toContain("2–4, 5")
 
     await task.destroy()
   }, 15_000)

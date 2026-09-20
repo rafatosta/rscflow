@@ -9,7 +9,7 @@ import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection } from "@/domain/scoring"
 import { appHref } from "@/lib/app-navigation"
 import { getStoredAttachments, type LocalProject, type StoredAttachment } from "@/lib/projects"
-import { createEvidenceIndexPdf, createFormsPdf, createMemorialPdf, createZip, downloadFile } from "@/lib/document-generation"
+import { createEvidenceBundle, createEvidenceIndexPdf, createEvidencePageReferences, createFormsPdf, createMemorialPdf, createZip, downloadFile } from "@/lib/document-generation"
 
 type ArtifactId = "memorial" | "forms" | "evidence" | "zip"
 type ArtifactState = "idle" | "processing" | "ready" | "error"
@@ -63,16 +63,20 @@ export function DocumentsPage({ project, catalog }: { project: LocalProject; cat
       try {
         const generatedAt = new Date().toISOString()
         if (id === "memorial") downloadFile(`${slug}-memorial-descritivo.pdf`, createMemorialPdf(project))
-        if (id === "forms") downloadFile(`${slug}-formularios-normativos.pdf`, createFormsPdf(project, catalog))
-        if (id === "evidence") downloadFile(`${slug}-indice-comprovantes.pdf`, createEvidenceIndexPdf(project, storedAttachments))
+        if (id === "forms") {
+          const pageReferences = await createEvidencePageReferences(project, storedAttachments, catalog)
+          downloadFile(`${slug}-formularios-normativos.pdf`, createFormsPdf(project, catalog, pageReferences))
+        }
+        if (id === "evidence") downloadFile(`${slug}-indice-comprovantes.pdf`, await createEvidenceIndexPdf(project, storedAttachments, catalog))
         if (id === "zip") {
-          const data = new Uint8Array(await createEvidenceIndexPdf(project, storedAttachments).arrayBuffer())
+          const evidence = await createEvidenceBundle(project, storedAttachments, catalog)
+          const data = new Uint8Array(await evidence.pdf.arrayBuffer())
           const files = [
             { name: "memorial-descritivo.pdf", data: new Uint8Array(await createMemorialPdf(project).arrayBuffer()) },
-            { name: "formularios-normativos.pdf", data: new Uint8Array(await createFormsPdf(project, catalog).arrayBuffer()) },
+            { name: "formularios-normativos.pdf", data: new Uint8Array(await createFormsPdf(project, catalog, evidence.pageReferences).arrayBuffer()) },
             { name: "indice-comprovantes.pdf", data },
             { name: "dados-do-projeto.json", data: new TextEncoder().encode(JSON.stringify({ generatedAt, project }, null, 2)) },
-            ...await Promise.all(storedAttachments.map(async (attachment, index) => ({ name: `comprovantes/C-${String(index + 1).padStart(3, "0")}-${attachment.name.replace(/[\\/:*?"<>|]/g, "-")}`, data: new Uint8Array(await attachment.file.arrayBuffer()) }))),
+            ...await Promise.all(evidence.entries.map(async ({ attachment, code }) => ({ name: `comprovantes/${code}-${attachment.name.replace(/[\\/:*?"<>|]/g, "-")}`, data: new Uint8Array(await attachment.file.arrayBuffer()) }))),
           ]
           downloadFile(`${slug}-documentos-rsc.zip`, createZip(files))
         }

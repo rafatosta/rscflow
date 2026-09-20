@@ -1,7 +1,7 @@
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs"
 import { describe, expect, it } from "vitest"
 
-import { createEvidenceIndexPdf } from "@/lib/document-generation"
+import { createEvidenceIndexPdf, createEvidencePageReferences } from "@/lib/document-generation"
 import type { LocalProject, StoredAttachment } from "@/lib/projects"
 
 const project: LocalProject = {
@@ -70,11 +70,11 @@ async function readPdf(blob: Blob) {
 
 describe("gerador do índice de comprovantes", () => {
   it("gera capa e índice com metadados, identificação e glifos preservados", async () => {
-    const blob = createEvidenceIndexPdf(project, [attachment(1)])
+    const blob = await createEvidenceIndexPdf(project, [attachment(1)])
     const pdf = await readPdf(blob)
 
     expect(blob.type).toBe("application/pdf")
-    expect(pdf.pageCount).toBe(2)
+    expect(pdf.pageCount).toBe(3)
     expect(pdf.metadata.info).toMatchObject({
       Title: "Índice de comprovantes",
       Creator: "RSCFlow",
@@ -86,12 +86,27 @@ describe("gerador do índice de comprovantes", () => {
     expect(pdf.pages[1]).toContain("C-001")
     expect(pdf.pages[1]).toContain("educação-e-docência.pdf")
     expect(pdf.pages[1]).toContain("Ação de extensão, pesquisa e orientação acadêmica.")
+    expect(pdf.pages[2]).toContain("C-001")
     await pdf.destroy()
+  })
+
+  it("calcula as referências das páginas anexadas por critério", async () => {
+    const withCriterion = {
+      ...project,
+      requirementOccurrences: project.requirementOccurrences?.map((occurrence) => ({
+        ...occurrence,
+        criterionId: "criterio-1",
+      })),
+    }
+
+    await expect(
+      createEvidencePageReferences(withCriterion, [attachment(1), attachment(2)]),
+    ).resolves.toEqual({ "criterio-1": "2, 3" })
   })
 
   it("pagina listas extensas pela altura real do conteúdo", async () => {
     const attachments = Array.from({ length: 90 }, (_, index) => attachment(index + 1))
-    const pdf = await readPdf(createEvidenceIndexPdf(project, attachments))
+    const pdf = await readPdf(await createEvidenceIndexPdf(project, attachments))
 
     expect(pdf.pageCount).toBeGreaterThan(3)
     expect(pdf.pages.at(-1)).toContain("C-090")

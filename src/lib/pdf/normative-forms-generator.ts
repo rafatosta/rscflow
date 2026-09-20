@@ -325,7 +325,7 @@ function criterionRow(directive: Directive, criterion: Criterion) {
     },
 
     {
-      content: criterion.proofPage ? String(criterion.proofPage) : "-",
+      content: criterion.proofPages || "-",
       styles: {
         halign: "center" as const,
         valign: "middle" as const,

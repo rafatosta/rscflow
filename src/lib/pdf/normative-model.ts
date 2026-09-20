@@ -11,7 +11,7 @@ export type NormativeCriterionRow = {
   weight: number
   provenQuantity: number
   finalScore?: number
-  proofPage?: number
+  proofPages?: string
 }
 
 export type NormativeDirective = {
@@ -48,7 +48,7 @@ const requestedLevels: Record<string, NormativeLevel["level"] | undefined> = {
 export function buildNormativeProcessDocument(
   project: LocalProject,
   regulation: Regulation,
-  firstEvidencePages: Record<string, number> = {},
+  evidencePageReferences: Record<string, string> = {},
 ): NormativeProcessDocument {
   const person = project.identification
   const occurrences = project.requirementOccurrences ?? []
@@ -74,7 +74,7 @@ export function buildNormativeProcessDocument(
             weight: criterion.weight,
             provenQuantity: score?.quantity ?? 0,
             finalScore: score?.blocked ? undefined : score?.score ?? 0,
-            proofPage: firstEvidencePages[criterion.id],
+            proofPages: evidencePageReferences[criterion.id],
           }
         }),
       })),
