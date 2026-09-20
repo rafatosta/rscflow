@@ -56,6 +56,12 @@ import { loadRegulations } from "@/data/regulations/load";
 import { createProjectBackup, readProjectBackup } from "@/lib/project-backup";
 import { downloadFile } from "@/lib/document-generation";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 const rscLevels = ["RSC I", "RSC II", "RSC III"];
 const regulations = loadRegulations();
 
@@ -106,8 +112,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   const backupProject = async (project: LocalProject) => {
     const attachments = await getStoredAttachments(project.localId);
-    const slug = project.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "projeto";
-    downloadFile(`${slug}.rscflow`, await createProjectBackup(project, attachments));
+    const slug =
+      project.name
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/^-|-$/g, "")
+        .toLowerCase() || "projeto";
+    downloadFile(
+      `${slug}.rscflow`,
+      await createProjectBackup(project, attachments),
+    );
   };
 
   const restoreProject = async (file?: File) => {
@@ -276,7 +289,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 <div>
                   <CardTitle>Restaurar backup do projeto</CardTitle>
                   <CardDescription>
-                    Recupere o projeto e seus arquivos como uma nova cópia local.
+                    Recupere o projeto e seus arquivos como uma nova cópia
+                    local.
                   </CardDescription>
                 </div>
               </div>
@@ -318,7 +332,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </div>
               </div>
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                Selecione um backup do RSCFlow. Suas cópias atuais não serão substituídas.
+                Selecione um backup do RSCFlow. Suas cópias atuais não serão
+                substituídas.
               </p>
               {restoreError && (
                 <p className="mt-2 text-xs text-destructive">
@@ -401,34 +416,57 @@ export function HomePage({ onNavigate }: HomePageProps) {
                           Continuar <ArrowRight />
                         </Button>
                       </span>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={`Duplicar ${project.name}`}
-                        onClick={() => {
-                          void duplicateLocalProject(project).then(
-                            refreshProjects,
-                          );
-                        }}
-                      >
-                        <Copy />
-                      </Button>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={`Criar backup de ${project.name}`}
-                        onClick={() => void backupProject(project)}
-                      >
-                        <FileArchive />
-                      </Button>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={`Excluir ${project.name}`}
-                        onClick={() => setProjectToDelete(project)}
-                      >
-                        <Trash2 />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={`Duplicar ${project.name}`}
+                            onClick={() => {
+                              void duplicateLocalProject(project).then(
+                                refreshProjects,
+                              );
+                            }}
+                          >
+                            <Copy />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Duplicar projeto</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={`Criar backup de ${project.name}`}
+                            onClick={() => void backupProject(project)}
+                          >
+                            <FileArchive />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Criar backup</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={`Excluir ${project.name}`}
+                            onClick={() => setProjectToDelete(project)}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Excluir projeto</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </CardContent>
                 </Card>
