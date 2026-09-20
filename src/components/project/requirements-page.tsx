@@ -21,6 +21,7 @@ export function RequirementsPage({ project, catalog, projections, onOccurrencesC
   const [query, setQuery] = React.useState("")
   const [criterionId, setCriterionId] = React.useState<string | null>(null)
   const [editingOccurrenceId, setEditingOccurrenceId] = React.useState<string | null>(null)
+  const [returnToReviewAfterEdit, setReturnToReviewAfterEdit] = React.useState(false)
   const [highlightAttachments, setHighlightAttachments] = React.useState(false)
   const [attachments, setAttachments] = React.useState<string[]>([])
   const [attachmentFiles, setAttachmentFiles] = React.useState<File[]>([])
@@ -33,8 +34,24 @@ export function RequirementsPage({ project, catalog, projections, onOccurrencesC
   const unassignedOccurrences = (project.requirementOccurrences ?? []).filter((item) => !item.criterionId || !item.selectedLevel)
   const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR")
   const matches = (description: string) => !normalizedQuery || description.toLocaleLowerCase("pt-BR").includes(normalizedQuery)
-  const openDialog = (id: string) => { form.reset(emptyOccurrence); setAttachments([]); setAttachmentFiles([]); setEditingOccurrenceId(null); setHighlightAttachments(false); setCriterionId(id) }
-  const closeDialog = () => { setCriterionId(null); setEditingOccurrenceId(null); setHighlightAttachments(false) }
+  const openDialog = (id: string) => { form.reset(emptyOccurrence); setAttachments([]); setAttachmentFiles([]); setEditingOccurrenceId(null); setReturnToReviewAfterEdit(false); setHighlightAttachments(false); setCriterionId(id) }
+  const openEditDialog = (occurrence: RequirementOccurrence) => {
+    if (!occurrence.criterionId || !occurrence.selectedLevel) return
+    setLevelId(occurrence.selectedLevel)
+    setCriterionId(occurrence.criterionId)
+    setEditingOccurrenceId(occurrence.id)
+    setReturnToReviewAfterEdit(false)
+    setAttachments(occurrence.attachmentNames)
+    setAttachmentFiles([])
+    setHighlightAttachments(false)
+    form.reset({ period: occurrence.period, quantity: occurrence.quantity, description: occurrence.description, results: occurrence.results, competencies: occurrence.competencies, evidence: occurrence.evidence })
+  }
+  const closeDialog = () => { setCriterionId(null); setEditingOccurrenceId(null); setReturnToReviewAfterEdit(false); setHighlightAttachments(false) }
+  const deleteOccurrence = async (occurrence: RequirementOccurrence) => {
+    if (!window.confirm(`Excluir o lançamento “${occurrence.description || "Sem descrição"}”?`)) return
+    await deleteOccurrenceAttachments(project.localId, occurrence.id)
+    onOccurrencesChange((project.requirementOccurrences ?? []).filter((item) => item.id !== occurrence.id))
+  }
 
   React.useEffect(() => {
     const occurrenceId = new URLSearchParams(window.location.search).get("occurrence")
@@ -45,6 +62,7 @@ export function RequirementsPage({ project, catalog, projections, onOccurrencesC
     setLevelId(occurrence.selectedLevel)
     setCriterionId(occurrence.criterionId)
     setEditingOccurrenceId(occurrence.id)
+    setReturnToReviewAfterEdit(true)
     setAttachments(occurrence.attachmentNames)
     setAttachmentFiles([])
     form.reset({ period: occurrence.period, quantity: occurrence.quantity, description: occurrence.description, results: occurrence.results, competencies: occurrence.competencies, evidence: occurrence.evidence })
@@ -78,7 +96,7 @@ export function RequirementsPage({ project, catalog, projections, onOccurrencesC
       })()
     if (attachmentFiles.length) await replaceOccurrenceAttachments(project.localId, occurrenceId, attachmentFiles)
     onOccurrencesChange(nextOccurrences)
-    const returnToReview = Boolean(editingOccurrenceId)
+    const returnToReview = returnToReviewAfterEdit
     closeDialog()
     if (returnToReview) {
       window.history.pushState({}, "", window.location.pathname.replace(/\/requirements$/, "/review"))
@@ -103,31 +121,32 @@ export function RequirementsPage({ project, catalog, projections, onOccurrencesC
         {level.directives.map((directive) => {
           const criteria = level.criteria.filter((criterion) => criterion.directiveId === directive.id && matches(criterion.description))
           if (criteria.length === 0) return null
-          return <DirectiveCard key={directive.id} directive={directive} criteria={criteria} projection={projection} open={!collapsedDirectiveIds.has(directive.id)} onOpenChange={(open) => setCollapsedDirectiveIds((current) => { const next = new Set(current); if (open) next.delete(directive.id); else next.add(directive.id); return next })} onAdd={openDialog} />
+          return <DirectiveCard key={directive.id} directive={directive} criteria={criteria} occurrences={project.requirementOccurrences ?? []} projection={projection} open={!collapsedDirectiveIds.has(directive.id)} onOpenChange={(open) => setCollapsedDirectiveIds((current) => { const next = new Set(current); if (open) next.delete(directive.id); else next.add(directive.id); return next })} onAdd={openDialog} onEdit={openEditDialog} onDelete={(occurrence) => void deleteOccurrence(occurrence)} />
         })}
       </TabsContent>)}
     </Tabs>
 
-    {unassignedOccurrences.length > 0 && <Card className="mt-4"><CardHeader><CardTitle>Lançamentos aguardando enquadramento</CardTitle><CardDescription>Essas ocorrências ainda não estão vinculadas a um critério e não entram na estimativa.</CardDescription></CardHeader><CardContent className="space-y-2">{unassignedOccurrences.map((occurrence) => <div key={occurrence.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{occurrence.description || "Lançamento sem descrição"}</p><p className="mt-1 text-muted-foreground">Quantidade: {occurrence.quantity}</p></div>)}</CardContent></Card>}
+    {unassignedOccurrences.length > 0 && <Card className="mt-4"><CardHeader><CardTitle>Lançamentos aguardando enquadramento</CardTitle><CardDescription>Essas ocorrências ainda não estão vinculadas a um critério e não entram na estimativa.</CardDescription></CardHeader><CardContent className="space-y-2">{unassignedOccurrences.map((occurrence) => <div key={occurrence.id} className="flex items-start justify-between gap-3 rounded-lg border p-3 text-sm"><div><p className="font-medium">{occurrence.description || "Lançamento sem descrição"}</p><p className="mt-1 text-muted-foreground">Quantidade: {occurrence.quantity}</p></div><Button type="button" variant="ghost" size="icon-sm" aria-label={`Excluir ${occurrence.description || "lançamento"}`} onClick={() => void deleteOccurrence(occurrence)}><Trash2 /></Button></div>)}</CardContent></Card>}
 
     <Dialog open={Boolean(selectedCriterion)} onOpenChange={(open) => { if (!open) closeDialog() }}><DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>{editingOccurrenceId ? "Corrigir lançamento" : "Adicionar lançamento"}</DialogTitle><DialogDescription>{selectedCriterion ? `${selectedCriterion.code} · ${selectedCriterion.description}` : ""}</DialogDescription></DialogHeader><form className="grid gap-4" noValidate onSubmit={form.handleSubmit(saveOccurrence)}><div className="grid gap-4 sm:grid-cols-2"><FormField label="Período (opcional)" error={form.formState.errors.period}><Input placeholder="Ex.: 2024.1 a 2024.2" {...form.register("period")} /></FormField><FormField label={`Quantidade (${selectedCriterion?.unit ?? ""})`} required error={form.formState.errors.quantity as FieldError | undefined}><Input type="number" min="0.01" step="any" {...form.register("quantity")} /></FormField></div><FormField label="Descrição da atividade" required error={form.formState.errors.description}><Textarea rows={3} {...form.register("description")} /></FormField><FormField label="Resultados alcançados" error={form.formState.errors.results}><Textarea rows={3} {...form.register("results")} /></FormField><FormField label="Competências relacionadas" error={form.formState.errors.competencies}><Textarea rows={3} {...form.register("competencies")} /></FormField><FormField label="Evidências e anexos comprobatórios" error={form.formState.errors.evidence}><Textarea rows={3} placeholder="Informe links, referências ou identificação dos comprovantes." {...form.register("evidence")} /></FormField><div className={`grid gap-1.5 rounded-lg p-3 text-sm font-medium ${highlightAttachments ? "ring-2 ring-primary ring-offset-2" : ""}`}><label htmlFor="occurrence-attachments">Adicionar comprovante</label><Input id="occurrence-attachments" type="file" multiple onChange={(event) => { const files = Array.from(event.target.files ?? []); setAttachmentFiles(files); setAttachments(files.map((file) => file.name)); setHighlightAttachments(false) }} /><span className="text-xs font-normal text-muted-foreground">{attachments.length ? attachments.join(", ") : "Nenhum arquivo selecionado."}</span></div><p className="text-sm text-muted-foreground">A pontuação é calculada automaticamente a partir das quantidades lançadas e dos limites do catálogo.</p><DialogFooter><DialogClose render={<Button type="button" variant="outline" />}>Cancelar</DialogClose><Button type="submit">Salvar lançamento</Button></DialogFooter></form></DialogContent></Dialog>
   </section>
 }
 
-function DirectiveCard({ directive, criteria, projection, open, onOpenChange, onAdd }: { directive: Regulation["levels"][number]["directives"][number]; criteria: Regulation["levels"][number]["criteria"]; projection: LevelProjection; open: boolean; onOpenChange: (open: boolean) => void; onAdd: (criterionId: string) => void }) {
+function DirectiveCard({ directive, criteria, occurrences, projection, open, onOpenChange, onAdd, onEdit, onDelete }: { directive: Regulation["levels"][number]["directives"][number]; criteria: Regulation["levels"][number]["criteria"]; occurrences: RequirementOccurrence[]; projection: LevelProjection; open: boolean; onOpenChange: (open: boolean) => void; onAdd: (criterionId: string) => void; onEdit: (occurrence: RequirementOccurrence) => void; onDelete: (occurrence: RequirementOccurrence) => void }) {
   return <Collapsible open={open} onOpenChange={onOpenChange}>
     <Card>
       <CardHeader><div className="flex items-start justify-between gap-3"><div className="min-w-0 flex-1"><CardDescription>Diretriz {directive.code}</CardDescription><CardTitle className="mt-1 text-base">{directive.title}</CardTitle></div><div className="flex shrink-0 items-center gap-2"><Badge variant="outline">{projection.directiveScores[directive.id].toLocaleString("pt-BR", { maximumFractionDigits: 2 })} / {directive.maxScore} pts</Badge><CollapsibleTrigger render={<Button type="button" variant="ghost" size="sm" />} aria-label={`${open ? "Recolher" : "Expandir"} diretriz ${directive.code}`}><ChevronDown className={`transition-transform ${open ? "rotate-180" : ""}`} /><span className="hidden sm:inline">{open ? "Recolher" : "Expandir"}</span></CollapsibleTrigger></div></div></CardHeader>
       <CollapsibleContent><CardContent className="grid gap-3">{criteria.map((criterion) => {
         const score = projection.criterionScores[criterion.id]
-        return <div key={criterion.id} className="rounded-lg border p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><p className="font-medium"><span className="mr-2 text-muted-foreground">{criterion.code}</span>{criterion.description}</p><div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground"><span>Unidade: {criterion.unit}</span><span>Máximo: {criterion.maxQuantity}</span><span>Fator: {criterion.factor}</span><span>Peso: {criterion.weight}</span></div></div><Button size="sm" onClick={() => onAdd(criterion.id)}>Adicionar lançamento</Button></div><div className="mt-3 flex flex-wrap items-center gap-2 text-sm"><Badge variant="secondary">Quantidade: {score.quantity} de {criterion.maxQuantity}</Badge>{score.blocked ? <Badge variant="destructive">Cálculo bloqueado por conflito normativo</Badge> : <span className="text-muted-foreground">Estimativa do critério: {score.score.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</span>}</div></div>
+        const criterionOccurrences = occurrences.filter((occurrence) => occurrence.selectedLevel === projection.levelId && occurrence.criterionId === criterion.id)
+        return <div key={criterion.id} className="rounded-lg border p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><p className="font-medium"><span className="mr-2 text-muted-foreground">{criterion.code}</span>{criterion.description}</p><div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground"><span>Unidade: {criterion.unit}</span><span>Máximo: {criterion.maxQuantity}</span><span>Fator: {criterion.factor}</span><span>Peso: {criterion.weight}</span></div></div><Button size="sm" onClick={() => onAdd(criterion.id)}>Adicionar lançamento</Button></div><div className="mt-3 flex flex-wrap items-center gap-2 text-sm"><Badge variant="secondary">Quantidade: {score.quantity} de {criterion.maxQuantity}</Badge>{score.blocked ? <Badge variant="destructive">Cálculo bloqueado por conflito normativo</Badge> : <span className="text-muted-foreground">Estimativa do critério: {score.score.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</span>}</div>{criterionOccurrences.length > 0 && <div className="mt-4 grid gap-2 border-t pt-3">{criterionOccurrences.map((occurrence) => <div key={occurrence.id} className="flex flex-col gap-3 rounded-lg bg-muted p-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><p className="text-sm font-medium">{occurrence.description}</p><p className="mt-1 text-xs text-muted-foreground">{occurrence.period ? `${occurrence.period} · ` : ""}Quantidade: {occurrence.quantity}{occurrence.attachmentNames.length ? ` · ${occurrence.attachmentNames.length} comprovante(s)` : ""}</p></div><div className="flex shrink-0 justify-end gap-1"><Button type="button" variant="ghost" size="sm" onClick={() => onEdit(occurrence)}><Pencil /> Editar</Button><Button type="button" variant="ghost" size="icon-sm" aria-label={`Excluir ${occurrence.description}`} onClick={() => onDelete(occurrence)}><Trash2 /></Button></div></div>)}</div>}</div>
       })}</CardContent></CollapsibleContent>
     </Card>
   </Collapsible>
 }
 import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Pencil, Trash2 } from "lucide-react"
 import { useForm, type FieldError } from "react-hook-form"
 import { z } from "zod"
 
@@ -141,7 +160,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import type { LevelProjection } from "@/domain/scoring"
 import type { Regulation } from "@/domain/regulation"
-import { replaceOccurrenceAttachments, type LocalProject, type RequirementOccurrence } from "@/lib/projects"
+import { deleteOccurrenceAttachments, replaceOccurrenceAttachments, type LocalProject, type RequirementOccurrence } from "@/lib/projects"
 import { FormField } from "@/components/project/form-field"
 import { buildOccurrenceNarrative } from "@/components/project/memorial-content"
 import { useUnsavedFormProtection } from "@/components/project/use-unsaved-form-protection"
