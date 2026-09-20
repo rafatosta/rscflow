@@ -8,6 +8,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { loadRegulations } from "@/data/regulations/load"
 import { LocalProjectsProvider, useLocalProjects } from "@/hooks/use-local-projects"
+import { ThemeProvider } from "@/hooks/use-theme"
 import { appHref, appPathname } from "@/lib/app-navigation"
 
 const regulationCatalogs = loadRegulations()
@@ -105,5 +106,5 @@ function App() {
 }
 
 export default function AppWithProviders() {
-  return <TooltipProvider delay={0}><LocalProjectsProvider><App /></LocalProjectsProvider></TooltipProvider>
+  return <ThemeProvider><TooltipProvider delay={0}><LocalProjectsProvider><App /></LocalProjectsProvider></TooltipProvider></ThemeProvider>
 }

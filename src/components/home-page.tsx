@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/card";
 import {
   Progress,
-  ProgressLabel,
   ProgressValue,
 } from "@/components/ui/progress";
 import {

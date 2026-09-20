@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   LifeBuoy,
   Search,
-  Settings,
   UserRound,
   UsersRound,
 } from "lucide-react";
@@ -32,6 +31,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ThemeSettingsDialog } from "@/components/theme-settings-dialog";
 
 export type NavigationItem = {
   id: string;
@@ -187,12 +187,7 @@ export function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Configurações"
-            >
-              <Settings />
-              <span>Configurações</span>
-            </SidebarMenuButton>
+            <ThemeSettingsDialog />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
