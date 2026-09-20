@@ -8,6 +8,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { loadRegulations } from "@/data/regulations/load"
 import { LocalProjectsProvider, useLocalProjects } from "@/hooks/use-local-projects"
+import { appHref, appPathname } from "@/lib/app-navigation"
 
 const regulationCatalogs = loadRegulations()
 
@@ -37,11 +38,11 @@ const processItems: NavigationItem[] = [
 ]
 
 function App() {
-  const [pathname, setPathname] = useState(window.location.pathname)
+  const [pathname, setPathname] = useState(() => appPathname(window.location.pathname))
   const [activePage, setActivePage] = useState("visao-geral")
 
   useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname)
+    const handlePopState = () => setPathname(appPathname(window.location.pathname))
     window.addEventListener("popstate", handlePopState)
     return () => window.removeEventListener("popstate", handlePopState)
   }, [])
@@ -53,7 +54,7 @@ function App() {
   const { project, saveState, saveError, flush, openProject, retrySave, discardDraft } = useLocalProjects()
   const navigate = async (path: string) => {
     if (!(await flush())) return
-    window.history.pushState({}, "", path)
+    window.history.pushState({}, "", appHref(path))
     setPathname(path)
     window.scrollTo(0, 0)
   }
