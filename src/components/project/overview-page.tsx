@@ -75,17 +75,19 @@ export function OverviewPage({ project, catalog, onProjectSettingsChange }: { pr
   const evidenceCount = getEvidenceCount(project)
   const pendingCount = getPendingCount(project, catalog)
 
-  return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+  return <div className="mt-6 grid gap-4 md:grid-cols-2">
     <ProjectSettingsCard key={project.localId} project={project} onSave={onProjectSettingsChange} />
-    <CompletionCard completion={completion} />
     <ProfileCard project={project} />
+    <CompletionCard completion={completion} />
     <ScoreCard catalog={catalog} requestedProjection={requestedProjection} cumulativeScore={cumulativeScore} levelProjections={levelProjections} meetsResolutionCriteria={meetsResolutionCriteria} />
-    <SummaryCard icon={Paperclip} title="Comprovantes" value={evidenceCount} description={evidenceCount === 1 ? "comprovante vinculado ao projeto" : "comprovantes vinculados ao projeto"} />
-    <SummaryCard icon={ClipboardCheck} title="Pendências" value={pendingCount} description={pendingCount === 1 ? "item precisa de atenção" : "itens precisam de atenção"} />
-    <Card>
-      <CardHeader><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-muted text-muted-foreground"><HardDrive className="size-4" /></span><div><CardTitle>Backup do projeto</CardTitle><CardDescription>Proteja os dados e comprovantes.</CardDescription></div></div></CardHeader>
-      <CardContent><Button className="w-full" variant="outline" nativeButton={false} render={<a href={projectSectionHref(project, "backup")} />}>Acessar backup <ArrowRight /></Button></CardContent>
-    </Card>
+    <div className="grid gap-4 md:col-span-2 md:grid-cols-3">
+      <SummaryCard icon={Paperclip} title="Comprovantes" value={evidenceCount} description={evidenceCount === 1 ? "comprovante vinculado ao projeto" : "comprovantes vinculados ao projeto"} />
+      <SummaryCard icon={ClipboardCheck} title="Pendências" value={pendingCount} description={pendingCount === 1 ? "item precisa de atenção" : "itens precisam de atenção"} />
+      <Card>
+        <CardHeader><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-muted text-muted-foreground"><HardDrive className="size-4" /></span><div><CardTitle>Backup do projeto</CardTitle><CardDescription>Proteja os dados e comprovantes.</CardDescription></div></div></CardHeader>
+        <CardContent><Button className="w-full" variant="outline" nativeButton={false} render={<a href={projectSectionHref(project, "backup")} />}>Acessar backup <ArrowRight /></Button></CardContent>
+      </Card>
+    </div>
   </div>
 }
 
@@ -112,9 +114,9 @@ function ProfileCard({ project }: { project: LocalProject }) {
     ["Titulação", identification?.degree],
     ["Nível atual", identification?.currentLevel],
   ]
-  return <Card className="md:col-span-1 xl:col-span-2">
+  return <Card>
     <CardHeader className="flex-row items-start justify-between"><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-muted text-muted-foreground"><UserRound className="size-4" /></span><div><CardTitle>Resumo do perfil</CardTitle><CardDescription>Dados usados nos documentos do processo.</CardDescription></div></div><Button size="sm" variant="outline" nativeButton={false} render={<a href={projectSectionHref(project, "profile")} />}><Pencil /> Editar</Button></CardHeader>
-    <CardContent className="grid gap-x-8 gap-y-3 sm:grid-cols-2">{fields.map(([label, value]) => <div key={label} className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3 text-sm"><span className="text-muted-foreground">{label}</span><span className="truncate font-medium">{value || "Não informado"}</span></div>)}</CardContent>
+    <CardContent className="grid gap-y-3">{fields.map(([label, value]) => <div key={label} className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3 text-sm"><span className="text-muted-foreground">{label}</span><span className="truncate font-medium">{value || "Não informado"}</span></div>)}</CardContent>
   </Card>
 }
 
@@ -122,9 +124,9 @@ function ScoreCard({ catalog, requestedProjection, cumulativeScore, levelProject
   const minimumTotal = catalog?.metadata.scoring.minimumTotal
   const minimumRequestedLevel = catalog?.metadata.scoring.minimumRequestedLevel
   const scoreProgress = minimumTotal ? Math.min((cumulativeScore / minimumTotal) * 100, 100) : 0
-  return <Card className="md:col-span-2 xl:col-span-3">
+  return <Card>
     <CardHeader className="sm:flex-row sm:items-start sm:justify-between"><div><CardTitle>Resumo da pontuação</CardTitle><CardDescription>Estimativa consolidada a partir dos lançamentos válidos.</CardDescription></div>{requestedProjection && <Badge variant={meetsResolutionCriteria ? "secondary" : "destructive"}>{meetsResolutionCriteria ? "Apto" : "Não atende aos critérios"}</Badge>}</CardHeader>
-    <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+    <CardContent className="grid gap-6">
       {catalog && requestedProjection && minimumTotal !== undefined && minimumRequestedLevel !== undefined ? <div className="space-y-4"><div><p className="text-4xl font-semibold">{cumulativeScore.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} <span className="text-lg font-normal text-muted-foreground">/ {minimumTotal} pts</span></p><p className="mt-1 text-sm text-muted-foreground">Pontuação total acumulada necessária</p></div><Progress value={scoreProgress}><ProgressLabel>Progresso até o mínimo total</ProgressLabel><ProgressValue /></Progress><div className="flex items-center justify-between gap-3 rounded-lg border p-3"><span className="text-sm">{rscSectionLabels[requestedProjection.levelId]} solicitado</span><span className="font-semibold">{requestedProjection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} / {minimumRequestedLevel} pts</span></div></div> : <p className="text-sm text-muted-foreground">Selecione um regulamento e um nível RSC disponíveis para calcular a pontuação.</p>}
       <div className="divide-y rounded-lg border">{levelProjections.map(({ level, projection }) => <div key={level.section} className="flex items-center justify-between gap-3 p-3"><div><p className="text-sm font-medium">{rscSectionLabels[level.section]}</p><p className="text-xs text-muted-foreground">{projection.provisional ? "Requer validação" : "Cálculo disponível"}</p></div><span className="text-lg font-semibold">{projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</span></div>)}</div>
     </CardContent>
@@ -136,7 +138,7 @@ function SummaryCard({ icon: Icon, title, value, description }: { icon: React.Co
 }
 
 function ProjectSettingsCard({ project, onSave }: { project: LocalProject; onSave: (settings: ProjectSettings) => void }) {
-  return <Card className="md:col-span-2 xl:col-span-3">
+  return <Card>
     <CardHeader><CardTitle>Dados do projeto</CardTitle><CardDescription>Edite os campos diretamente. As alterações são salvas automaticamente e aplicadas a todas as seções.</CardDescription></CardHeader>
     <CardContent className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-3">
