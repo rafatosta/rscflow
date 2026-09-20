@@ -77,8 +77,8 @@ export function OverviewPage({ project, catalog, onProjectSettingsChange }: { pr
 
   return <div className="mt-6 grid gap-4 md:grid-cols-2">
     <ProjectSettingsCard key={project.localId} project={project} onSave={onProjectSettingsChange} />
-    <ProfileCard project={project} />
     <CompletionCard completion={completion} />
+    <ProfileCard project={project} />
     <ScoreCard catalog={catalog} requestedProjection={requestedProjection} cumulativeScore={cumulativeScore} levelProjections={levelProjections} meetsResolutionCriteria={meetsResolutionCriteria} />
     <div className="grid gap-4 md:col-span-2 md:grid-cols-3">
       <SummaryCard icon={Paperclip} title="Comprovantes" value={evidenceCount} description={evidenceCount === 1 ? "comprovante vinculado ao projeto" : "comprovantes vinculados ao projeto"} />
