@@ -430,19 +430,21 @@ export function HomePage({ onNavigate }: HomePageProps) {
                             Continuar <ArrowRight />
                           </Button>
                           <Tooltip>
-                            <TooltipTrigger>
-                              <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                aria-label={`Duplicar ${project.name}`}
-                                onClick={() => {
-                                  void duplicateLocalProject(project).then(
-                                    refreshProjects,
-                                  );
-                                }}
-                              >
-                                <Copy />
-                              </Button>
+                            <TooltipTrigger
+                              render={
+                                <Button
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  aria-label={`Duplicar ${project.name}`}
+                                  onClick={() => {
+                                    void duplicateLocalProject(project).then(
+                                      refreshProjects,
+                                    );
+                                  }}
+                                />
+                              }
+                            >
+                              <Copy />
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Duplicar projeto</p>
@@ -450,15 +452,17 @@ export function HomePage({ onNavigate }: HomePageProps) {
                           </Tooltip>
 
                           <Tooltip>
-                            <TooltipTrigger>
-                              <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                aria-label={`Criar backup de ${project.name}`}
-                                onClick={() => void backupProject(project)}
-                              >
-                                <FileArchive />
-                              </Button>
+                            <TooltipTrigger
+                              render={
+                                <Button
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  aria-label={`Criar backup de ${project.name}`}
+                                  onClick={() => void backupProject(project)}
+                                />
+                              }
+                            >
+                              <FileArchive />
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Criar backup</p>
@@ -466,15 +470,17 @@ export function HomePage({ onNavigate }: HomePageProps) {
                           </Tooltip>
 
                           <Tooltip>
-                            <TooltipTrigger>
-                              <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                aria-label={`Excluir ${project.name}`}
-                                onClick={() => setProjectToDelete(project)}
-                              >
-                                <Trash2 />
-                              </Button>
+                            <TooltipTrigger
+                              render={
+                                <Button
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  aria-label={`Excluir ${project.name}`}
+                                  onClick={() => setProjectToDelete(project)}
+                                />
+                              }
+                            >
+                              <Trash2 />
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Excluir projeto</p>
