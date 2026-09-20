@@ -49,6 +49,8 @@ export function RequirementsPage({
   const [highlightAttachments, setHighlightAttachments] = React.useState(false);
   const [attachments, setAttachments] = React.useState<string[]>([]);
   const [attachmentFiles, setAttachmentFiles] = React.useState<File[]>([]);
+  const [occurrencesWithStoredAttachments, setOccurrencesWithStoredAttachments] =
+    React.useState<Set<string> | null>(null);
   const [collapsedDirectiveIds, setCollapsedDirectiveIds] = React.useState<
     Set<string>
   >(() => new Set());
@@ -65,6 +67,11 @@ export function RequirementsPage({
   );
   const unassignedOccurrences = (project.requirementOccurrences ?? []).filter(
     (item) => !item.criterionId || !item.selectedLevel,
+  );
+  const occurrenceIds = React.useMemo(
+    () =>
+      (project.requirementOccurrences ?? []).map((occurrence) => occurrence.id),
+    [project.requirementOccurrences],
   );
   const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
   const matches = (description: string) =>
@@ -117,6 +124,21 @@ export function RequirementsPage({
       ),
     );
   };
+
+  React.useEffect(() => {
+    let ignore = false;
+
+    void getOccurrencesWithStoredAttachments(
+      project.localId,
+      occurrenceIds,
+    ).then((storedOccurrenceIds) => {
+      if (!ignore) setOccurrencesWithStoredAttachments(storedOccurrenceIds);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [occurrenceIds, project.localId]);
 
   React.useEffect(() => {
     const occurrenceId = new URLSearchParams(window.location.search).get(
@@ -347,6 +369,9 @@ export function RequirementsPage({
                   directive={directive}
                   criteria={criteria}
                   occurrences={project.requirementOccurrences ?? []}
+                  occurrencesWithStoredAttachments={
+                    occurrencesWithStoredAttachments
+                  }
                   projection={projection}
                   open={!collapsedDirectiveIds.has(directive.id)}
                   onOpenChange={(open) =>
@@ -382,13 +407,20 @@ export function RequirementsPage({
                 key={occurrence.id}
                 className="flex items-start justify-between gap-3 rounded-lg border p-3 text-sm"
               >
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="font-medium">
                     {occurrence.description || "Lançamento sem descrição"}
                   </p>
                   <p className="mt-1 text-muted-foreground">
                     Quantidade: {occurrence.quantity}
                   </p>
+                  <MissingAttachmentAlert
+                    occurrence={occurrence}
+                    occurrencesWithStoredAttachments={
+                      occurrencesWithStoredAttachments
+                    }
+                    className="mt-3"
+                  />
                 </div>
                 <Button
                   type="button"
@@ -566,6 +598,7 @@ function DirectiveCard({
   directive,
   criteria,
   occurrences,
+  occurrencesWithStoredAttachments,
   projection,
   open,
   onOpenChange,
@@ -576,6 +609,7 @@ function DirectiveCard({
   directive: Regulation["levels"][number]["directives"][number];
   criteria: Regulation["levels"][number]["criteria"];
   occurrences: RequirementOccurrence[];
+  occurrencesWithStoredAttachments: Set<string> | null;
   projection: LevelProjection;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -669,41 +703,49 @@ function DirectiveCard({
                       {criterionOccurrences.map((occurrence) => (
                         <div
                           key={occurrence.id}
-                          className="flex flex-col gap-3 rounded-lg bg-muted p-3 sm:flex-row sm:items-start sm:justify-between"
+                          className="grid gap-3 rounded-lg bg-muted p-3"
                         >
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium">
-                              {occurrence.description}
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {occurrence.period
-                                ? `${occurrence.period} · `
-                                : ""}
-                              Quantidade: {occurrence.quantity}
-                              {occurrence.attachmentNames.length
-                                ? ` · ${occurrence.attachmentNames.length} comprovante(s)`
-                                : ""}
-                            </p>
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium">
+                                {occurrence.description}
+                              </p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {occurrence.period
+                                  ? `${occurrence.period} · `
+                                  : ""}
+                                Quantidade: {occurrence.quantity}
+                                {occurrence.attachmentNames.length
+                                  ? ` · ${occurrence.attachmentNames.length} comprovante(s)`
+                                  : ""}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 justify-end gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onEdit(occurrence)}
+                              >
+                                <Pencil /> Editar
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={`Excluir ${occurrence.description}`}
+                                onClick={() => onDelete(occurrence)}
+                              >
+                                <Trash2 />
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex shrink-0 justify-end gap-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onEdit(occurrence)}
-                            >
-                              <Pencil /> Editar
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={`Excluir ${occurrence.description}`}
-                              onClick={() => onDelete(occurrence)}
-                            >
-                              <Trash2 />
-                            </Button>
-                          </div>
+                          <MissingAttachmentAlert
+                            occurrence={occurrence}
+                            occurrencesWithStoredAttachments={
+                              occurrencesWithStoredAttachments
+                            }
+                          />
                         </div>
                       ))}
                     </div>
@@ -717,13 +759,49 @@ function DirectiveCard({
     </Collapsible>
   );
 }
+
+function MissingAttachmentAlert({
+  occurrence,
+  occurrencesWithStoredAttachments,
+  className,
+}: {
+  occurrence: RequirementOccurrence;
+  occurrencesWithStoredAttachments: Set<string> | null;
+  className?: string;
+}) {
+  if (
+    occurrencesWithStoredAttachments === null ||
+    occurrence.attachmentNames.length === 0 ||
+    occurrencesWithStoredAttachments.has(occurrence.id)
+  )
+    return null;
+
+  return (
+    <Alert className={className}>
+      <CircleAlert />
+      <AlertTitle>Arquivo precisa ser selecionado novamente</AlertTitle>
+      <AlertDescription>
+        Referência cadastrada: {occurrence.attachmentNames.join(", ")}. O arquivo
+        não foi armazenado no navegador.
+      </AlertDescription>
+    </Alert>
+  );
+}
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, Paperclip, Pencil, Trash2, Upload } from "lucide-react";
+import {
+  ChevronDown,
+  CircleAlert,
+  Paperclip,
+  Pencil,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { useForm, type FieldError } from "react-hook-form";
 import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -753,6 +831,7 @@ import type { LevelProjection } from "@/domain/scoring";
 import type { Regulation } from "@/domain/regulation";
 import {
   deleteOccurrenceAttachments,
+  getOccurrencesWithStoredAttachments,
   replaceOccurrenceAttachments,
   type LocalProject,
   type RequirementOccurrence,
