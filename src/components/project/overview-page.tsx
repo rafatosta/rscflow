@@ -1,6 +1,9 @@
 import * as React from "react"
-import { BookOpen, Pencil, TriangleAlert } from "lucide-react"
+import { ArrowRight, CheckCircle2, Circle, ClipboardCheck, HardDrive, Paperclip, Pencil, TriangleAlert, UserRound } from "lucide-react"
 
+import { memorialSteps } from "@/components/project/memorial-content"
+import { projectSectionHref } from "@/components/project/project-navigation"
+import { requestedLevelIds, rscSectionLabels } from "@/components/project/project-pages"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,8 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { loadRegulations } from "@/data/regulations/load"
 import { calculateLevelProjection } from "@/domain/scoring"
 import type { Regulation } from "@/domain/regulation"
-import type { LocalProject, ProjectSettings } from "@/lib/projects"
-import { requestedLevelIds, rscSectionLabels } from "@/components/project/project-pages"
+import type { Identification, LocalProject, ProjectSettings } from "@/lib/projects"
 
 const regulations = loadRegulations()
 const rscLevels = ["RSC I", "RSC II", "RSC III"] as const
@@ -23,31 +25,115 @@ function formatRegulation(regulation: Regulation) {
   return `${authority} nº ${number}/${year}`
 }
 
-function calculateProjectProgress(project?: LocalProject) {
-  if (!project) return 0
-  const identificationComplete = project.identification !== undefined && Object.values(project.identification).every((value) => value.trim())
-  const hasFormation = (project.formations?.length ?? 0) > 0
-  const hasRequirement = (project.requirementOccurrences?.length ?? 0) > 0
+function isIdentificationComplete(identification?: Identification) {
+  return identification !== undefined && Object.values(identification).every((value) => value.trim())
+}
+
+function getCompletion(project: LocalProject) {
   const completedMemorialSections = project.memorialSections?.filter((section) => section.content.trim()).length ?? 0
-  return Math.round(((Number(identificationComplete) + Number(hasFormation) + Number(hasRequirement) + completedMemorialSections) / 10) * 100)
+  const items = [
+    { label: "Identificação", complete: isIdentificationComplete(project.identification), detail: "Dados pessoais e institucionais" },
+    { label: "Formação", complete: (project.formations?.length ?? 0) > 0, detail: "Formação e atuação" },
+    { label: "Requisitos", complete: (project.requirementOccurrences?.length ?? 0) > 0, detail: "Atividades e experiências" },
+    { label: "Memorial", complete: completedMemorialSections === memorialSteps.length, detail: `${completedMemorialSections} de ${memorialSteps.length} seções preenchidas` },
+  ]
+  const completedUnits = Number(items[0].complete) + Number(items[1].complete) + Number(items[2].complete) + completedMemorialSections
+  return { items, progress: Math.round((completedUnits / (3 + memorialSteps.length)) * 100) }
+}
+
+function getEvidenceCount(project: LocalProject) {
+  return [
+    ...(project.formations ?? []).map((formation) => formation.attachmentName),
+    ...(project.requirementOccurrences ?? []).flatMap((occurrence) => occurrence.attachmentNames),
+  ].filter(Boolean).length
+}
+
+function getPendingCount(project: LocalProject, catalog?: Regulation) {
+  const occurrences = project.requirementOccurrences ?? []
+  const requestedLevel = requestedLevelIds[project.rscLevel as keyof typeof requestedLevelIds]
+  let count = 0
+  if (!isIdentificationComplete(project.identification)) count += 1
+  if (!(project.formations?.length ?? 0)) count += 1
+  if (!occurrences.length) count += 1
+  if (!catalog || !requestedLevel) count += 1
+  count += occurrences.filter((occurrence) => !occurrence.selectedLevel || !occurrence.criterionId || !catalog?.levels.find((level) => level.section === occurrence.selectedLevel)?.criteria.some((criterion) => criterion.id === occurrence.criterionId)).length
+  count += occurrences.filter((occurrence) => !occurrence.evidence.trim() && occurrence.attachmentNames.length === 0).length
+  count += memorialSteps.filter((step) => !project.memorialSections?.some((section) => section.id === step.id && section.content.trim())).length
+  return count
 }
 
 export function OverviewPage({ project, catalog, onProjectSettingsChange }: { project?: LocalProject; catalog?: Regulation; onProjectSettingsChange: (settings: ProjectSettings) => void }) {
-  const requestedLevel = project ? requestedLevelIds[project.rscLevel as keyof typeof requestedLevelIds] : undefined
-  const requestedProjection = project && catalog && requestedLevel ? calculateLevelProjection(catalog, requestedLevel, project.requirementOccurrences ?? []) : undefined
-  const levelProjections = project && catalog ? catalog.levels.map((level) => ({ level, projection: calculateLevelProjection(catalog, level.section, project.requirementOccurrences ?? []) })) : []
+  if (!project) return null
+
+  const requestedLevel = requestedLevelIds[project.rscLevel as keyof typeof requestedLevelIds]
+  const levelProjections = catalog ? catalog.levels.map((level) => ({ level, projection: calculateLevelProjection(catalog, level.section, project.requirementOccurrences ?? []) })) : []
+  const requestedProjection = levelProjections.find(({ level }) => level.section === requestedLevel)?.projection
   const cumulativeScore = levelProjections.reduce((total, { projection }) => total + projection.total, 0)
   const minimumTotal = catalog?.metadata.scoring.minimumTotal
   const minimumRequestedLevel = catalog?.metadata.scoring.minimumRequestedLevel
   const meetsResolutionCriteria = Boolean(requestedProjection && minimumTotal !== undefined && minimumRequestedLevel !== undefined && cumulativeScore >= minimumTotal && requestedProjection.total >= minimumRequestedLevel)
+  const completion = getCompletion(project)
+  const evidenceCount = getEvidenceCount(project)
+  const pendingCount = getPendingCount(project, catalog)
 
   return <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    {project && <ProjectSettingsCard project={project} onSave={onProjectSettingsChange} />}
-    <Card className="xl:col-span-2"><CardHeader><CardTitle>Andamento do preenchimento</CardTitle><CardDescription>Complete as seções para avançar no preenchimento dos dados.</CardDescription></CardHeader><CardContent><Progress value={calculateProjectProgress(project)}><ProgressLabel>Progresso do projeto</ProgressLabel><ProgressValue /></Progress></CardContent></Card>
-    <Card><CardHeader><CardTitle>Resultado estimado</CardTitle><CardDescription>{requestedProjection && minimumTotal !== undefined && minimumRequestedLevel !== undefined ? `A resolução exige ${minimumTotal} pontos na soma dos RSC e ${minimumRequestedLevel} no nível solicitado.` : "Selecione um regulamento e um nível RSC disponíveis."}</CardDescription></CardHeader><CardContent>{requestedProjection && minimumTotal !== undefined && minimumRequestedLevel !== undefined ? <div className="space-y-3"><div className="flex items-center justify-between gap-3"><p className="text-3xl font-semibold">{cumulativeScore.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</p><Badge variant={meetsResolutionCriteria ? "secondary" : "destructive"}>{meetsResolutionCriteria ? "Apto" : "Não atende aos critérios"}</Badge></div><div className="space-y-1 text-xs text-muted-foreground"><p>Total acumulado: {cumulativeScore.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} de {minimumTotal} pts.</p><p>{rscSectionLabels[requestedProjection.levelId]} solicitado: {requestedProjection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} de {minimumRequestedLevel} pts.</p>{requestedProjection.provisional && <p>Resultado sujeito à validação manual do catálogo.</p>}</div></div> : <p className="text-3xl font-semibold">—</p>}</CardContent></Card>
-    <Card className="xl:col-span-3"><CardHeader><CardTitle>Resumo de pontuação por RSC</CardTitle><CardDescription>Estimativas calculadas a partir dos lançamentos registrados no projeto.</CardDescription></CardHeader><CardContent className="grid gap-3 md:grid-cols-3">{levelProjections.map(({ level, projection }) => <div key={level.section} className="rounded-lg border p-4"><p className="text-sm text-muted-foreground">{rscSectionLabels[level.section]}</p><p className="mt-1 text-2xl font-semibold">{projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</p><p className="mt-1 text-xs text-muted-foreground">{projection.provisional ? "Requer validação manual do catálogo." : "Cálculo disponível para conferência."}</p></div>)}{levelProjections.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma pontuação está disponível para este regulamento.</p>}</CardContent></Card>
-    <InfoCard title="Comprovantes" text="Nenhum comprovante adicionado." /><InfoCard title="Pendências" text="Preencha a identificação e a formação para começar." /><InfoCard title="Backup do projeto" text="Crie uma cópia na seção de backup do projeto." />
+    <ProjectSettingsCard project={project} onSave={onProjectSettingsChange} />
+    <CompletionCard completion={completion} />
+    <ProfileCard project={project} />
+    <ScoreCard catalog={catalog} requestedProjection={requestedProjection} cumulativeScore={cumulativeScore} levelProjections={levelProjections} meetsResolutionCriteria={meetsResolutionCriteria} />
+    <SummaryCard icon={Paperclip} title="Comprovantes" value={evidenceCount} description={evidenceCount === 1 ? "comprovante vinculado ao projeto" : "comprovantes vinculados ao projeto"} />
+    <SummaryCard icon={ClipboardCheck} title="Pendências" value={pendingCount} description={pendingCount === 1 ? "item precisa de atenção" : "itens precisam de atenção"} />
+    <Card>
+      <CardHeader><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-muted text-muted-foreground"><HardDrive className="size-4" /></span><div><CardTitle>Backup do projeto</CardTitle><CardDescription>Proteja os dados e comprovantes.</CardDescription></div></div></CardHeader>
+      <CardContent><Button className="w-full" variant="outline" nativeButton={false} render={<a href={projectSectionHref(project, "backup")} />}>Acessar backup <ArrowRight /></Button></CardContent>
+    </Card>
   </div>
+}
+
+function CompletionCard({ completion }: { completion: ReturnType<typeof getCompletion> }) {
+  const message = completion.progress === 100 ? "Preenchimento concluído" : completion.progress >= 70 ? "Quase lá!" : completion.progress > 0 ? "Continue preenchendo" : "Vamos começar"
+  return <Card>
+    <CardHeader><CardTitle>Status do preenchimento</CardTitle><CardDescription>{message}</CardDescription></CardHeader>
+    <CardContent className="space-y-5">
+      <div><p className="mb-3 text-3xl font-semibold">{completion.progress}%</p><Progress value={completion.progress}><ProgressLabel>Progresso geral</ProgressLabel><ProgressValue /></Progress></div>
+      <div className="space-y-3">{completion.items.map((item) => { const Icon = item.complete ? CheckCircle2 : Circle; return <div key={item.label} className="flex items-start gap-3"><Icon className={item.complete ? "mt-0.5 size-4 shrink-0 text-primary" : "mt-0.5 size-4 shrink-0 text-muted-foreground"} /><div><p className="text-sm font-medium">{item.label}</p><p className="text-xs text-muted-foreground">{item.detail}</p></div></div> })}</div>
+    </CardContent>
+  </Card>
+}
+
+function ProfileCard({ project }: { project: LocalProject }) {
+  const identification = project.identification
+  const fields = [
+    ["Nome", identification?.name],
+    ["SIAPE", identification?.siape],
+    ["CPF", identification?.cpf],
+    ["E-mail", identification?.professionalEmail || identification?.personalEmail],
+    ["Campus", identification?.campus],
+    ["Cargo", identification?.position],
+    ["Titulação", identification?.degree],
+    ["Nível atual", identification?.currentLevel],
+  ]
+  return <Card className="md:col-span-1 xl:col-span-2">
+    <CardHeader className="flex-row items-start justify-between"><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-muted text-muted-foreground"><UserRound className="size-4" /></span><div><CardTitle>Resumo do perfil</CardTitle><CardDescription>Dados usados nos documentos do processo.</CardDescription></div></div><Button size="sm" variant="outline" nativeButton={false} render={<a href={projectSectionHref(project, "profile")} />}><Pencil /> Editar</Button></CardHeader>
+    <CardContent className="grid gap-x-8 gap-y-3 sm:grid-cols-2">{fields.map(([label, value]) => <div key={label} className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3 text-sm"><span className="text-muted-foreground">{label}</span><span className="truncate font-medium">{value || "Não informado"}</span></div>)}</CardContent>
+  </Card>
+}
+
+function ScoreCard({ catalog, requestedProjection, cumulativeScore, levelProjections, meetsResolutionCriteria }: { catalog?: Regulation; requestedProjection?: ReturnType<typeof calculateLevelProjection>; cumulativeScore: number; levelProjections: Array<{ level: Regulation["levels"][number]; projection: ReturnType<typeof calculateLevelProjection> }>; meetsResolutionCriteria: boolean }) {
+  const minimumTotal = catalog?.metadata.scoring.minimumTotal
+  const minimumRequestedLevel = catalog?.metadata.scoring.minimumRequestedLevel
+  const scoreProgress = minimumTotal ? Math.min((cumulativeScore / minimumTotal) * 100, 100) : 0
+  return <Card className="md:col-span-2 xl:col-span-3">
+    <CardHeader className="sm:flex-row sm:items-start sm:justify-between"><div><CardTitle>Resumo da pontuação</CardTitle><CardDescription>Estimativa consolidada a partir dos lançamentos válidos.</CardDescription></div>{requestedProjection && <Badge variant={meetsResolutionCriteria ? "secondary" : "destructive"}>{meetsResolutionCriteria ? "Apto" : "Não atende aos critérios"}</Badge>}</CardHeader>
+    <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      {catalog && requestedProjection && minimumTotal !== undefined && minimumRequestedLevel !== undefined ? <div className="space-y-4"><div><p className="text-4xl font-semibold">{cumulativeScore.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} <span className="text-lg font-normal text-muted-foreground">/ {minimumTotal} pts</span></p><p className="mt-1 text-sm text-muted-foreground">Pontuação total acumulada necessária</p></div><Progress value={scoreProgress}><ProgressLabel>Progresso até o mínimo total</ProgressLabel><ProgressValue /></Progress><div className="flex items-center justify-between gap-3 rounded-lg border p-3"><span className="text-sm">{rscSectionLabels[requestedProjection.levelId]} solicitado</span><span className="font-semibold">{requestedProjection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} / {minimumRequestedLevel} pts</span></div></div> : <p className="text-sm text-muted-foreground">Selecione um regulamento e um nível RSC disponíveis para calcular a pontuação.</p>}
+      <div className="divide-y rounded-lg border">{levelProjections.map(({ level, projection }) => <div key={level.section} className="flex items-center justify-between gap-3 p-3"><div><p className="text-sm font-medium">{rscSectionLabels[level.section]}</p><p className="text-xs text-muted-foreground">{projection.provisional ? "Requer validação" : "Cálculo disponível"}</p></div><span className="text-lg font-semibold">{projection.total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} pts</span></div>)}</div>
+    </CardContent>
+  </Card>
+}
+
+function SummaryCard({ icon: Icon, title, value, description }: { icon: React.ComponentType<{ className?: string }>; title: string; value: number; description: string }) {
+  return <Card><CardHeader><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-4" /></span><CardTitle>{title}</CardTitle></div></CardHeader><CardContent><p className="text-3xl font-semibold">{value}</p><p className="mt-1 text-sm text-muted-foreground">{description}</p></CardContent></Card>
 }
 
 function ProjectSettingsCard({ project, onSave }: { project: LocalProject; onSave: (settings: ProjectSettings) => void }) {
@@ -77,38 +163,15 @@ function ProjectSettingsCard({ project, onSave }: { project: LocalProject; onSav
 
   return <>
     <Card className="md:col-span-2 xl:col-span-3">
-      <CardHeader className="sm:flex-row sm:items-start sm:justify-between">
-        <div><CardTitle>Dados do projeto</CardTitle><CardDescription>Informações usadas em todas as etapas, cálculos e documentos deste projeto.</CardDescription></div>
-        <Button variant="outline" onClick={() => handleOpenChange(true)}><Pencil /> Editar dados</Button>
-      </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-3">
-        <ProjectSetting label="Nome do projeto" value={project.name} />
-        <ProjectSetting label="Regulamento" value={selectedRegulation ? formatRegulation(selectedRegulation) : project.regulation} />
-        <ProjectSetting label="RSC pretendido" value={project.rscLevel} />
-      </CardContent>
+      <CardHeader className="sm:flex-row sm:items-start sm:justify-between"><div><CardTitle>Dados do projeto</CardTitle><CardDescription>Informações usadas em todas as etapas, cálculos e documentos deste projeto.</CardDescription></div><Button variant="outline" onClick={() => handleOpenChange(true)}><Pencil /> Editar dados</Button></CardHeader>
+      <CardContent className="grid gap-4 sm:grid-cols-3"><ProjectSetting label="Nome do projeto" value={project.name} /><ProjectSetting label="Regulamento" value={selectedRegulation ? formatRegulation(selectedRegulation) : project.regulation} /><ProjectSetting label="RSC pretendido" value={project.rscLevel} /></CardContent>
     </Card>
-
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <form onSubmit={save}>
-          <DialogHeader><DialogTitle>Editar dados do projeto</DialogTitle><DialogDescription>As alterações serão aplicadas a todas as seções, cálculos e documentos.</DialogDescription></DialogHeader>
-          <div className="mt-5 space-y-4">
-            <label className="grid gap-1.5 text-sm font-medium" htmlFor="project-name">Nome do projeto<Input id="project-name" value={name} maxLength={120} onChange={(event) => setName(event.target.value)} required /></label>
-            <label className="grid gap-1.5 text-sm font-medium" htmlFor="project-regulation">Regulamento<Select value={regulation} onValueChange={(value) => setRegulation(value ?? "")}><SelectTrigger id="project-regulation" className="w-full"><SelectValue placeholder="Selecione um regulamento" /></SelectTrigger><SelectContent>{regulations.map((item) => <SelectItem key={item.metadata.regulation.id} value={item.metadata.regulation.id}>{formatRegulation(item)}</SelectItem>)}</SelectContent></Select></label>
-            <label className="grid gap-1.5 text-sm font-medium" htmlFor="project-rsc-level">RSC pretendido<Select value={rscLevel} onValueChange={(value) => setRscLevel(value ?? "")}><SelectTrigger id="project-rsc-level" className="w-full"><SelectValue placeholder="Selecione o nível" /></SelectTrigger><SelectContent>{rscLevels.map((level) => <SelectItem key={level} value={level}>{level}</SelectItem>)}</SelectContent></Select></label>
-            {regulationChanged && <Alert><TriangleAlert /><AlertTitle>Os lançamentos precisarão ser reenquadrados</AlertTitle><AlertDescription>A troca de regulamento remove os vínculos atuais com critérios para impedir cálculos usando regras incompatíveis. As descrições e evidências serão preservadas.</AlertDescription></Alert>}
-          </div>
-          <DialogFooter className="mt-5"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button type="submit" disabled={!name.trim() || !rscLevel || !regulation}>Salvar alterações</Button></DialogFooter>
-        </form>
-      </DialogContent>
+      <DialogContent className="sm:max-w-md"><form onSubmit={save}><DialogHeader><DialogTitle>Editar dados do projeto</DialogTitle><DialogDescription>As alterações serão aplicadas a todas as seções, cálculos e documentos.</DialogDescription></DialogHeader><div className="mt-5 space-y-4"><label className="grid gap-1.5 text-sm font-medium" htmlFor="project-name">Nome do projeto<Input id="project-name" value={name} maxLength={120} onChange={(event) => setName(event.target.value)} required /></label><label className="grid gap-1.5 text-sm font-medium" htmlFor="project-regulation">Regulamento<Select value={regulation} onValueChange={(value) => setRegulation(value ?? "")}><SelectTrigger id="project-regulation" className="w-full"><SelectValue placeholder="Selecione um regulamento" /></SelectTrigger><SelectContent>{regulations.map((item) => <SelectItem key={item.metadata.regulation.id} value={item.metadata.regulation.id}>{formatRegulation(item)}</SelectItem>)}</SelectContent></Select></label><label className="grid gap-1.5 text-sm font-medium" htmlFor="project-rsc-level">RSC pretendido<Select value={rscLevel} onValueChange={(value) => setRscLevel(value ?? "")}><SelectTrigger id="project-rsc-level" className="w-full"><SelectValue placeholder="Selecione o nível" /></SelectTrigger><SelectContent>{rscLevels.map((level) => <SelectItem key={level} value={level}>{level}</SelectItem>)}</SelectContent></Select></label>{regulationChanged && <Alert><TriangleAlert /><AlertTitle>Os lançamentos precisarão ser reenquadrados</AlertTitle><AlertDescription>A troca de regulamento remove os vínculos atuais com critérios para impedir cálculos usando regras incompatíveis. As descrições e evidências serão preservadas.</AlertDescription></Alert>}</div><DialogFooter className="mt-5"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button type="submit" disabled={!name.trim() || !rscLevel || !regulation}>Salvar alterações</Button></DialogFooter></form></DialogContent>
     </Dialog>
   </>
 }
 
 function ProjectSetting({ label, value }: { label: string; value: string }) {
   return <div><p className="text-xs font-medium text-muted-foreground">{label}</p><p className="mt-1 text-sm font-medium">{value}</p></div>
-}
-
-function InfoCard({ title, text }: { title: string; text: string }) {
-  return <Card><CardHeader><CardTitle>{title}</CardTitle><CardDescription>{text}</CardDescription></CardHeader><CardContent><div className="flex items-center gap-2 text-sm text-muted-foreground"><BookOpen className="size-4" /> Os dados serão salvos neste navegador.</div></CardContent></Card>
 }
