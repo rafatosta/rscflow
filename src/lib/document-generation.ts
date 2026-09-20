@@ -1,5 +1,6 @@
 import type { Regulation } from "@/domain/regulation";
 import type { LocalProject, StoredAttachment } from "@/lib/projects";
+import { generateMemorialPdf } from "@/lib/pdf/memorial-generator";
 import { generateNormativeFormsPdf } from "@/lib/pdf/normative-forms-generator";
 import { buildNormativeProcessDocument } from "@/lib/pdf/normative-model";
 
@@ -194,44 +195,8 @@ const identity = (project: LocalProject) => {
 };
 
 export function createMemorialPdf(project: LocalProject) {
-  const sections = (project.memorialSections ?? []).filter((section) =>
-    section.content.trim(),
-  );
-  const labels: Record<string, string> = {
-    cover: "Apresentação",
-    introduction: "Introdução",
-    career: "Trajetória profissional",
-    teaching: "Atuação docente",
-    outreach: "Extensão e pesquisa",
-    management: "Gestão e contribuição institucional",
-    conclusion: "Conclusão",
-  };
-  const summary = sections.length
-    ? sections.map(
-        (section, index) =>
-          `${index + 1}. ${labels[section.id] ?? "Seção do memorial"}`,
-      )
-    : ["Nenhuma seção preenchida."];
-  return createPdf([
-    {
-      title: "Memorial descritivo",
-      lines: [
-        project.rscLevel,
-        "",
-        project.identification?.name ?? project.name,
-        project.identification?.position ?? "Cargo não informado",
-        project.identification?.campus ?? "Campus não informado",
-      ],
-      cover: true,
-      eyebrow: "Memorial descritivo",
-    },
-    { title: "Sumário", lines: summary, eyebrow: "Memorial descritivo" },
-    ...sections.map((section) => ({
-      title: labels[section.id] ?? "Seção do memorial",
-      lines: [section.content],
-      eyebrow: "Memorial descritivo",
-    })),
-  ]);
+  const bytes = generateMemorialPdf(project);
+  return new Blob([bytes as BlobPart], { type: "application/pdf" });
 }
 
 export function createFormsPdf(

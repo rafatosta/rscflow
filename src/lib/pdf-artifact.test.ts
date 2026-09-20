@@ -1,3 +1,4 @@
+import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs"
 import { describe, expect, it, vi } from "vitest"
 
 import { createMemorialPdf } from "@/lib/document-generation"
@@ -14,6 +15,20 @@ const project: LocalProject = {
   updatedAt: "2026-01-01T00:00:00.000Z",
   schemaVersion: "1",
   memorialSections: [{ id: "introduction", content: "Ação, educação, trajetória — “docência” e coração." }],
+}
+
+async function readPdf(blob: Blob) {
+  const task = getDocument({ data: new Uint8Array(await blob.arrayBuffer()) })
+  const pdf = await task.promise
+  const pages: string[] = []
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    const page = await pdf.getPage(pageNumber)
+    const content = await page.getTextContent()
+    pages.push(content.items.map((item) => "str" in item ? item.str : "").join(" "))
+  }
+
+  return { pages, pageCount: pdf.numPages, destroy: () => task.destroy() }
 }
 
 describe("PdfArtifact", () => {
@@ -35,18 +50,30 @@ describe("PdfArtifact", () => {
   })
 
   it("preserva acentos, cedilha, travessão e aspas tipográficas sem substituí-los por interrogação", async () => {
-    const bytes = new Uint8Array(await createMemorialPdf(project).arrayBuffer())
-    const text = new TextDecoder("windows-1252").decode(bytes)
+    const pdf = await readPdf(createMemorialPdf(project))
+    const text = pdf.pages.join(" ")
     expect(text).toContain("Ação, educação, trajetória — “docência” e coração.")
     expect(text).not.toContain("trajetória ?")
+    await pdf.destroy()
   })
 
-  it("pagina conteúdo textual longo dentro do limite de linhas", async () => {
-    const longProject = { ...project, memorialSections: [{ id: "introduction", content: "atividade docente ".repeat(2_000) }] }
-    const bytes = new Uint8Array(await createMemorialPdf(longProject).arrayBuffer())
-    const source = new TextDecoder("windows-1252").decode(bytes)
-    const pageCount = Number(source.match(/\/Count (\d+)/)?.[1])
-    expect(pageCount).toBeGreaterThan(3)
-    expect(source.match(/0 -15 Td/g)?.length).toBeLessThanOrEqual((pageCount - 2) * 43)
-  })
+  it("pagina conteúdo longo e registra no sumário a página real de cada seção", async () => {
+    const longProject = {
+      ...project,
+      memorialSections: [
+        { id: "introduction", content: "atividade docente ".repeat(2_000) },
+        { id: "conclusion", content: "Síntese da trajetória." },
+      ],
+    }
+    const pdf = await readPdf(createMemorialPdf(longProject))
+    const conclusionPhysicalPage = pdf.pages.findIndex((page, index) => index >= 2 && page.includes("2 CONCLUSÃO")) + 1
+    const conclusionVisiblePage = conclusionPhysicalPage - 2
+
+    expect(pdf.pageCount).toBeGreaterThan(4)
+    expect(pdf.pages[0]).not.toMatch(/\b1\b/)
+    expect(pdf.pages[1]).toContain(`2 CONCLUSÃO`)
+    expect(pdf.pages[1]).toContain(String(conclusionVisiblePage))
+    expect(pdf.pages[conclusionPhysicalPage - 1]).toContain(String(conclusionVisiblePage))
+    await pdf.destroy()
+  }, 15_000)
 })
