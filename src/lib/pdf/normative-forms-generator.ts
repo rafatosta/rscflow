@@ -1305,32 +1305,131 @@ export function generateNormativeFormsPdf(
 
   document.addPage();
   const annexSevenHeading = "QUADRO DE PONTUAÇÃO MÁXIMA DOS ITENS";
-  title(document, "ANEXO VII", annexSevenHeading);
+  document.setFont("RSCFlowSans", "bold");
+  document.setTextColor(0, 0, 0);
+  document.setFontSize(12);
+  document.text("ANEXO VII", document.internal.pageSize.getWidth() / 2, 42, {
+    align: "center",
+  });
+  document.setFontSize(11);
+  document.text(
+    annexSevenHeading,
+    document.internal.pageSize.getWidth() / 2,
+    64,
+    { align: "center" },
+  );
   const annexSevenFirstPage = document.getNumberOfPages();
 
-  table(document, {
-    head: [["Diretriz", "Peso", "Pontuação máxima"]],
-    body: model.levels.flatMap((level) => [
+  const annexSevenBody = model.levels.flatMap((level) => {
+    const totalWeight = level.directives.reduce(
+      (sum, directive) => sum + directive.weight,
+      0,
+    );
+    const totalScore = level.directives.reduce(
+      (sum, directive) => sum + directive.maximumScore,
+      0,
+    );
+
+    return [
+      [
+        {
+          content: `RECONHECIMENTO DE SABERES E COMPETÊNCIAS - ${levelLabel(level.level)}`,
+          styles: { fontStyle: "bold" as const, halign: "center" as const },
+        },
+        {
+          content: "PESO",
+          styles: { fontStyle: "bold" as const, halign: "center" as const },
+        },
+        {
+          content: "PONTUAÇÃO MÁXIMA",
+          styles: { fontStyle: "bold" as const, halign: "center" as const },
+        },
+      ],
       ...level.directives.map((directive) => [
-        `${levelLabel(level.level)} · ${directive.code}) ${directive.title}`,
+        `${directive.code}) - ${directive.title}`,
         number(directive.weight),
         number(directive.maximumScore),
       ]),
       [
-        `TOTAL ${levelLabel(level.level)}`,
-        number(level.directives.reduce((sum, item) => sum + item.weight, 0)),
-        number(
-          level.directives.reduce(
-            (sum, item) => sum + item.maximumScore,
-            0,
-          ),
-        ),
+        {
+          content: "Subtotal",
+          styles: { fontStyle: "bold" as const, halign: "center" as const },
+        },
+        {
+          content: number(totalWeight),
+          styles: { fontStyle: "bold" as const, halign: "center" as const },
+        },
+        {
+          content: number(totalScore),
+          styles: { fontStyle: "bold" as const, halign: "center" as const },
+        },
       ],
-    ]),
+    ];
+  });
+
+  const annexSevenTotalScore = model.levels.reduce(
+    (sum, level) =>
+      sum +
+      level.directives.reduce(
+        (levelSum, directive) => levelSum + directive.maximumScore,
+        0,
+      ),
+    0,
+  );
+
+  autoTable(document, {
+    startY: 92,
+    margin: { top: 72, right: 28, bottom: 48, left: 28 },
+    tableWidth: 539,
+    theme: "plain",
+    showHead: "never",
+    rowPageBreak: "avoid",
+    body: [
+      ...annexSevenBody,
+      [
+        {
+          content: "TOTAL GERAL",
+          styles: { fontStyle: "bold", halign: "center" },
+        },
+        "",
+        {
+          content: number(annexSevenTotalScore),
+          styles: { fontStyle: "bold", halign: "center" },
+        },
+      ],
+    ],
+    styles: {
+      font: "RSCFlowSans",
+      fontSize: 6.5,
+      cellPadding: 2.2,
+      overflow: "linebreak",
+      valign: "middle",
+      textColor: [0, 0, 0],
+      fillColor: [255, 255, 255],
+      lineColor: [0, 0, 0],
+      lineWidth: 0.45,
+    },
     columnStyles: {
-      0: { cellWidth: 384 },
-      1: { cellWidth: 60, halign: "center" },
-      2: { cellWidth: 78, halign: "center" },
+      0: { cellWidth: 364 },
+      1: { cellWidth: 66, halign: "center" },
+      2: { cellWidth: 109, halign: "center" },
+    },
+    didParseCell: (data) => {
+      const row = data.row.raw as Array<
+        | string
+        | { content?: string; styles?: { fillColor?: number[] } }
+      >;
+      const firstCell = row[0];
+      const label =
+        typeof firstCell === "string" ? firstCell : firstCell?.content ?? "";
+
+      if (label.startsWith("RECONHECIMENTO DE SABERES E COMPETÊNCIAS")) {
+        data.cell.styles.fillColor = [255, 255, 220];
+        data.cell.styles.fontStyle = "bold";
+      } else if (label === "Subtotal" || label === "TOTAL GERAL") {
+        data.cell.styles.fillColor = [220, 220, 220];
+        data.cell.styles.fontStyle = "bold";
+      }
     },
   });
 

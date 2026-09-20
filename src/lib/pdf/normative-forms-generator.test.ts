@@ -50,6 +50,9 @@ describe("gerador dos formulários normativos", () => {
     expect(texts.join(" ")).toContain("João D’Ávila — Ação e Coração")
     expect(texts.join(" ")).toContain("ANEXO VII")
     expect(texts.join(" ")).toContain("QUADRO DE PONTUAÇÃO MÁXIMA DOS ITENS")
+    expect(texts.join(" ")).toContain("RECONHECIMENTO DE SABERES E COMPETÊNCIAS - RSC I")
+    expect(texts.join(" ")).toContain("Subtotal")
+    expect(texts.join(" ")).toContain("TOTAL GERAL")
 
     await task.destroy()
   }, 15_000)
