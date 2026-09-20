@@ -85,9 +85,9 @@ function App() {
       />
       <SidebarInset className="min-w-0">
         <AppHeader
-          title={project?.name ?? (isProjectRoute ? "Projeto" : activeItem.label)}
-          subtitle={project ? `${project.rscLevel} · ${project.regulation}` : undefined}
-          revision={project?.revision}
+          title={isProjectRoute ? project?.name ?? "Projeto" : activeItem.label}
+          subtitle={isProjectRoute && project ? `${project.rscLevel} · ${project.regulation}` : undefined}
+          revision={isProjectRoute ? project?.revision : undefined}
           saveState={isProjectRoute ? saveState : undefined}
           saveError={saveError}
           onRetrySave={() => void retrySave()}
