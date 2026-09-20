@@ -1,9 +1,10 @@
 import * as React from "react"
-import { CircleAlert, Download, Minus, Printer, ZoomIn } from "lucide-react"
+import { CircleAlert, Download, ListTree, Minus, Printer, ZoomIn } from "lucide-react"
 import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from "pdfjs-dist"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { downloadPdfArtifact, openPdfArtifactForPrint, type PdfArtifact } from "@/lib/pdf-artifact"
 
@@ -58,8 +59,13 @@ export function PdfArtifactViewer({ artifact, error, loading }: PdfArtifactViewe
       <span className="text-sm">{document ? `Página ${currentPage} de ${document.numPages}` : "Carregando documento…"}</span>
       <div className="flex items-center gap-1"><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 50} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 150} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button></div>
     </div>
-    <div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas document={document} pageNumber={currentPage} scale={zoom / 100} />}</div>
-    {document && <div className="flex items-center justify-center gap-3"><Button size="sm" variant="outline" disabled={currentPage === 1} onClick={() => setPageNumber((value) => value - 1)}>Anterior</Button><span className="text-sm text-muted-foreground">Página {currentPage} de {document.numPages}</span><Button size="sm" variant="outline" disabled={currentPage === document.numPages} onClick={() => setPageNumber((value) => value + 1)}>Próxima</Button></div>}
+    <div className="grid gap-4 xl:grid-cols-[12rem_minmax(0,1fr)]">
+      {document && <aside><Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><ListTree className="size-4" /> Referências</CardTitle></CardHeader><CardContent className="max-h-[60vh] space-y-1 overflow-auto">{Array.from({ length: document.numPages }, (_, index) => {
+        const reference = index + 1
+        return <Button key={reference} variant={reference === currentPage ? "secondary" : "ghost"} className="w-full justify-start" onClick={() => setPageNumber(reference)} aria-label={`Ir para a página ${reference}`}>Página {reference}</Button>
+      })}</CardContent></Card></aside>}
+      <div className="min-w-0"><div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas document={document} pageNumber={currentPage} scale={zoom / 100} />}</div>{document && <div className="mt-3 flex items-center justify-center gap-3"><Button size="sm" variant="outline" disabled={currentPage === 1} onClick={() => setPageNumber((value) => value - 1)}>Anterior</Button><span className="text-sm text-muted-foreground">Página {currentPage} de {document.numPages}</span><Button size="sm" variant="outline" disabled={currentPage === document.numPages} onClick={() => setPageNumber((value) => value + 1)}>Próxima</Button></div>}</div>
+    </div>
   </section>
 }
 
