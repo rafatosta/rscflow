@@ -62,6 +62,10 @@ export function RequirementsPage({
   const projection = projections[levelId];
   const selectedCriterion =
     level.criteria.find((item) => item.id === criterionId) ?? null;
+  const editingOccurrence =
+    (project.requirementOccurrences ?? []).find(
+      (occurrence) => occurrence.id === editingOccurrenceId,
+    ) ?? null;
   useUnsavedFormProtection(
     Boolean(selectedCriterion) && form.formState.isDirty,
   );
@@ -522,6 +526,14 @@ export function RequirementsPage({
                   Anexe um ou mais arquivos que comprovem este lançamento.
                 </p>
               </div>
+              {editingOccurrence && attachmentFiles.length === 0 && (
+                <MissingAttachmentAlert
+                  occurrence={editingOccurrence}
+                  occurrencesWithStoredAttachments={
+                    occurrencesWithStoredAttachments
+                  }
+                />
+              )}
               <Input
                 id="occurrence-attachments"
                 className="sr-only"
