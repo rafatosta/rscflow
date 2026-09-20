@@ -33,7 +33,7 @@ const processItems: NavigationItem[] = [
     ],
   },
   { id: "documents", label: "Gerar documentos", icon: "file-output" },
-  { id: "backup", label: "Backup e restauração", icon: "hard-drive" },
+  { id: "backup", label: "Backup do projeto", icon: "hard-drive" },
 ]
 
 function App() {

@@ -3,17 +3,15 @@ import {
   ArchiveRestore,
   ArrowRight,
   Copy,
-  FileJson2,
+  FileArchive,
   FolderOpen,
   HardDrive,
-  Info,
   Plus,
   ShieldCheck,
   Trash2,
   Upload,
 } from "lucide-react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,12 +36,15 @@ import {
 import {
   deleteLocalProject,
   duplicateLocalProject,
-  isLocalProject,
+  getStoredAttachments,
+  saveProjectBackup,
   saveLocalProject,
   type LocalProject,
 } from "@/lib/projects";
 import { useLocalProjects } from "@/hooks/use-local-projects";
 import { loadRegulations } from "@/data/regulations/load";
+import { createProjectBackup, readProjectBackup } from "@/lib/project-backup";
+import { downloadFile } from "@/lib/document-generation";
 
 const rscLevels = ["RSC I", "RSC II", "RSC III"];
 const regulations = loadRegulations();
@@ -89,25 +90,26 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [regulation, setRegulation] = useState("");
   const [showErrors, setShowErrors] = useState(false);
 
-  const exportProject = (project: LocalProject) => {
-    const file = new Blob([JSON.stringify(project, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(file);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${project.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+  const backupProject = async (project: LocalProject) => {
+    const attachments = await getStoredAttachments(project.localId);
+    const slug = project.name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "projeto";
+    downloadFile(`${slug}.rscflow`, await createProjectBackup(project, attachments));
   };
 
   const restoreProject = async (file?: File) => {
     if (!file) return;
     try {
-      const imported: unknown = JSON.parse(await file.text());
-      const restored = Array.isArray(imported) ? imported : [imported];
-      if (!restored.every(isLocalProject)) throw new Error("invalid");
-      await Promise.all(restored.map((project) => saveLocalProject(project)));
+      const restored = await readProjectBackup(file);
+      const now = new Date().toISOString();
+      const project = {
+        ...restored.project,
+        localId: crypto.randomUUID(),
+        name: `${restored.project.name} (restaurado)`,
+        revision: 1,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await saveProjectBackup(project, restored.attachments);
       await refreshProjects();
     } catch {
       setShowErrors(true);
@@ -257,9 +259,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   <ArchiveRestore className="size-5" />
                 </span>
                 <div>
-                  <CardTitle>Restaurar backup</CardTitle>
+                  <CardTitle>Restaurar backup do projeto</CardTitle>
                   <CardDescription>
-                    Retome um projeto salvo em arquivo JSON.
+                    Retome um projeto a partir de um backup salvo.
                   </CardDescription>
                 </div>
               </div>
@@ -270,7 +272,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   <Upload className="size-5" />
                 </span>
                 <p className="mt-4 text-sm font-medium">
-                  Arraste seu arquivo JSON aqui
+                  Arraste o backup do projeto aqui
                 </p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
                   ou escolha um arquivo de projeto do seu computador
@@ -290,7 +292,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     id="restore-file"
                     className="sr-only"
                     type="file"
-                    accept="application/json,.json"
+                    accept=".rscflow"
                     onChange={(event) =>
                       void restoreProject(event.target.files?.[0])
                     }
@@ -298,8 +300,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </div>
               </div>
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                Selecione um arquivo JSON exportado pelo Rscflow para restaurar
-                seus projetos neste navegador.
+                Selecione um backup do projeto para restaurá-lo neste navegador.
               </p>
               {showErrors && (
                 <p className="mt-2 text-xs text-destructive">
@@ -323,8 +324,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 Projetos locais
               </h2>
               <p className="flex max-w-md items-center gap-2 text-sm leading-5 text-muted-foreground">
-                <FileJson2 className="size-4 shrink-0 text-primary" />
-                Exporte seus projetos regularmente para ter sempre um backup.
+                <FileArchive className="size-4 shrink-0 text-primary" />
+                Crie backups dos seus projetos regularmente.
               </p>
             </div>
           </div>
@@ -397,10 +398,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`Exportar ${project.name} em JSON`}
-                        onClick={() => exportProject(project)}
+                        aria-label={`Criar backup de ${project.name}`}
+                        onClick={() => void backupProject(project)}
                       >
-                        <FileJson2 />
+                        <FileArchive />
                       </Button>
                       <Button
                         size="icon-sm"

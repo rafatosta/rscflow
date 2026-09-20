@@ -20,7 +20,7 @@ export const projectPages = [
   { id: "preview-forms", label: "Formulários normativos", icon: FileOutput, description: "Visualização dos formulários preenchidos com os dados do processo." },
   { id: "preview-evidence", label: "Índice de comprovantes", icon: FileOutput, description: "Prévia do índice PDF dos comprovantes vinculados." },
   { id: "documents", label: "Gerar documentos", icon: HardDrive, description: "Preparar, revisar disponibilidade e baixar os artefatos de entrega." },
-  { id: "backup", label: "Backup e restauração", icon: HardDrive, description: "Exportar, proteger e recuperar cópias locais do processo." },
+  { id: "backup", label: "Backup do projeto", icon: HardDrive, description: "Criar e restaurar uma cópia segura do projeto." },
 ] as const
 
 export type ProjectSectionId = (typeof projectPages)[number]["id"]
