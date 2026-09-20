@@ -89,6 +89,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [rscLevel, setRscLevel] = useState("");
   const [regulation, setRegulation] = useState("");
   const [showErrors, setShowErrors] = useState(false);
+  const [restoreError, setRestoreError] = useState(false);
 
   const backupProject = async (project: LocalProject) => {
     const attachments = await getStoredAttachments(project.localId);
@@ -98,6 +99,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   const restoreProject = async (file?: File) => {
     if (!file) return;
+    setRestoreError(false);
     try {
       const restored = await readProjectBackup(file);
       const now = new Date().toISOString();
@@ -112,7 +114,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       await saveProjectBackup(project, restored.attachments);
       await refreshProjects();
     } catch {
-      setShowErrors(true);
+      setRestoreError(true);
     }
   };
 
@@ -261,7 +263,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 <div>
                   <CardTitle>Restaurar backup do projeto</CardTitle>
                   <CardDescription>
-                    Retome um projeto a partir de um backup salvo.
+                    Recupere o projeto e seus arquivos como uma nova cópia local.
                   </CardDescription>
                 </div>
               </div>
@@ -293,16 +295,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     className="sr-only"
                     type="file"
                     accept=".rscflow"
-                    onChange={(event) =>
-                      void restoreProject(event.target.files?.[0])
-                    }
+                    onChange={(event) => {
+                      const input = event.currentTarget;
+                      void restoreProject(input.files?.[0]).finally(() => {
+                        input.value = "";
+                      });
+                    }}
                   />
                 </div>
               </div>
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                Selecione um backup do projeto para restaurá-lo neste navegador.
+                Selecione um backup do RSCFlow. Suas cópias atuais não serão substituídas.
               </p>
-              {showErrors && (
+              {restoreError && (
                 <p className="mt-2 text-xs text-destructive">
                   Não foi possível restaurar este arquivo.
                 </p>
