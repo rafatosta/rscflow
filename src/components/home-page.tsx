@@ -13,11 +13,7 @@ import {
   Upload,
 } from "lucide-react";
 
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,48 +58,61 @@ function formatDate(date: string) {
 }
 
 function formatRegulation(regulation: (typeof regulations)[number]) {
-  const { authority, number, year } = regulation.metadata.regulation
-  return `${authority} nº ${number}/${year}`
+  const { authority, number, year } = regulation.metadata.regulation;
+  return `${authority} nº ${number}/${year}`;
 }
 
 function calculateProjectProgress(project: LocalProject) {
-  const identification = project.identification
-  const identificationComplete = identification !== undefined && Object.values(identification).every((value) => value.trim())
-  const hasFormation = (project.formations?.length ?? 0) > 0
-  const hasRequirement = (project.requirementOccurrences?.length ?? 0) > 0
-  const completedMemorialSections = project.memorialSections?.filter((section) => section.content.trim()).length ?? 0
+  const identification = project.identification;
+  const identificationComplete =
+    identification !== undefined &&
+    Object.values(identification).every((value) => value.trim());
+  const hasFormation = (project.formations?.length ?? 0) > 0;
+  const hasRequirement = (project.requirementOccurrences?.length ?? 0) > 0;
+  const completedMemorialSections =
+    project.memorialSections?.filter((section) => section.content.trim())
+      .length ?? 0;
 
-  return Math.round(((Number(identificationComplete) + Number(hasFormation) + Number(hasRequirement) + completedMemorialSections) / 10) * 100)
+  return Math.round(
+    ((Number(identificationComplete) +
+      Number(hasFormation) +
+      Number(hasRequirement) +
+      completedMemorialSections) /
+      10) *
+      100,
+  );
 }
 
 export function HomePage({ onNavigate }: HomePageProps) {
-  const { projects, refreshProjects } = useLocalProjects()
+  const { projects, refreshProjects } = useLocalProjects();
   const [rscLevel, setRscLevel] = useState("");
   const [regulation, setRegulation] = useState("");
   const [showErrors, setShowErrors] = useState(false);
 
   const exportProject = (project: LocalProject) => {
-    const file = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" })
-    const url = URL.createObjectURL(file)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `${project.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json`
-    link.click()
-    URL.revokeObjectURL(url)
-  }
+    const file = new Blob([JSON.stringify(project, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${project.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const restoreProject = async (file?: File) => {
-    if (!file) return
+    if (!file) return;
     try {
-      const imported: unknown = JSON.parse(await file.text())
-      const restored = Array.isArray(imported) ? imported : [imported]
-      if (!restored.every(isLocalProject)) throw new Error("invalid")
-      await Promise.all(restored.map((project) => saveLocalProject(project)))
-      await refreshProjects()
+      const imported: unknown = JSON.parse(await file.text());
+      const restored = Array.isArray(imported) ? imported : [imported];
+      if (!restored.every(isLocalProject)) throw new Error("invalid");
+      await Promise.all(restored.map((project) => saveLocalProject(project)));
+      await refreshProjects();
     } catch {
-      setShowErrors(true)
+      setShowErrors(true);
     }
-  }
+  };
 
   const createProject = async () => {
     if (!rscLevel || !regulation) {
@@ -124,14 +133,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
     };
 
     await saveLocalProject(project);
-    await refreshProjects()
+    await refreshProjects();
     onNavigate(`/project/${project.localId}`);
   };
 
   return (
     <main className="min-h-full px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="flex flex-col gap-6 border-b pb-8 sm:flex-row sm:items-start sm:justify-between">
+        <header className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-primary">
               <span className="grid size-7 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
@@ -152,16 +161,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </Badge>
         </header>
 
-        <Alert className="mt-7">
-          <Info />
-          <AlertTitle>Armazenamento local</AlertTitle>
-          <AlertDescription>
-            Seus projetos não são enviados a um servidor. Exporte um backup em
-            JSON regularmente para mantê-los seguros ao trocar ou limpar o
-            navegador.
-          </AlertDescription>
-        </Alert>
-
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
@@ -179,7 +178,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-5">
-                <label className="block text-sm font-medium" htmlFor="rsc-level">
+                <label
+                  className="block text-sm font-medium"
+                  htmlFor="rsc-level"
+                >
                   RSC pretendido <span className="text-destructive">*</span>
                   <Select
                     value={rscLevel}
@@ -206,9 +208,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     </span>
                   )}
                 </label>
-                <label className="block text-sm font-medium" htmlFor="regulation">
-                  Regulamento{" "}
-                  <span className="text-destructive">*</span>
+                <label
+                  className="block text-sm font-medium"
+                  htmlFor="regulation"
+                >
+                  Regulamento <span className="text-destructive">*</span>
                   <Select
                     value={regulation}
                     onValueChange={(value) => setRegulation(value ?? "")}
@@ -222,7 +226,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     </SelectTrigger>
                     <SelectContent>
                       {regulations.map((item) => (
-                        <SelectItem key={item.metadata.regulation.id} value={item.metadata.regulation.id}>
+                        <SelectItem
+                          key={item.metadata.regulation.id}
+                          value={item.metadata.regulation.id}
+                        >
                           {formatRegulation(item)}
                         </SelectItem>
                       ))}
@@ -269,18 +276,36 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   ou escolha um arquivo de projeto do seu computador
                 </p>
                 <div className="mt-4">
-                  <Button variant="outline" type="button" onClick={() => document.getElementById("restore-file")?.click()}>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() =>
+                      document.getElementById("restore-file")?.click()
+                    }
+                  >
                     <FolderOpen />
                     Selecionar arquivo
                   </Button>
-                  <input id="restore-file" className="sr-only" type="file" accept="application/json,.json" onChange={(event) => void restoreProject(event.target.files?.[0])} />
+                  <input
+                    id="restore-file"
+                    className="sr-only"
+                    type="file"
+                    accept="application/json,.json"
+                    onChange={(event) =>
+                      void restoreProject(event.target.files?.[0])
+                    }
+                  />
                 </div>
               </div>
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
                 Selecione um arquivo JSON exportado pelo Rscflow para restaurar
                 seus projetos neste navegador.
               </p>
-              {showErrors && <p className="mt-2 text-xs text-destructive">Não foi possível restaurar este arquivo.</p>}
+              {showErrors && (
+                <p className="mt-2 text-xs text-destructive">
+                  Não foi possível restaurar este arquivo.
+                </p>
+              )}
             </CardContent>
           </Card>
         </section>
@@ -288,15 +313,20 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <section className="mt-12" aria-labelledby="local-projects-title">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-primary">NESTE NAVEGADOR</p>
-              <h2 id="local-projects-title" className="mt-1 text-2xl font-semibold tracking-tight">
+              <p className="text-sm font-medium text-primary">
+                NESTE NAVEGADOR
+              </p>
+              <h2
+                id="local-projects-title"
+                className="mt-1 text-2xl font-semibold tracking-tight"
+              >
                 Projetos locais
               </h2>
+              <p className="flex max-w-md items-center gap-2 text-sm leading-5 text-muted-foreground">
+                <FileJson2 className="size-4 shrink-0 text-primary" />
+                Exporte seus projetos regularmente para ter sempre um backup.
+              </p>
             </div>
-            <p className="flex max-w-md items-center gap-2 text-sm leading-5 text-muted-foreground">
-              <FileJson2 className="size-4 shrink-0 text-primary" />
-              Exporte seus projetos regularmente para ter sempre um backup.
-            </p>
           </div>
 
           {projects.length === 0 ? (
@@ -323,7 +353,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <CardTitle className="truncate">{project.name}</CardTitle>
+                        <CardTitle className="truncate">
+                          {project.name}
+                        </CardTitle>
                         <CardDescription className="mt-1">
                           {project.rscLevel} · {project.regulation}
                         </CardDescription>
@@ -343,7 +375,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       <span className="mr-auto">
                         <Button
                           size="sm"
-                          onClick={() => onNavigate(`/project/${project.localId}`)}
+                          onClick={() =>
+                            onNavigate(`/project/${project.localId}`)
+                          }
                         >
                           Continuar <ArrowRight />
                         </Button>
@@ -352,7 +386,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         size="icon-sm"
                         variant="ghost"
                         aria-label={`Duplicar ${project.name}`}
-                        onClick={() => { void duplicateLocalProject(project).then(refreshProjects) }}
+                        onClick={() => {
+                          void duplicateLocalProject(project).then(
+                            refreshProjects,
+                          );
+                        }}
                       >
                         <Copy />
                       </Button>
@@ -368,7 +406,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         size="icon-sm"
                         variant="ghost"
                         aria-label={`Excluir ${project.name}`}
-                        onClick={() => { void deleteLocalProject(project.localId).then(refreshProjects) }}
+                        onClick={() => {
+                          void deleteLocalProject(project.localId).then(
+                            refreshProjects,
+                          );
+                        }}
                       >
                         <Trash2 />
                       </Button>
