@@ -5,6 +5,7 @@ import {
   ClipboardCheck,
   FileOutput,
   FileText,
+  FlaskConical,
   FolderKanban,
   GraduationCap,
   HardDrive,
@@ -49,7 +50,8 @@ export type NavigationItem = {
     | "clipboard-check"
     | "file-output"
     | "hard-drive"
-    | "info";
+    | "info"
+    | "flask-conical";
   children?: NavigationItem[];
 };
 
@@ -77,6 +79,7 @@ const icons = {
   "file-output": FileOutput,
   "hard-drive": HardDrive,
   info: Info,
+  "flask-conical": FlaskConical,
 };
 
 export function AppSidebar({

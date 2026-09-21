@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { AppHeader } from "@/components/app-header"
 import { AppSidebar, type NavigationItem } from "@/components/app-sidebar"
 import { AboutPage } from "@/components/about-page"
+import { TestingPage } from "@/components/testing-page"
 import { HomePage } from "@/components/home-page"
 import { ProjectPage } from "@/components/project-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -16,6 +17,7 @@ const regulationCatalogs = loadRegulations()
 
 const navigationItems: NavigationItem[] = [
   { id: "visao-geral", label: "Visão geral", icon: "layout-dashboard" },
+  { id: "como-testar", label: "Como testar", icon: "flask-conical" },
 ]
 
 const processItems: NavigationItem[] = [
@@ -102,7 +104,7 @@ function App() {
         {isProjectRoute ? (
           <ProjectPage section={projectSection} catalog={projectCatalog} />
         ) : (
-          activePage === "sobre" ? <AboutPage /> : <HomePage onNavigate={navigate} />
+          activePage === "sobre" ? <AboutPage /> : activePage === "como-testar" ? <TestingPage /> : <HomePage onNavigate={navigate} />
         )}
       </SidebarInset>
     </SidebarProvider>
