@@ -1,42 +1,54 @@
-# React + TypeScript + Vite
+# RSCFlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+O RSCFlow ajuda docentes do IFBA a organizar o Memorial Descritivo do Reconhecimento de Saberes e
+Competências (RSC). A aplicação reúne as informações do processo em um fluxo guiado e gera os
+documentos para conferência e entrega.
 
-## Formulários
+## Acessar o sistema
 
-Para a entrada e validação de dados em formulários, use exclusivamente a combinação abaixo:
+Acesse o [RSCFlow](https://rafatosta.github.io/rscflow/).
 
-- [`react-hook-form`](https://react-hook-form.com/): gerencia o estado dos campos, a submissão, os erros e o desempenho dos formulários.
-- [`zod`](https://zod.dev/): define os schemas, as regras de validação e os tipos dos dados, incluindo campos obrigatórios, CPF, datas e referências.
-- [`@hookform/resolvers`](https://github.com/react-hook-form/resolvers): conecta os schemas do Zod ao React Hook Form.
+## O que é possível fazer
 
-Não utilize outra biblioteca para gerenciamento ou validação de formulários sem uma justificativa documentada ou uma limitação comprovada dessas ferramentas.
+- criar e manter mais de um projeto de RSC;
+- preencher dados docentes, formação e atividades de RSC I, II e III;
+- anexar comprovantes aos lançamentos;
+- preparar e editar o memorial descritivo;
+- revisar pendências antes de gerar os documentos;
+- gerar o memorial, os formulários e os comprovantes em PDF;
+- baixar um pacote com os documentos finais;
+- exportar e restaurar uma cópia completa do projeto.
 
-Currently, two official plugins are available:
+O repositório também oferece um [processo fictício completo de RSC III](examples/rsc-iii-demonstrativo/)
+para conhecer o fluxo. Os dados e documentos desse exemplo não têm validade.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Privacidade e conservação dos dados
 
-## React Compiler
+Os projetos e comprovantes ficam armazenados no navegador usado para acessar o RSCFlow. O sistema
+não exige conta e não envia dados pessoais ou documentos para serviços externos.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Limpar os dados do site, usar uma janela privativa ou trocar de navegador ou dispositivo pode
+impedir o acesso aos projetos salvos. Baixe regularmente uma cópia completa no formato `.rscflow`,
+principalmente antes de limpar o navegador ou mudar de equipamento.
 
-## Expanding the Oxlint configuration
+## Situação das regras de pontuação
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+O catálogo de critérios ainda aguarda validação humana final. O sistema pode mostrar pontuações
+provisórias por requisito, acompanhadas de aviso, mas não apresenta o total do projeto enquanto a
+validação estiver pendente. Um critério do RSC II possui conflito no texto oficial e, por isso, não
+é calculado.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+Confira os resultados e os documentos gerados antes de utilizá-los em um processo oficial. Em caso
+de divergência, prevalece a regulamentação oficial do IFBA.
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Como reportar um problema
+
+Abra uma [nova issue](https://github.com/rafatosta/rscflow/issues/new) e informe:
+
+- o que você estava tentando fazer;
+- o que aconteceu e o que esperava que acontecesse;
+- os passos para reproduzir o problema;
+- o navegador e o dispositivo utilizados;
+- imagens da tela, se ajudarem a explicar o problema.
+
+Não inclua dados pessoais, comprovantes ou documentos do seu processo no relato.
