@@ -8,8 +8,8 @@ import {
   FolderKanban,
   GraduationCap,
   HardDrive,
+  Info,
   LayoutDashboard,
-  LifeBuoy,
   Search,
   UserRound,
   UsersRound,
@@ -48,7 +48,8 @@ export type NavigationItem = {
     | "file-text"
     | "clipboard-check"
     | "file-output"
-    | "hard-drive";
+    | "hard-drive"
+    | "info";
   children?: NavigationItem[];
 };
 
@@ -60,6 +61,7 @@ type AppSidebarProps = {
   activeProcess?: string;
   onProcessChange?: (page: string) => void;
   onHomeClick: () => void;
+  onAboutClick: () => void;
 };
 
 const icons = {
@@ -74,6 +76,7 @@ const icons = {
   "clipboard-check": ClipboardCheck,
   "file-output": FileOutput,
   "hard-drive": HardDrive,
+  info: Info,
 };
 
 export function AppSidebar({
@@ -84,6 +87,7 @@ export function AppSidebar({
   activeProcess,
   onProcessChange,
   onHomeClick,
+  onAboutClick,
 }: AppSidebarProps) {
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const { isMobile, setOpenMobile } = useSidebar();
@@ -186,10 +190,12 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip="Central de ajuda"
+              isActive={activePage === "sobre"}
+              tooltip="Sobre"
+              onClick={() => navigateAndClose(onAboutClick)}
             >
-              <LifeBuoy />
-              <span>Central de ajuda</span>
+              <Info />
+              <span>Sobre</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

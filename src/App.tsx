@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { AppHeader } from "@/components/app-header"
 import { AppSidebar, type NavigationItem } from "@/components/app-sidebar"
+import { AboutPage } from "@/components/about-page"
 import { HomePage } from "@/components/home-page"
 import { ProjectPage } from "@/components/project-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -65,7 +66,9 @@ function App() {
     void navigate("/")
   }
 
-  const activeItem = navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
+  const activeItem = activePage === "sobre"
+    ? { label: "Sobre" }
+    : navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
   const routeMatch = pathname.match(/^\/project\/([^/]+)(?:\/([^/]+))?\/?$/)
   const isProjectRoute = Boolean(routeMatch)
   const projectSection = routeMatch?.[2] === "preview" ? "preview-memorial" : routeMatch?.[2] ?? "overview"
@@ -84,6 +87,7 @@ function App() {
         activeProcess={projectSection}
         onProcessChange={(section) => void navigate(section === "overview" ? `/project/${routeMatch?.[1]}` : `/project/${routeMatch?.[1]}/${section}`)}
         onHomeClick={() => void navigate("/")}
+        onAboutClick={() => { setActivePage("sobre"); void navigate("/") }}
       />
       <SidebarInset className="min-w-0">
         <AppHeader
@@ -98,7 +102,7 @@ function App() {
         {isProjectRoute ? (
           <ProjectPage section={projectSection} catalog={projectCatalog} />
         ) : (
-          <HomePage onNavigate={navigate} />
+          activePage === "sobre" ? <AboutPage /> : <HomePage onNavigate={navigate} />
         )}
       </SidebarInset>
     </SidebarProvider>
