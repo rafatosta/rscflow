@@ -109,7 +109,7 @@ export function AppSidebar({
           className="flex items-center gap-2 rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           <img
-            src="/favicon.svg"
+            src={`${import.meta.env.BASE_URL}favicon.svg`}
             alt="RSCflow"
             className="size-8 shrink-0 rounded-lg shadow-sm"
           />
