@@ -1,5 +1,5 @@
 import * as React from "react"
-import { AlertCircle, CheckCircle2, Download, FileArchive, FileCheck2, FileText, LoaderCircle, ShieldCheck } from "lucide-react"
+import { AlertCircle, CheckCircle2, Download, Eye, FileArchive, FileCheck2, FileText, LoaderCircle, ShieldCheck } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Regulation } from "@/domain/regulation"
 import { calculateLevelProjection } from "@/domain/scoring"
+import { appHref } from "@/lib/app-navigation"
 import { getStoredAttachments, type LocalProject, type StoredAttachment } from "@/lib/projects"
 import { createEvidenceBundle, createEvidenceIndexPdf, createEvidencePageReferences, createFormsPdf, createMemorialPdf, createZip, downloadFile } from "@/lib/document-generation"
 
@@ -24,11 +25,9 @@ export function DocumentsPage({ project, catalog }: { project: LocalProject; cat
   const [generatedAt, setGeneratedAt] = React.useState<Partial<Record<ArtifactId, string>>>({})
   const [errors, setErrors] = React.useState<Partial<Record<ArtifactId, string>>>({})
   const [storedAttachments, setStoredAttachments] = React.useState<StoredAttachment[]>([])
-  const [isLoadingAttachments, setIsLoadingAttachments] = React.useState(true)
   React.useEffect(() => {
     let active = true
-    setIsLoadingAttachments(true)
-    void getStoredAttachments(project.localId).then((files) => { if (active) { setStoredAttachments(files); setIsLoadingAttachments(false) } }).catch(() => { if (active) setIsLoadingAttachments(false) })
+    void getStoredAttachments(project.localId).then((files) => { if (active) setStoredAttachments(files) }).catch(() => undefined)
     return () => { active = false }
   }, [project.localId])
   const occurrences = project.requirementOccurrences ?? []
@@ -89,12 +88,12 @@ export function DocumentsPage({ project, catalog }: { project: LocalProject; cat
   }
 
   return <section className="mt-6 space-y-6">
+    <div className="flex justify-end"><Button variant="outline" nativeButton={false} render={<a href={appHref(`/project/${project.localId}/preview`)} />}><Eye /> Abrir prévia</Button></div>
     <Alert><CheckCircle2 /><AlertTitle>Prontidão geral: {status}</AlertTitle><AlertDescription>{status === "bloqueado" ? "Há requisitos que impedem a emissão. Consulte os bloqueios em cada artefato." : status === "com avisos" ? "É possível seguir apenas após conferir os avisos documentais." : "Os dados disponíveis atendem aos requisitos locais de geração."}</AlertDescription></Alert>
     <div className="grid gap-4 lg:grid-cols-2">{items.map((item) => {
       const Icon = item.icon
       const state = states[item.id]
       return <Card key={item.id}><CardHeader><div className="flex items-start justify-between gap-3"><div><CardTitle className="flex items-center gap-2"><Icon className="size-4" />{item.title}</CardTitle><CardDescription>{item.ready ? "Requisitos locais atendidos." : "Requer conferência antes da geração."}</CardDescription></div><Badge variant={item.ready ? "secondary" : "outline"}>{state === "processing" ? "Preparando" : item.ready ? "Pronto" : "Bloqueado"}</Badge></div></CardHeader><CardContent className="space-y-4"><div><p className="text-sm font-medium">Requisitos</p><ul className="mt-1 space-y-1 text-sm text-muted-foreground">{item.requirements.map((requirement) => <li key={requirement}>• {requirement}</li>)}</ul></div>{item.notes.length > 0 && <div><p className="text-sm font-medium">Pendências e avisos</p><ul className="mt-1 space-y-1 text-sm text-muted-foreground">{item.notes.map((note) => <li key={note}>• {note}</li>)}</ul></div>}{errors[item.id] && <Alert variant="destructive"><AlertCircle /><AlertTitle>Falha de geração</AlertTitle><AlertDescription>{errors[item.id]}</AlertDescription></Alert>}<div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-muted-foreground">{generatedAt[item.id] ? `Última geração: ${formatDate(generatedAt[item.id])}` : "Ainda não gerado nesta sessão."}</span><Button size="sm" disabled={state === "processing"} onClick={() => run(item.id)}>{state === "processing" ? <><LoaderCircle className="animate-spin" /> Preparando</> : state === "ready" ? <><Download /> Baixar novamente</> : "Preparar e gerar"}</Button></div></CardContent></Card>
     })}</div>
-    <Card><CardHeader><CardTitle>Verificação local dos comprovantes</CardTitle><CardDescription>O pacote usa somente arquivos binários ainda disponíveis no armazenamento local deste navegador.</CardDescription></CardHeader><CardContent>{isLoadingAttachments ? <p className="text-sm text-muted-foreground">Verificando arquivos locais…</p> : attachments.length ? <div className="space-y-2">{attachments.map((file, index) => { const available = storedAttachments.some((attachment) => attachment.name === file); return <div key={`${file}-${index}`} className="flex items-center justify-between gap-3 rounded-lg border p-3 text-sm"><span className="truncate">{file}</span><Badge variant={available ? "secondary" : "outline"}>{available ? "Disponível" : "Selecione novamente"}</Badge></div> })}</div> : <p className="text-sm text-muted-foreground">Não há comprovantes referenciados no projeto.</p>}</CardContent></Card>
   </section>
 }
