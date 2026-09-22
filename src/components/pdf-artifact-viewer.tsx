@@ -27,6 +27,7 @@ export function PdfArtifactViewer({ artifact, error, loading }: PdfArtifactViewe
   const [pageNumber, setPageNumber] = React.useState(1)
   const [viewMode, setViewMode] = React.useState<PdfViewMode>("width")
   const [zoom, setZoom] = React.useState(100)
+  const lastWheelPageChange = React.useRef(0)
 
   React.useEffect(() => {
     if (!artifact) return
@@ -54,6 +55,16 @@ export function PdfArtifactViewer({ artifact, error, loading }: PdfArtifactViewe
   }, [artifact])
 
   const currentPage = document ? Math.min(pageNumber, document.numPages) : 1
+  const handlePdfWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (!document) return
+    event.preventDefault()
+    event.stopPropagation()
+    if (Math.abs(event.deltaY) < 8) return
+    const now = Date.now()
+    if (now - lastWheelPageChange.current < 450) return
+    lastWheelPageChange.current = now
+    setPageNumber((value) => Math.max(1, Math.min(document.numPages, value + (event.deltaY > 0 ? 1 : -1))))
+  }
   if (loading) return <div className="mt-6 space-y-3"><Skeleton className="h-10 w-full" /><Skeleton className="mx-auto h-[60vh] max-w-3xl" /></div>
   if (error || documentError) return <Alert className="mt-6" variant="destructive"><CircleAlert /><AlertTitle>Falha ao preparar a prévia</AlertTitle><AlertDescription>{(error ?? documentError)?.message}</AlertDescription></Alert>
   if (!artifact) return null
@@ -64,7 +75,7 @@ export function PdfArtifactViewer({ artifact, error, loading }: PdfArtifactViewe
       <div className="flex items-center gap-1 justify-self-center"><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 50} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 150} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button></div>
       <Select value={viewMode} onValueChange={(value) => { if (value === "width" || value === "page") setViewMode(value) }}><SelectTrigger aria-label="Modo de visualização" className="w-52 justify-self-end"><SelectValue>{viewMode === "width" ? "Ajustar à largura" : "Ajustar à página"}</SelectValue></SelectTrigger><SelectContent className="w-80"><SelectItem value="width"><span className="grid gap-0.5"><span>Ajustar à largura</span><span className="text-xs font-normal text-muted-foreground">Ocupa toda a largura disponível.</span></span></SelectItem><SelectItem value="page"><span className="grid gap-0.5"><span>Ajustar à página</span><span className="text-xs font-normal text-muted-foreground">Mostra a folha inteira na tela.</span></span></SelectItem></SelectContent></Select>
     </div>
-    <div className="min-w-0"><div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas document={document} pageNumber={currentPage} viewMode={viewMode} zoom={zoom} />}</div>
+    <div className="min-w-0"><div onWheelCapture={handlePdfWheel} className="overscroll-contain overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas document={document} pageNumber={currentPage} viewMode={viewMode} zoom={zoom} />}</div>
     </div>
   </section>
 }
