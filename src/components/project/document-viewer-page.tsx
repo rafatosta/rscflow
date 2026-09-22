@@ -66,7 +66,7 @@ function EvidenceIndexArtifact({ project, catalog, attachments, onPdfArtifactCha
   const filename = `${projectSlug(project)}-indice-comprovantes.pdf`
   const state = usePdfArtifact(filename, () => createEvidenceIndexPdf(project, attachments, catalog), [filename, project, attachments, catalog])
   React.useEffect(() => { onPdfArtifactChange(state.artifact); return () => onPdfArtifactChange(undefined) }, [onPdfArtifactChange, state.artifact])
-  return <><p className="mt-6 text-sm text-muted-foreground">O índice e os comprovantes estão reunidos neste PDF. Os arquivos originais também permanecem disponíveis no pacote ZIP.</p><PdfArtifactViewer {...state} /></>
+  return <PdfArtifactViewer {...state} />
 }
 
 function useEvidencePageMap(project: LocalProject, catalog?: Regulation) {
