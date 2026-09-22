@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Eye } from "lucide-react"
 import { BackupPage } from "@/components/backup-page"
 import { DocumentsPage } from "@/components/documents-page"
 import { DocumentViewer, type PreviewDocument } from "@/components/project/document-viewer-page"
@@ -16,8 +17,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { calculateLevelProjection } from "@/domain/scoring"
 import type { Regulation } from "@/domain/regulation"
 import { useLocalProjects } from "@/hooks/use-local-projects"
+import { appHref } from "@/lib/app-navigation"
 import { applyProjectSettings, type Formation, type Identification, type LocalProject, type MemorialSection, type RequirementOccurrence } from "@/lib/projects"
 import type { PdfArtifact } from "@/lib/pdf-artifact"
+import { Button } from "@/components/ui/button"
 
 type ProjectPageProps = { section: string; catalog?: Regulation; occurrenceAction?: "new" | "edit"; occurrenceId?: string; formationAction?: "new" | "edit"; formationId?: string; onNavigate: (path: string) => void }
 
@@ -38,7 +41,7 @@ export function ProjectPage({ section, catalog, occurrenceAction, occurrenceId, 
         <div className="flex flex-wrap items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-5" /></span>
           <div className="min-w-0"><h3 className="text-xl font-semibold">{activePage.label}</h3><p className="text-sm text-muted-foreground">{activePage.description}</p></div>
-          <div className="ml-auto flex flex-wrap gap-2"><PdfArtifactActions artifact={pdfArtifact} /></div>
+          <div className="ml-auto flex flex-wrap gap-2"><PdfArtifactActions artifact={pdfArtifact} />{activePage.id === "documents" && <Button variant="outline" nativeButton={false} render={<a href={appHref(`/project/${project?.localId}/preview`)} />}><Eye /> Abrir prévia</Button>}</div>
         </div>
         <ProjectSection
           section={activePage.id}
