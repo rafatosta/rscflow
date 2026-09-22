@@ -5,7 +5,10 @@ import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from "pdfjs-dist"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { downloadPdfArtifact, openPdfArtifactForPrint, type PdfArtifact } from "@/lib/pdf-artifact"
+
+type PdfViewMode = "width" | "page"
 
 type PdfArtifactViewerProps = {
   artifact?: PdfArtifact
@@ -13,11 +16,17 @@ type PdfArtifactViewerProps = {
   loading?: boolean
 }
 
+export function PdfArtifactActions({ artifact }: { artifact?: PdfArtifact }) {
+  if (!artifact) return null
+  return <><Button size="sm" variant="outline" onClick={() => openPdfArtifactForPrint(artifact)}><Printer /> Abrir para imprimir</Button><Button size="sm" onClick={() => downloadPdfArtifact(artifact)}><Download /> Baixar</Button></>
+}
+
 export function PdfArtifactViewer({ artifact, error, loading }: PdfArtifactViewerProps) {
   const [document, setDocument] = React.useState<PDFDocumentProxy>()
   const [documentError, setDocumentError] = React.useState<Error>()
   const [pageNumber, setPageNumber] = React.useState(1)
-  const [zoom, setZoom] = React.useState(90)
+  const [viewMode, setViewMode] = React.useState<PdfViewMode>("width")
+  const [zoom, setZoom] = React.useState(100)
 
   React.useEffect(() => {
     if (!artifact) return
@@ -50,20 +59,17 @@ export function PdfArtifactViewer({ artifact, error, loading }: PdfArtifactViewe
   if (!artifact) return null
 
   return <section className="mt-6 space-y-4" data-pdf-byte-length={artifact.bytes.byteLength}>
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted-foreground">A prévia, o download e a impressão usam o mesmo arquivo PDF.</p>
-      <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => openPdfArtifactForPrint(artifact)}><Printer /> Abrir para imprimir</Button><Button onClick={() => downloadPdfArtifact(artifact)}><Download /> Baixar</Button></div>
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-lg border p-3">
+      {document ? <div className="flex items-center gap-2 justify-self-start"><Button size="icon" variant="ghost" aria-label="Ir para a página anterior" disabled={currentPage === 1} onClick={() => setPageNumber((value) => value - 1)}><ChevronLeft /></Button><span className="min-w-28 text-center text-sm">Página {currentPage} de {document.numPages}</span><Button size="icon" variant="ghost" aria-label="Ir para a próxima página" disabled={currentPage === document.numPages} onClick={() => setPageNumber((value) => value + 1)}><ChevronRight /></Button></div> : <span className="text-sm justify-self-start">Carregando documento…</span>}
+      <div className="flex items-center gap-1 justify-self-center"><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 50} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 150} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button></div>
+      <Select value={viewMode} onValueChange={(value) => { if (value === "width" || value === "page") setViewMode(value) }}><SelectTrigger aria-label="Modo de visualização" className="w-52 justify-self-end"><SelectValue>{viewMode === "width" ? "Ajustar à largura" : "Ajustar à página"}</SelectValue></SelectTrigger><SelectContent className="w-80"><SelectItem value="width"><span className="grid gap-0.5"><span>Ajustar à largura</span><span className="text-xs font-normal text-muted-foreground">Ocupa toda a largura disponível.</span></span></SelectItem><SelectItem value="page"><span className="grid gap-0.5"><span>Ajustar à página</span><span className="text-xs font-normal text-muted-foreground">Mostra a folha inteira na tela.</span></span></SelectItem></SelectContent></Select>
     </div>
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
-      {document ? <div className="flex items-center gap-2"><Button size="icon" variant="ghost" aria-label="Ir para a página anterior" disabled={currentPage === 1} onClick={() => setPageNumber((value) => value - 1)}><ChevronLeft /></Button><span className="min-w-28 text-center text-sm">Página {currentPage} de {document.numPages}</span><Button size="icon" variant="ghost" aria-label="Ir para a próxima página" disabled={currentPage === document.numPages} onClick={() => setPageNumber((value) => value + 1)}><ChevronRight /></Button></div> : <span className="text-sm">Carregando documento…</span>}
-      <div className="flex items-center gap-1"><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 50} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 150} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button></div>
-    </div>
-    <div className="min-w-0"><div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas document={document} pageNumber={currentPage} scale={zoom / 100} />}</div>
+    <div className="min-w-0"><div className="overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas document={document} pageNumber={currentPage} viewMode={viewMode} zoom={zoom} />}</div>
     </div>
   </section>
 }
 
-function PdfCanvas({ document, pageNumber, scale }: { document: PDFDocumentProxy; pageNumber: number; scale: number }) {
+function PdfCanvas({ document, pageNumber, viewMode, zoom }: { document: PDFDocumentProxy; pageNumber: number; viewMode: PdfViewMode; zoom: number }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const [error, setError] = React.useState<Error>()
 
@@ -71,25 +77,42 @@ function PdfCanvas({ document, pageNumber, scale }: { document: PDFDocumentProxy
     let active = true
     let page: PDFPageProxy | undefined
     let renderTask: RenderTask | undefined
+    let observer: ResizeObserver | undefined
+    let resizeHandler: (() => void) | undefined
     void document.getPage(pageNumber).then((loadedPage) => {
       page = loadedPage
       const canvas = canvasRef.current
       if (!active || !canvas) return
-      const viewport = page.getViewport({ scale })
-      const outputScale = window.devicePixelRatio || 1
-      const context = canvas.getContext("2d")
-      if (!context) throw new Error("Canvas indisponível para renderizar o PDF.")
-      canvas.width = Math.floor(viewport.width * outputScale)
-      canvas.height = Math.floor(viewport.height * outputScale)
-      canvas.style.width = `${Math.floor(viewport.width)}px`
-      canvas.style.height = `${Math.floor(viewport.height)}px`
-      renderTask = page.render({ canvas, canvasContext: context, viewport, transform: outputScale === 1 ? undefined : [outputScale, 0, 0, outputScale, 0, 0] })
-      return renderTask.promise
+      const container = canvas.parentElement
+      if (!container) return
+      const render = () => {
+        const styles = getComputedStyle(container)
+        const availableWidth = container.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight)
+        const baseViewport = page?.getViewport({ scale: 1 })
+        if (!page || !baseViewport || availableWidth <= 0) return
+        const widthScale = availableWidth / baseViewport.width
+        const pageScale = Math.min(widthScale, Math.max(0.1, (window.innerHeight - container.getBoundingClientRect().top - 32) / baseViewport.height))
+        const viewport = page.getViewport({ scale: (viewMode === "page" ? pageScale : widthScale) * (zoom / 100) })
+        const outputScale = window.devicePixelRatio || 1
+        const context = canvas.getContext("2d")
+        if (!context) throw new Error("Canvas indisponível para renderizar o PDF.")
+        renderTask?.cancel()
+        canvas.width = Math.floor(viewport.width * outputScale)
+        canvas.height = Math.floor(viewport.height * outputScale)
+        canvas.style.width = `${Math.floor(viewport.width)}px`
+        canvas.style.height = `${Math.floor(viewport.height)}px`
+        renderTask = page.render({ canvas, canvasContext: context, viewport, transform: outputScale === 1 ? undefined : [outputScale, 0, 0, outputScale, 0, 0] })
+      }
+      render()
+      resizeHandler = render
+      observer = new ResizeObserver(render)
+      observer.observe(container)
+      window.addEventListener("resize", render)
     }).catch((reason: unknown) => {
       if (active && !(reason instanceof Error && reason.name === "RenderingCancelledException")) setError(reason instanceof Error ? reason : new Error("Falha ao renderizar a página."))
     })
-    return () => { active = false; renderTask?.cancel(); page?.cleanup() }
-  }, [document, pageNumber, scale])
+    return () => { active = false; observer?.disconnect(); if (resizeHandler) window.removeEventListener("resize", resizeHandler); renderTask?.cancel(); page?.cleanup() }
+  }, [document, pageNumber, viewMode, zoom])
 
   if (error) return <Alert variant="destructive"><CircleAlert /><AlertTitle>Falha ao renderizar a página</AlertTitle><AlertDescription>{error.message}</AlertDescription></Alert>
   return <canvas ref={canvasRef} className="mx-auto bg-background shadow-sm" />
