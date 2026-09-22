@@ -2,6 +2,7 @@ import { BackupPage } from "@/components/backup-page"
 import { DocumentsPage } from "@/components/documents-page"
 import { DocumentViewer, type PreviewDocument } from "@/components/project/document-viewer-page"
 import { EducationPage } from "@/components/project/education-page"
+import { FormationPage } from "@/components/project/formation-page"
 import { IdentificationPage } from "@/components/project/identification-page"
 import { MemorialPage } from "@/components/project/memorial-page"
 import { OverviewPage } from "@/components/project/overview-page"
@@ -15,9 +16,9 @@ import type { Regulation } from "@/domain/regulation"
 import { useLocalProjects } from "@/hooks/use-local-projects"
 import { applyProjectSettings, type Formation, type Identification, type LocalProject, type MemorialSection, type RequirementOccurrence } from "@/lib/projects"
 
-type ProjectPageProps = { section: string; catalog?: Regulation; occurrenceAction?: "new" | "edit"; occurrenceId?: string; onNavigate: (path: string) => void }
+type ProjectPageProps = { section: string; catalog?: Regulation; occurrenceAction?: "new" | "edit"; occurrenceId?: string; formationAction?: "new" | "edit"; formationId?: string; onNavigate: (path: string) => void }
 
-export function ProjectPage({ section, catalog, occurrenceAction, occurrenceId, onNavigate }: ProjectPageProps) {
+export function ProjectPage({ section, catalog, occurrenceAction, occurrenceId, formationAction, formationId, onNavigate }: ProjectPageProps) {
   const { project, updateDraft } = useLocalProjects()
   const activePage = projectPages.find((page) => page.id === section) ?? projectPages[0]
   const Icon = activePage.icon
@@ -27,7 +28,7 @@ export function ProjectPage({ section, catalog, occurrenceAction, occurrenceId, 
       {!project && <p className="text-sm text-muted-foreground">Projeto local não encontrado.</p>}
 
       <section className="mt-2">
-        {occurrenceAction && project && catalog ? <OccurrencePage project={project} catalog={catalog} action={occurrenceAction} occurrenceId={occurrenceId} onOccurrencesChange={(occurrences) => updateDraft((current) => ({ ...current, requirementOccurrences: occurrences }))} onNavigate={onNavigate} /> : <>
+        {occurrenceAction && project && catalog ? <OccurrencePage project={project} catalog={catalog} action={occurrenceAction} occurrenceId={occurrenceId} onOccurrencesChange={(occurrences) => updateDraft((current) => ({ ...current, requirementOccurrences: occurrences }))} onNavigate={onNavigate} /> : formationAction && project ? <FormationPage key={`${formationAction}-${formationId ?? "new"}`} project={project} action={formationAction} formationId={formationId} onChange={(formations) => updateDraft((current) => ({ ...current, formations }))} onNavigate={onNavigate} /> : <>
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-5" /></span>
           <div><h3 className="text-xl font-semibold">{activePage.label}</h3><p className="text-sm text-muted-foreground">{activePage.description}</p></div>
@@ -65,7 +66,7 @@ function ProjectSection({ section, project, catalog, onNavigate, onOccurrencesCh
   if (section === "overview") return <OverviewPage project={project} catalog={catalog} onProjectSettingsChange={onProjectSettingsChange} />
   if (!project) return null
   if (section === "profile") return <IdentificationPage project={project} onSave={onIdentificationChange} />
-  if (section === "education") return <EducationPage project={project} onChange={onFormationsChange} />
+  if (section === "education") return <EducationPage project={project} onChange={onFormationsChange} onNavigate={onNavigate} />
   if (section === "memorial") return <MemorialPage project={project} catalog={catalog} onChange={onMemorialChange} onOccurrencesChange={onOccurrencesChange} />
   if (section === "requirements") {
     if (!catalog) return <Card className="mt-6"><CardHeader><CardTitle>Regulamento indisponível</CardTitle><CardDescription>O regulamento salvo neste projeto não está disponível no catálogo local.</CardDescription></CardHeader><CardContent><p className="text-sm text-muted-foreground">Selecione ou restaure um projeto vinculado a um regulamento instalado antes de cadastrar lançamentos.</p></CardContent></Card>

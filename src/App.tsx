@@ -75,6 +75,7 @@ function App() {
   const isProjectRoute = Boolean(routeMatch)
   const projectSection = routeMatch?.[2] === "preview" ? "preview-memorial" : routeMatch?.[2] ?? "overview"
   const occurrenceAction = routeMatch?.[2] === "requirements" && (routeMatch[3] === "new" || routeMatch[3] === "edit") ? routeMatch[3] : undefined
+  const formationAction = routeMatch?.[2] === "education" && (routeMatch[3] === "new" || routeMatch[3] === "edit") ? routeMatch[3] : undefined
   useEffect(() => { if (isProjectRoute && routeMatch?.[1]) void openProject(routeMatch[1]) }, [isProjectRoute, openProject, routeMatch])
   const projectCatalog = project
     ? regulationCatalogs.find((catalog) => catalog.metadata.regulation.id === project.regulation)
@@ -103,7 +104,7 @@ function App() {
           onDiscardDraft={() => void discardDraft()}
         />
         {isProjectRoute ? (
-          <ProjectPage section={projectSection} catalog={projectCatalog} occurrenceAction={occurrenceAction} occurrenceId={occurrenceAction === "edit" ? routeMatch?.[4] : undefined} onNavigate={navigate} />
+          <ProjectPage section={projectSection} catalog={projectCatalog} occurrenceAction={occurrenceAction} occurrenceId={occurrenceAction === "edit" ? routeMatch?.[4] : undefined} formationAction={formationAction} formationId={formationAction === "edit" ? routeMatch?.[4] : undefined} onNavigate={navigate} />
         ) : (
           activePage === "sobre" ? <AboutPage /> : activePage === "como-testar" ? <TestingPage /> : <HomePage onNavigate={navigate} />
         )}
