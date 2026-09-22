@@ -59,7 +59,7 @@ function App() {
   const navigate = async (path: string) => {
     if (!(await flush())) return
     window.history.pushState({}, "", appHref(path))
-    setPathname(path)
+    setPathname(path.split("?", 1)[0])
     window.scrollTo(0, 0)
   }
 
@@ -71,9 +71,10 @@ function App() {
   const activeItem = activePage === "sobre"
     ? { label: "Sobre" }
     : navigationItems.find((item) => item.id === activePage) ?? navigationItems[0]
-  const routeMatch = pathname.match(/^\/project\/([^/]+)(?:\/([^/]+))?\/?$/)
+  const routeMatch = pathname.match(/^\/project\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?(?:\/([^/]+))?\/?$/)
   const isProjectRoute = Boolean(routeMatch)
   const projectSection = routeMatch?.[2] === "preview" ? "preview-memorial" : routeMatch?.[2] ?? "overview"
+  const occurrenceAction = routeMatch?.[2] === "requirements" && (routeMatch[3] === "new" || routeMatch[3] === "edit") ? routeMatch[3] : undefined
   useEffect(() => { if (isProjectRoute && routeMatch?.[1]) void openProject(routeMatch[1]) }, [isProjectRoute, openProject, routeMatch])
   const projectCatalog = project
     ? regulationCatalogs.find((catalog) => catalog.metadata.regulation.id === project.regulation)
@@ -102,7 +103,7 @@ function App() {
           onDiscardDraft={() => void discardDraft()}
         />
         {isProjectRoute ? (
-          <ProjectPage section={projectSection} catalog={projectCatalog} />
+          <ProjectPage section={projectSection} catalog={projectCatalog} occurrenceAction={occurrenceAction} occurrenceId={occurrenceAction === "edit" ? routeMatch?.[4] : undefined} onNavigate={navigate} />
         ) : (
           activePage === "sobre" ? <AboutPage /> : activePage === "como-testar" ? <TestingPage /> : <HomePage onNavigate={navigate} />
         )}

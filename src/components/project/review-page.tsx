@@ -76,6 +76,8 @@ function ReviewFindingCard({ project, finding }: { project: LocalProject; findin
   const isBlocking = finding.severity === "bloqueio"
   const Icon = isBlocking ? CircleAlert : CircleHelp
   const variant = isBlocking ? "destructive" : "secondary"
-  const href = `${projectSectionHref(project, finding.section)}${finding.occurrenceId ? `?occurrence=${encodeURIComponent(finding.occurrenceId)}` : ""}`
+  const href = finding.occurrenceId
+    ? projectSectionHref(project, "requirements/edit/" + encodeURIComponent(finding.occurrenceId))
+    : projectSectionHref(project, finding.section)
   return <div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:justify-between"><div className="flex gap-3"><Icon className="mt-0.5 size-5 shrink-0" /><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{finding.title}</p><Badge variant={variant}>{isBlocking ? "Bloqueia" : "Requer conferência"}</Badge></div><p className="mt-1 text-sm text-muted-foreground">{finding.description}</p></div></div><Button size="sm" variant="outline" className="shrink-0" nativeButton={false} render={<a href={href} />}>Corrigir</Button></div>
 }

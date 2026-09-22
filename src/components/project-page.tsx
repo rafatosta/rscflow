@@ -5,6 +5,7 @@ import { EducationPage } from "@/components/project/education-page"
 import { IdentificationPage } from "@/components/project/identification-page"
 import { MemorialPage } from "@/components/project/memorial-page"
 import { OverviewPage } from "@/components/project/overview-page"
+import { OccurrencePage } from "@/components/project/occurrence-page"
 import { projectPages, type ProjectSectionId } from "@/components/project/project-pages"
 import { RequirementsPage } from "@/components/project/requirements-page"
 import { ReviewPage } from "@/components/project/review-page"
@@ -14,9 +15,9 @@ import type { Regulation } from "@/domain/regulation"
 import { useLocalProjects } from "@/hooks/use-local-projects"
 import { applyProjectSettings, type Formation, type Identification, type LocalProject, type MemorialSection, type RequirementOccurrence } from "@/lib/projects"
 
-type ProjectPageProps = { section: string; catalog?: Regulation }
+type ProjectPageProps = { section: string; catalog?: Regulation; occurrenceAction?: "new" | "edit"; occurrenceId?: string; onNavigate: (path: string) => void }
 
-export function ProjectPage({ section, catalog }: ProjectPageProps) {
+export function ProjectPage({ section, catalog, occurrenceAction, occurrenceId, onNavigate }: ProjectPageProps) {
   const { project, updateDraft } = useLocalProjects()
   const activePage = projectPages.find((page) => page.id === section) ?? projectPages[0]
   const Icon = activePage.icon
@@ -26,6 +27,7 @@ export function ProjectPage({ section, catalog }: ProjectPageProps) {
       {!project && <p className="text-sm text-muted-foreground">Projeto local não encontrado.</p>}
 
       <section className="mt-2">
+        {occurrenceAction && project && catalog ? <OccurrencePage project={project} catalog={catalog} action={occurrenceAction} occurrenceId={occurrenceId} onOccurrencesChange={(occurrences) => updateDraft((current) => ({ ...current, requirementOccurrences: occurrences }))} onNavigate={onNavigate} /> : <>
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-5" /></span>
           <div><h3 className="text-xl font-semibold">{activePage.label}</h3><p className="text-sm text-muted-foreground">{activePage.description}</p></div>
@@ -34,12 +36,14 @@ export function ProjectPage({ section, catalog }: ProjectPageProps) {
           section={activePage.id}
           project={project}
           catalog={catalog}
+          onNavigate={onNavigate}
           onOccurrencesChange={(occurrences) => updateDraft((current) => ({ ...current, requirementOccurrences: occurrences }))}
           onMemorialChange={(memorialSections) => updateDraft((current) => ({ ...current, memorialSections }))}
           onIdentificationChange={(identification) => updateDraft((current) => ({ ...current, identification }))}
           onFormationsChange={(formations) => updateDraft((current) => ({ ...current, formations }))}
           onProjectSettingsChange={(settings) => updateDraft((current) => applyProjectSettings(current, settings))}
         />
+        </>}
       </section>
     </div>
   </main>
@@ -49,6 +53,7 @@ type ProjectSectionProps = {
   section: ProjectSectionId
   project?: LocalProject
   catalog?: Regulation
+  onNavigate: (path: string) => void
   onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void
   onMemorialChange: (sections: MemorialSection[]) => void
   onIdentificationChange: (identification: Identification) => void
@@ -56,7 +61,7 @@ type ProjectSectionProps = {
   onProjectSettingsChange: (settings: Pick<LocalProject, "name" | "rscLevel" | "regulation">) => void
 }
 
-function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange, onProjectSettingsChange }: ProjectSectionProps) {
+function ProjectSection({ section, project, catalog, onNavigate, onOccurrencesChange, onMemorialChange, onIdentificationChange, onFormationsChange, onProjectSettingsChange }: ProjectSectionProps) {
   if (section === "overview") return <OverviewPage project={project} catalog={catalog} onProjectSettingsChange={onProjectSettingsChange} />
   if (!project) return null
   if (section === "profile") return <IdentificationPage project={project} onSave={onIdentificationChange} />
@@ -68,7 +73,7 @@ function ProjectSection({ section, project, catalog, onOccurrencesChange, onMemo
       "rsc-i": calculateLevelProjection(catalog, "rsc-i", project.requirementOccurrences ?? []),
       "rsc-ii": calculateLevelProjection(catalog, "rsc-ii", project.requirementOccurrences ?? []),
       "rsc-iii": calculateLevelProjection(catalog, "rsc-iii", project.requirementOccurrences ?? []),
-    }} onOccurrencesChange={onOccurrencesChange} />
+    }} onOccurrencesChange={onOccurrencesChange} onNavigate={onNavigate} />
   }
   if (section === "review") return <ReviewPage project={project} catalog={catalog} />
   if (section === "preview-memorial" || section === "preview-forms" || section === "preview-evidence") return <DocumentViewer project={project} catalog={catalog} documentId={section.replace("preview-", "") as PreviewDocument["id"]} onMemorialChange={onMemorialChange} />

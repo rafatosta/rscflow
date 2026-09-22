@@ -4,51 +4,23 @@ const requirementLevels = [
   { id: "rsc-iii", label: "RSC III" },
 ] as const;
 
-const occurrenceSchema = z.object({
-  period: z.string(),
-  quantity: z.coerce
-    .number()
-    .positive("Informe uma quantidade maior que zero."),
-  description: z.string().trim().min(1, "Descreva a atividade."),
-  results: z.string().trim(),
-  competencies: z.string().trim(),
-  evidence: z.string().trim(),
-});
-type OccurrenceValues = z.infer<typeof occurrenceSchema>;
-type OccurrenceFormValues = z.input<typeof occurrenceSchema>;
-const emptyOccurrence: OccurrenceValues = {
-  period: "",
-  quantity: 1,
-  description: "",
-  results: "",
-  competencies: "",
-  evidence: "",
-};
-
 export function RequirementsPage({
   project,
   catalog,
   projections,
   onOccurrencesChange,
+  onNavigate,
 }: {
   project: LocalProject;
   catalog: Regulation;
   projections: Record<"rsc-i" | "rsc-ii" | "rsc-iii", LevelProjection>;
   onOccurrencesChange: (occurrences: RequirementOccurrence[]) => void;
+  onNavigate: (path: string) => void;
 }) {
   const [levelId, setLevelId] = React.useState<"rsc-i" | "rsc-ii" | "rsc-iii">(
     "rsc-i",
   );
   const [query, setQuery] = React.useState("");
-  const [criterionId, setCriterionId] = React.useState<string | null>(null);
-  const [editingOccurrenceId, setEditingOccurrenceId] = React.useState<
-    string | null
-  >(null);
-  const [returnToReviewAfterEdit, setReturnToReviewAfterEdit] =
-    React.useState(false);
-  const [highlightAttachments, setHighlightAttachments] = React.useState(false);
-  const [attachments, setAttachments] = React.useState<string[]>([]);
-  const [attachmentFiles, setAttachmentFiles] = React.useState<File[]>([]);
   const [occurrencesWithStoredAttachments, setOccurrencesWithStoredAttachments] =
     React.useState<Set<string> | null>(null);
   const [occurrenceToDelete, setOccurrenceToDelete] =
@@ -56,21 +28,8 @@ export function RequirementsPage({
   const [collapsedDirectiveIds, setCollapsedDirectiveIds] = React.useState<
     Set<string>
   >(() => new Set());
-  const form = useForm<OccurrenceFormValues, unknown, OccurrenceValues>({
-    resolver: zodResolver(occurrenceSchema),
-    defaultValues: emptyOccurrence,
-  });
   const level = catalog.levels.find((item) => item.section === levelId)!;
   const projection = projections[levelId];
-  const selectedCriterion =
-    level.criteria.find((item) => item.id === criterionId) ?? null;
-  const editingOccurrence =
-    (project.requirementOccurrences ?? []).find(
-      (occurrence) => occurrence.id === editingOccurrenceId,
-    ) ?? null;
-  useUnsavedFormProtection(
-    Boolean(selectedCriterion) && form.formState.isDirty,
-  );
   const unassignedOccurrences = (project.requirementOccurrences ?? []).filter(
     (item) => !item.criterionId || !item.selectedLevel,
   );
@@ -83,38 +42,12 @@ export function RequirementsPage({
   const matches = (description: string) =>
     !normalizedQuery ||
     description.toLocaleLowerCase("pt-BR").includes(normalizedQuery);
-  const openDialog = (id: string) => {
-    form.reset(emptyOccurrence);
-    setAttachments([]);
-    setAttachmentFiles([]);
-    setEditingOccurrenceId(null);
-    setReturnToReviewAfterEdit(false);
-    setHighlightAttachments(false);
-    setCriterionId(id);
+  const openOccurrencePage = (criterionId: string) => {
+    onNavigate(`/project/${project.localId}/requirements/new?criterion=${encodeURIComponent(criterionId)}&level=${levelId}`);
   };
-  const openEditDialog = (occurrence: RequirementOccurrence) => {
+  const openEditPage = (occurrence: RequirementOccurrence) => {
     if (!occurrence.criterionId || !occurrence.selectedLevel) return;
-    setLevelId(occurrence.selectedLevel);
-    setCriterionId(occurrence.criterionId);
-    setEditingOccurrenceId(occurrence.id);
-    setReturnToReviewAfterEdit(false);
-    setAttachments(occurrence.attachmentNames);
-    setAttachmentFiles([]);
-    setHighlightAttachments(false);
-    form.reset({
-      period: occurrence.period,
-      quantity: occurrence.quantity,
-      description: occurrence.description,
-      results: occurrence.results,
-      competencies: occurrence.competencies,
-      evidence: occurrence.evidence,
-    });
-  };
-  const closeDialog = () => {
-    setCriterionId(null);
-    setEditingOccurrenceId(null);
-    setReturnToReviewAfterEdit(false);
-    setHighlightAttachments(false);
+    onNavigate(`/project/${project.localId}/requirements/edit/${encodeURIComponent(occurrence.id)}`);
   };
   const deleteOccurrence = async (occurrence: RequirementOccurrence) => {
     await deleteOccurrenceAttachments(project.localId, occurrence.id);
@@ -140,120 +73,6 @@ export function RequirementsPage({
       ignore = true;
     };
   }, [occurrenceIds, project.localId]);
-
-  React.useEffect(() => {
-    const occurrenceId = new URLSearchParams(window.location.search).get(
-      "occurrence",
-    );
-    if (!occurrenceId || occurrenceId === editingOccurrenceId) return;
-    const occurrence = project.requirementOccurrences?.find(
-      (item) => item.id === occurrenceId,
-    );
-    if (!occurrence?.criterionId || !occurrence.selectedLevel) return;
-
-    setLevelId(occurrence.selectedLevel);
-    setCriterionId(occurrence.criterionId);
-    setEditingOccurrenceId(occurrence.id);
-    setReturnToReviewAfterEdit(true);
-    setAttachments(occurrence.attachmentNames);
-    setAttachmentFiles([]);
-    form.reset({
-      period: occurrence.period,
-      quantity: occurrence.quantity,
-      description: occurrence.description,
-      results: occurrence.results,
-      competencies: occurrence.competencies,
-      evidence: occurrence.evidence,
-    });
-    window.history.replaceState({}, "", window.location.pathname);
-  }, [editingOccurrenceId, form, project.requirementOccurrences]);
-
-  React.useEffect(() => {
-    if (!editingOccurrenceId) return;
-    setHighlightAttachments(true);
-    const timeout = window.setTimeout(
-      () => document.getElementById("occurrence-attachments")?.focus(),
-      100,
-    );
-    return () => window.clearTimeout(timeout);
-  }, [editingOccurrenceId]);
-
-  const saveOccurrence = async (values: OccurrenceValues) => {
-    if (!selectedCriterion) return;
-    const now = new Date().toISOString();
-    const currentOccurrences = project.requirementOccurrences ?? [];
-    const occurrenceId = editingOccurrenceId ?? crypto.randomUUID();
-    const nextOccurrences = editingOccurrenceId
-      ? currentOccurrences.map((item) => {
-          if (item.id !== occurrenceId) return item;
-          const next = {
-            ...item,
-            criterionId: selectedCriterion.id,
-            selectedLevel: levelId,
-            ...values,
-            attachmentNames: attachments,
-            updatedAt: now,
-          };
-          const generatedText = buildOccurrenceNarrative(
-            next,
-            selectedCriterion.description,
-          );
-          const isGeneratedTextOutdated = Boolean(
-            item.isManuallyEdited &&
-            item.generatedText &&
-            generatedText !== item.generatedText,
-          );
-          return {
-            ...next,
-            generatedText,
-            editedText: item.isManuallyEdited ? item.editedText : generatedText,
-            isManuallyEdited: item.isManuallyEdited ?? false,
-            isGeneratedTextOutdated,
-          };
-        })
-      : (() => {
-          const next = {
-            id: occurrenceId,
-            criterionId: selectedCriterion.id,
-            selectedLevel: levelId,
-            ...values,
-            attachmentNames: attachments,
-            createdAt: now,
-            updatedAt: now,
-          };
-          const generatedText = buildOccurrenceNarrative(
-            next,
-            selectedCriterion.description,
-          );
-          return [
-            ...currentOccurrences,
-            {
-              ...next,
-              generatedText,
-              editedText: generatedText,
-              isManuallyEdited: false,
-              isGeneratedTextOutdated: false,
-            },
-          ];
-        })();
-    if (attachmentFiles.length)
-      await replaceOccurrenceAttachments(
-        project.localId,
-        occurrenceId,
-        attachmentFiles,
-      );
-    onOccurrencesChange(nextOccurrences);
-    const returnToReview = returnToReviewAfterEdit;
-    closeDialog();
-    if (returnToReview) {
-      window.history.pushState(
-        {},
-        "",
-        window.location.pathname.replace(/\/requirements$/, "/review"),
-      );
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-  };
 
   return (
     <section className="mt-6">
@@ -383,8 +202,8 @@ export function RequirementsPage({
                       return next;
                     })
                   }
-                  onAdd={openDialog}
-                  onEdit={openEditDialog}
+                  onAdd={openOccurrencePage}
+                  onEdit={openEditPage}
                   onDelete={setOccurrenceToDelete}
                 />
               );
@@ -438,167 +257,6 @@ export function RequirementsPage({
         </Card>
       )}
 
-      <Dialog
-        open={Boolean(selectedCriterion)}
-        onOpenChange={(open) => {
-          if (!open) closeDialog();
-        }}
-      >
-        <DialogContent className="max-h-[calc(100vh-2rem)] sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingOccurrenceId
-                ? "Corrigir lançamento"
-                : "Adicionar lançamento"}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedCriterion
-                ? `${selectedCriterion.code} · ${selectedCriterion.description}`
-                : ""}
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            className="grid gap-4"
-            noValidate
-            onSubmit={form.handleSubmit(saveOccurrence)}
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                label="Período (opcional)"
-                error={form.formState.errors.period}
-              >
-                <Input
-                  placeholder="Ex.: 2024.1 a 2024.2"
-                  {...form.register("period")}
-                />
-              </FormField>
-              <FormField
-                label={`Quantidade (${selectedCriterion?.unit ?? ""})`}
-                required
-                error={form.formState.errors.quantity as FieldError | undefined}
-              >
-                <Input
-                  type="number"
-                  min="0.01"
-                  step="any"
-                  {...form.register("quantity")}
-                />
-              </FormField>
-            </div>
-            <FormField
-              label="Descrição da atividade"
-              required
-              error={form.formState.errors.description}
-            >
-              <Textarea rows={3} {...form.register("description")} />
-            </FormField>
-            <FormField
-              label="Resultados alcançados"
-              error={form.formState.errors.results}
-            >
-              <Textarea rows={3} {...form.register("results")} />
-            </FormField>
-            <FormField
-              label="Competências relacionadas"
-              error={form.formState.errors.competencies}
-            >
-              <Textarea rows={3} {...form.register("competencies")} />
-            </FormField>
-            <FormField
-              label="Evidências e anexos comprobatórios"
-              error={form.formState.errors.evidence}
-            >
-              <Textarea
-                rows={3}
-                placeholder="Informe links, referências ou identificação dos comprovantes."
-                {...form.register("evidence")}
-              />
-            </FormField>
-            <div
-              className={`grid gap-3 rounded-lg border p-4 ${highlightAttachments ? "ring-2 ring-primary ring-offset-2" : ""}`}
-            >
-              <div>
-                <p className="text-sm font-medium">Comprovantes</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Anexe um ou mais arquivos que comprovem este lançamento.
-                </p>
-              </div>
-              {editingOccurrence && attachmentFiles.length === 0 && (
-                <MissingAttachmentAlert
-                  occurrence={editingOccurrence}
-                  occurrencesWithStoredAttachments={
-                    occurrencesWithStoredAttachments
-                  }
-                />
-              )}
-              <Input
-                id="occurrence-attachments"
-                className="sr-only"
-                type="file"
-                multiple
-                onChange={(event) => {
-                  const files = Array.from(event.target.files ?? []);
-                  if (!files.length) return;
-                  setAttachmentFiles(files);
-                  setAttachments(files.map((file) => file.name));
-                  setHighlightAttachments(false);
-                }}
-              />
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    document.getElementById("occurrence-attachments")?.click()
-                  }
-                >
-                  <Upload />
-                  {attachments.length
-                    ? "Substituir arquivos"
-                    : "Selecionar arquivos"}
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  {attachments.length
-                    ? `${attachments.length} ${attachments.length === 1 ? "arquivo selecionado" : "arquivos selecionados"}`
-                    : "Nenhum arquivo selecionado"}
-                </span>
-              </div>
-              {attachments.length > 0 && (
-                <ul className="grid gap-1.5" aria-label="Arquivos selecionados">
-                  {attachments.map((attachment, index) => (
-                    <li
-                      key={`${attachment}-${index}`}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <Paperclip className="size-4 shrink-0 text-muted-foreground" />
-                      <span className="min-w-0 truncate">{attachment}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {editingOccurrenceId &&
-                attachments.length > 0 &&
-                attachmentFiles.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Estes arquivos já estão vinculados. Uma nova seleção
-                    substituirá todos eles.
-                  </p>
-                )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              A pontuação é calculada automaticamente a partir das quantidades
-              lançadas e dos limites do catálogo.
-            </p>
-            <DialogFooter>
-              <DialogClose render={<Button type="button" variant="outline" />}>
-                Cancelar
-              </DialogClose>
-              <Button type="submit">Salvar lançamento</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
       <AlertDialog open={Boolean(occurrenceToDelete)} onOpenChange={(open) => { if (!open) setOccurrenceToDelete(null) }}>
         <AlertDialogContent>
           <AlertDialogHeader><AlertDialogTitle>Excluir lançamento?</AlertDialogTitle><AlertDialogDescription>O lançamento “{occurrenceToDelete?.description || "Sem descrição"}” e seus comprovantes armazenados serão removidos permanentemente. Essa ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
@@ -803,17 +461,12 @@ function MissingAttachmentAlert({
   );
 }
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ChevronDown,
   CircleAlert,
-  Paperclip,
   Pencil,
   Trash2,
-  Upload,
 } from "lucide-react";
-import { useForm, type FieldError } from "react-hook-form";
-import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -840,27 +493,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import type { LevelProjection } from "@/domain/scoring";
 import type { Regulation } from "@/domain/regulation";
 import {
   deleteOccurrenceAttachments,
   getOccurrencesWithStoredAttachments,
-  replaceOccurrenceAttachments,
   type LocalProject,
   type RequirementOccurrence,
 } from "@/lib/projects";
-import { FormField } from "@/components/project/form-field";
-import { buildOccurrenceNarrative } from "@/components/project/memorial-content";
-import { useUnsavedFormProtection } from "@/components/project/use-unsaved-form-protection";
