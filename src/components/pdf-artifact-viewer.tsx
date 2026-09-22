@@ -26,10 +26,11 @@ export function PdfArtifactViewer({ artifact, error, loading, toolbarActions }: 
   const [document, setDocument] = React.useState<PDFDocumentProxy>()
   const [documentError, setDocumentError] = React.useState<Error>()
   const [pageNumber, setPageNumber] = React.useState(1)
-  const [viewMode, setViewMode] = React.useState<PdfViewMode>("width")
+  const [viewMode, setViewMode] = React.useState<PdfViewMode>("page")
   const [zoom, setZoom] = React.useState(100)
   const [pageMotion, setPageMotion] = React.useState<"next" | "previous">("next")
   const lastWheelPageChange = React.useRef(0)
+  const pdfContainerRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     if (!artifact) return
@@ -62,16 +63,23 @@ export function PdfArtifactViewer({ artifact, error, loading, toolbarActions }: 
     setPageMotion(direction > 0 ? "next" : "previous")
     setPageNumber((value) => Math.max(1, Math.min(document.numPages, value + direction)))
   }
-  const handlePdfWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (!document) return
-    event.preventDefault()
-    event.stopPropagation()
-    if (Math.abs(event.deltaY) < 8) return
-    const now = Date.now()
-    if (now - lastWheelPageChange.current < 450) return
-    lastWheelPageChange.current = now
-    movePage(event.deltaY > 0 ? 1 : -1)
-  }
+  React.useEffect(() => {
+    const container = pdfContainerRef.current
+    if (!container || !document) return
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
+      if (Math.abs(event.deltaY) < 8) return
+      const now = Date.now()
+      if (now - lastWheelPageChange.current < 450) return
+      lastWheelPageChange.current = now
+      const direction = event.deltaY > 0 ? 1 : -1
+      setPageMotion(direction > 0 ? "next" : "previous")
+      setPageNumber((value) => Math.max(1, Math.min(document.numPages, value + direction)))
+    }
+    container.addEventListener("wheel", handleWheel, { capture: true, passive: false })
+    return () => container.removeEventListener("wheel", handleWheel, { capture: true })
+  }, [document])
   if (loading) return <div className="mt-6 space-y-3"><Skeleton className="h-10 w-full" /><Skeleton className="mx-auto h-[60vh] max-w-3xl" /></div>
   if (error || documentError) return <Alert className="mt-6" variant="destructive"><CircleAlert /><AlertTitle>Falha ao preparar a prévia</AlertTitle><AlertDescription>{(error ?? documentError)?.message}</AlertDescription></Alert>
   if (!artifact) return null
@@ -80,9 +88,9 @@ export function PdfArtifactViewer({ artifact, error, loading, toolbarActions }: 
     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-lg border p-3">
       {document ? <div className="flex items-center gap-2 justify-self-start"><Button size="icon" variant="ghost" aria-label="Ir para a página anterior" disabled={currentPage === 1} onClick={() => movePage(-1)}><ChevronLeft /></Button><span className="min-w-28 text-center text-sm">Página {currentPage} de {document.numPages}</span><Button size="icon" variant="ghost" aria-label="Ir para a próxima página" disabled={currentPage === document.numPages} onClick={() => movePage(1)}><ChevronRight /></Button></div> : <span className="text-sm justify-self-start">Carregando documento…</span>}
       <div className="flex items-center gap-1 justify-self-center"><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 50} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 150} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button></div>
-      <div className="flex min-w-0 flex-wrap items-center justify-self-end gap-2">{toolbarActions}<Select value={viewMode} onValueChange={(value) => { if (value === "width" || value === "page") setViewMode(value) }}><SelectTrigger aria-label="Modo de visualização" className="w-44"><SelectValue>{viewMode === "width" ? "Ajustar à largura" : "Ajustar à página"}</SelectValue></SelectTrigger><SelectContent className="w-80"><SelectItem value="width"><span className="grid gap-0.5"><span>Ajustar à largura</span><span className="text-xs font-normal text-muted-foreground">Ocupa toda a largura disponível.</span></span></SelectItem><SelectItem value="page"><span className="grid gap-0.5"><span>Ajustar à página</span><span className="text-xs font-normal text-muted-foreground">Mostra a folha inteira na tela.</span></span></SelectItem></SelectContent></Select></div>
+      <div className="flex min-w-0 flex-wrap items-center justify-self-end gap-2">{toolbarActions}<Select value={viewMode} onValueChange={(value) => { if (value === "width" || value === "page") setViewMode(value) }}><SelectTrigger aria-label="Modo de visualização" className="w-44"><SelectValue>{viewMode === "width" ? "Ajustar à largura" : "Ajustar à página"}</SelectValue></SelectTrigger><SelectContent className="w-80"><SelectItem value="width"><span className="grid gap-0.5"><span>Ajustar à largura</span><span className="text-xs font-normal text-muted-foreground">Ocupa toda a largura disponível.</span></span></SelectItem><SelectItem value="page"><span className="grid gap-0.5"><span>Ajustar à página</span><span className="text-xs font-normal text-muted-foreground">Mostra a folha inteira na tela do dispositivo.</span></span></SelectItem></SelectContent></Select></div>
     </div>
-    <div className="min-w-0"><div onWheelCapture={handlePdfWheel} className="overscroll-contain overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas key={currentPage} document={document} pageNumber={currentPage} viewMode={viewMode} zoom={zoom} motion={pageMotion} />}</div>
+    <div className="min-w-0"><div ref={pdfContainerRef} className="overscroll-contain overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas key={currentPage} document={document} pageNumber={currentPage} viewMode={viewMode} zoom={zoom} motion={pageMotion} />}</div>
     </div>
   </section>
 }
@@ -109,7 +117,8 @@ function PdfCanvas({ document, pageNumber, viewMode, zoom, motion }: { document:
         const baseViewport = page?.getViewport({ scale: 1 })
         if (!page || !baseViewport || availableWidth <= 0) return
         const widthScale = availableWidth / baseViewport.width
-        const pageScale = Math.min(widthScale, Math.max(0.1, (window.innerHeight - container.getBoundingClientRect().top - 32) / baseViewport.height))
+        const screenHeight = window.visualViewport?.height ?? window.innerHeight
+        const pageScale = Math.min(widthScale, Math.max(0.1, (screenHeight - container.getBoundingClientRect().top - 32) / baseViewport.height))
         const viewport = page.getViewport({ scale: (viewMode === "page" ? pageScale : widthScale) * (zoom / 100) })
         const outputScale = window.devicePixelRatio || 1
         const context = canvas.getContext("2d")
@@ -120,16 +129,20 @@ function PdfCanvas({ document, pageNumber, viewMode, zoom, motion }: { document:
         canvas.style.width = `${Math.floor(viewport.width)}px`
         canvas.style.height = `${Math.floor(viewport.height)}px`
         renderTask = page.render({ canvas, canvasContext: context, viewport, transform: outputScale === 1 ? undefined : [outputScale, 0, 0, outputScale, 0, 0] })
+        void renderTask.promise.catch((reason: unknown) => {
+          if (active && !(reason instanceof Error && reason.name === "RenderingCancelledException")) setError(reason instanceof Error ? reason : new Error("Falha ao renderizar a página."))
+        })
       }
       render()
       resizeHandler = render
       observer = new ResizeObserver(render)
       observer.observe(container)
       window.addEventListener("resize", render)
+      window.visualViewport?.addEventListener("resize", render)
     }).catch((reason: unknown) => {
       if (active && !(reason instanceof Error && reason.name === "RenderingCancelledException")) setError(reason instanceof Error ? reason : new Error("Falha ao renderizar a página."))
     })
-    return () => { active = false; observer?.disconnect(); if (resizeHandler) window.removeEventListener("resize", resizeHandler); renderTask?.cancel(); page?.cleanup() }
+    return () => { active = false; observer?.disconnect(); if (resizeHandler) { window.removeEventListener("resize", resizeHandler); window.visualViewport?.removeEventListener("resize", resizeHandler) }; renderTask?.cancel(); page?.cleanup() }
   }, [document, pageNumber, viewMode, zoom])
 
   if (error) return <Alert variant="destructive"><CircleAlert /><AlertTitle>Falha ao renderizar a página</AlertTitle><AlertDescription>{error.message}</AlertDescription></Alert>
