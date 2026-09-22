@@ -6,6 +6,7 @@ import { buildMemorialTextBase } from "@/components/project/memorial-content"
 import { projectSectionHref } from "@/components/project/project-navigation"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Regulation } from "@/domain/regulation"
 import { usePdfArtifact } from "@/hooks/use-pdf-artifact"
 import { createEvidenceIndexPdf, createEvidencePageReferences, createFormsPdf, createMemorialPdf } from "@/lib/document-generation"
@@ -30,8 +31,7 @@ function MemorialPdfPreview({ project, catalog, onMemorialChange, onPdfArtifactC
   const state = usePdfArtifact(filename, () => createMemorialPdf(project), [filename, project])
   React.useEffect(() => { onPdfArtifactChange(state.artifact); return () => onPdfArtifactChange(undefined) }, [onPdfArtifactChange, state.artifact])
   return <>
-    <div className="mt-6 flex flex-wrap justify-end gap-2"><Button variant="outline" onClick={() => setDialogOpen(true)}><BookOpen /> Autopreencher textos</Button><Button variant="outline" nativeButton={false} render={<a href={projectSectionHref(project, "memorial")} />}><Pencil /> Editar textos</Button></div>
-    <PdfArtifactViewer {...state} />
+    <PdfArtifactViewer {...state} toolbarActions={<><Tooltip><TooltipTrigger render={<Button size="icon" variant="outline" aria-label="Autopreencher textos" onClick={() => setDialogOpen(true)} />}><BookOpen /></TooltipTrigger><TooltipContent><p>Autopreencher textos</p></TooltipContent></Tooltip><Tooltip><TooltipTrigger render={<Button size="icon" variant="outline" nativeButton={false} render={<a href={projectSectionHref(project, "memorial")} />} aria-label="Editar textos" />}><Pencil /></TooltipTrigger><TooltipContent><p>Editar textos</p></TooltipContent></Tooltip></>} />
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}><DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Autopreencher o Memorial?</DialogTitle><DialogDescription>Um texto-base editável será criado com os dados cadastrados no processo. O conteúdo atual das seções será substituído.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button><Button onClick={() => { onMemorialChange(buildMemorialTextBase(project, catalog)); setDialogOpen(false) }}>Autopreencher</Button></DialogFooter></DialogContent></Dialog>
   </>
 }

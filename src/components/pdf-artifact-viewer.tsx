@@ -14,6 +14,7 @@ type PdfArtifactViewerProps = {
   artifact?: PdfArtifact
   error?: Error
   loading?: boolean
+  toolbarActions?: React.ReactNode
 }
 
 export function PdfArtifactActions({ artifact }: { artifact?: PdfArtifact }) {
@@ -21,7 +22,7 @@ export function PdfArtifactActions({ artifact }: { artifact?: PdfArtifact }) {
   return <><Button size="sm" variant="outline" onClick={() => openPdfArtifactForPrint(artifact)}><Printer /> Abrir para imprimir</Button><Button size="sm" onClick={() => downloadPdfArtifact(artifact)}><Download /> Baixar</Button></>
 }
 
-export function PdfArtifactViewer({ artifact, error, loading }: PdfArtifactViewerProps) {
+export function PdfArtifactViewer({ artifact, error, loading, toolbarActions }: PdfArtifactViewerProps) {
   const [document, setDocument] = React.useState<PDFDocumentProxy>()
   const [documentError, setDocumentError] = React.useState<Error>()
   const [pageNumber, setPageNumber] = React.useState(1)
@@ -79,7 +80,7 @@ export function PdfArtifactViewer({ artifact, error, loading }: PdfArtifactViewe
     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-lg border p-3">
       {document ? <div className="flex items-center gap-2 justify-self-start"><Button size="icon" variant="ghost" aria-label="Ir para a página anterior" disabled={currentPage === 1} onClick={() => movePage(-1)}><ChevronLeft /></Button><span className="min-w-28 text-center text-sm">Página {currentPage} de {document.numPages}</span><Button size="icon" variant="ghost" aria-label="Ir para a próxima página" disabled={currentPage === document.numPages} onClick={() => movePage(1)}><ChevronRight /></Button></div> : <span className="text-sm justify-self-start">Carregando documento…</span>}
       <div className="flex items-center gap-1 justify-self-center"><Button size="icon" variant="ghost" aria-label="Reduzir zoom" disabled={zoom <= 50} onClick={() => setZoom((value) => value - 10)}><Minus /></Button><span className="w-12 text-center text-sm text-muted-foreground">{zoom}%</span><Button size="icon" variant="ghost" aria-label="Aumentar zoom" disabled={zoom >= 150} onClick={() => setZoom((value) => value + 10)}><ZoomIn /></Button></div>
-      <Select value={viewMode} onValueChange={(value) => { if (value === "width" || value === "page") setViewMode(value) }}><SelectTrigger aria-label="Modo de visualização" className="w-52 justify-self-end"><SelectValue>{viewMode === "width" ? "Ajustar à largura" : "Ajustar à página"}</SelectValue></SelectTrigger><SelectContent className="w-80"><SelectItem value="width"><span className="grid gap-0.5"><span>Ajustar à largura</span><span className="text-xs font-normal text-muted-foreground">Ocupa toda a largura disponível.</span></span></SelectItem><SelectItem value="page"><span className="grid gap-0.5"><span>Ajustar à página</span><span className="text-xs font-normal text-muted-foreground">Mostra a folha inteira na tela.</span></span></SelectItem></SelectContent></Select>
+      <div className="flex min-w-0 flex-wrap items-center justify-self-end gap-2">{toolbarActions}<Select value={viewMode} onValueChange={(value) => { if (value === "width" || value === "page") setViewMode(value) }}><SelectTrigger aria-label="Modo de visualização" className="w-44"><SelectValue>{viewMode === "width" ? "Ajustar à largura" : "Ajustar à página"}</SelectValue></SelectTrigger><SelectContent className="w-80"><SelectItem value="width"><span className="grid gap-0.5"><span>Ajustar à largura</span><span className="text-xs font-normal text-muted-foreground">Ocupa toda a largura disponível.</span></span></SelectItem><SelectItem value="page"><span className="grid gap-0.5"><span>Ajustar à página</span><span className="text-xs font-normal text-muted-foreground">Mostra a folha inteira na tela.</span></span></SelectItem></SelectContent></Select></div>
     </div>
     <div className="min-w-0"><div onWheelCapture={handlePdfWheel} className="overscroll-contain overflow-auto rounded-lg border bg-muted p-4 sm:p-8">{document && <PdfCanvas key={currentPage} document={document} pageNumber={currentPage} viewMode={viewMode} zoom={zoom} motion={pageMotion} />}</div>
     </div>
