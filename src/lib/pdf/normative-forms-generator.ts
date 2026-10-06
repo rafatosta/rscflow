@@ -499,6 +499,13 @@ export function generateNormativeFormsPdf(
     "vigencia",
   );
 
+  const previousRsc = getRequestField("rsc anterior concedido");
+  const previousRscGrantDate = getRequestField(
+    "data da concessão do rsc anterior",
+    "data da concessao do rsc anterior",
+  );
+  const previousRscProcessNumber = getRequestField("número do processo anterior");
+
   /*
    * O Anexo II ocupa uma página própria.
    */
@@ -710,6 +717,32 @@ export function generateNormativeFormsPdf(
         {
           content: `Data de vigência:\n${requestEffectiveDate}`,
           colSpan: 3,
+          styles: {
+            minCellHeight: 36,
+          },
+        },
+      ],
+
+      [
+        {
+          content: `RSC anterior concedido:\n${previousRsc}`,
+          colSpan: 3,
+          styles: {
+            minCellHeight: 36,
+          },
+        },
+
+        {
+          content: `Data da concessão do RSC anterior:\n${previousRscGrantDate}`,
+          colSpan: 3,
+          styles: {
+            minCellHeight: 36,
+          },
+        },
+
+        {
+          content: `Número do processo anterior:\n${previousRscProcessNumber}`,
+          colSpan: 4,
           styles: {
             minCellHeight: 36,
           },

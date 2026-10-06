@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { applyProjectSettings, type LocalProject } from "@/lib/projects"
+import { applyProjectSettings, localProjectSchema, type LocalProject } from "@/lib/projects"
 
 const project: LocalProject = {
   localId: "project-1",
@@ -46,5 +46,44 @@ describe("applyProjectSettings", () => {
     expect(occurrence?.description).toBe("Atividade")
     expect(occurrence?.generatedText).toBe("Narrativa gerada")
     expect(occurrence?.isGeneratedTextOutdated).toBe(true)
+  })
+})
+
+describe("identificação do projeto", () => {
+  it("mantém compatibilidade com dados legados e aceita a data informada sem validar prazo", () => {
+    const legacyProject = {
+      ...project,
+      identification: {
+        name: "Docente",
+        cpf: "000.000.000-00",
+        admissionDate: "2020-01-01",
+        siape: "1234567",
+        position: "Professor",
+        institution: "Instituto Federal da Bahia",
+        campus: "Salvador",
+        currentLevel: "RSC I",
+        degree: "Mestrado",
+        personalEmail: "docente@example.com",
+        professionalEmail: "docente@ifba.edu.br",
+        phone: "(71) 99999-9999",
+      },
+    }
+    const legacyParsed = localProjectSchema.parse(legacyProject)
+    const withPreviousRsc = localProjectSchema.parse({
+      ...legacyProject,
+      identification: {
+        ...legacyProject.identification,
+        hasPreviousRsc: true,
+        previousRscGrantDate: "2040-01-01",
+        previousRscProcessNumber: "23000.123456/2020-12",
+      },
+    })
+
+    expect(legacyParsed.identification?.hasPreviousRsc).toBeUndefined()
+    expect(withPreviousRsc.identification).toMatchObject({
+      hasPreviousRsc: true,
+      previousRscGrantDate: "2040-01-01",
+      previousRscProcessNumber: "23000.123456/2020-12",
+    })
   })
 })

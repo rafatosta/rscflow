@@ -88,7 +88,9 @@ function calculateProjectProgress(project: LocalProject) {
   const identification = project.identification;
   const identificationComplete =
     identification !== undefined &&
-    Object.values(identification).every((value) => value.trim());
+    Object.entries(identification)
+      .filter(([key]) => !["hasPreviousRsc", "previousRscGrantDate", "previousRscProcessNumber"].includes(key))
+      .every(([, value]) => typeof value === "string" && value.trim());
   const hasFormation = (project.formations?.length ?? 0) > 0;
   const hasRequirement = (project.requirementOccurrences?.length ?? 0) > 0;
   const completedMemorialSections =

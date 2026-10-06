@@ -30,6 +30,9 @@ const identificationSchema = z.object({
   personalEmail: z.email("Informe um e-mail pessoal válido."),
   professionalEmail: z.email("Informe um e-mail profissional válido."),
   phone: z.string().regex(/^\(?\d{2}\)?\s?9?\d{4}-?\d{4}$/, "Informe um telefone válido com DDD."),
+  hasPreviousRsc: z.boolean(),
+  previousRscGrantDate: z.string().optional(),
+  previousRscProcessNumber: z.string().optional(),
 })
 
 type IdentificationValues = z.infer<typeof identificationSchema>
@@ -37,8 +40,15 @@ type IdentificationValues = z.infer<typeof identificationSchema>
 export function IdentificationPage({ project, onSave }: { project: LocalProject; onSave: (identification: Identification) => void }) {
   const form = useForm<IdentificationValues>({
     resolver: zodResolver(identificationSchema),
-    defaultValues: project.identification ?? { name: "", cpf: "", admissionDate: "", siape: "", position: "", institution: "", campus: "", currentLevel: "", degree: "", personalEmail: "", professionalEmail: "", phone: "" },
+    defaultValues: {
+      name: "", cpf: "", admissionDate: "", siape: "", position: "", institution: "", campus: "", currentLevel: "", degree: "", personalEmail: "", professionalEmail: "", phone: "",
+      ...project.identification,
+      hasPreviousRsc: project.identification?.hasPreviousRsc ?? false,
+      previousRscGrantDate: project.identification?.previousRscGrantDate ?? "",
+      previousRscProcessNumber: project.identification?.previousRscProcessNumber ?? "",
+    },
   })
+  const hasPreviousRsc = form.watch("hasPreviousRsc")
   React.useEffect(() => {
     const subscription = form.watch((values) => onSave(values as Identification))
     return () => subscription.unsubscribe()
@@ -49,6 +59,15 @@ export function IdentificationPage({ project, onSave }: { project: LocalProject;
       <FormField label="Nome" error={form.formState.errors.name}><Input autoComplete="name" {...form.register("name")} /></FormField>
       <FormField label="CPF" error={form.formState.errors.cpf}><Input inputMode="numeric" placeholder="000.000.000-00" {...form.register("cpf")} /></FormField>
       <FormField label="Data de ingresso" error={form.formState.errors.admissionDate}><Input type="date" {...form.register("admissionDate")} /></FormField>
+    </FormCard>
+
+    <FormCard title="RSC anterior" description="Informe se já houve concessão anterior de RSC.">
+      <ComboField label="Possui RSC anterior concedido?" options={["Sim", "Não"]} value={hasPreviousRsc ? "Sim" : "Não"} onValueChange={(value) => form.setValue("hasPreviousRsc", value === "Sim")} />
+      {hasPreviousRsc && <>
+        <FormField label="Data da concessão do RSC anterior"><Input type="date" {...form.register("previousRscGrantDate")} /></FormField>
+        <Alert className="md:col-span-2 xl:col-span-3"><AlertDescription>Para alteração do nível de RSC, as atividades deverão ter sido realizadas em, no mínimo, 3 (três) anos após a data da última concessão.</AlertDescription></Alert>
+        <FormField label="Número do processo anterior"><Input {...form.register("previousRscProcessNumber")} /></FormField>
+      </>}
     </FormCard>
 
     <FormCard title="Vínculo institucional" description="Selecione as informações funcionais vigentes.">
@@ -85,6 +104,7 @@ import { useForm, type FieldError } from "react-hook-form"
 import { z } from "zod"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Combobox,
   ComboboxCollection,
