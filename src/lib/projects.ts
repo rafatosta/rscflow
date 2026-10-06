@@ -1,7 +1,7 @@
 import Dexie, { type Table } from "dexie"
 import { z } from "zod"
 
-export type Identification = { name: string; cpf: string; admissionDate: string; siape: string; position: string; institution: string; campus: string; currentLevel: string; degree: string; personalEmail: string; professionalEmail: string; phone: string }
+export type Identification = { name: string; cpf: string; admissionDate: string; siape: string; position: string; institution: string; campus: string; currentLevel: string; degree: string; personalEmail: string; professionalEmail: string; phone: string; hasPreviousRsc?: boolean; previousRscGrantDate?: string; previousRscProcessNumber?: string }
 export type MemorialSection = { id: string; content: string }
 export type Formation = { id: string; type: string; title: string; institution: string; area: string; startDate: string; endDate: string; status: string; documentReference: string; attachmentName: string; notes: string; createdAt: string; updatedAt: string }
 export type RequirementOccurrence = { id: string; criterionId?: string; selectedLevel?: "rsc-i" | "rsc-ii" | "rsc-iii"; period: string; quantity: number; description: string; results: string; competencies: string; evidence: string; attachmentNames: string[]; generatedText?: string; editedText?: string; isManuallyEdited?: boolean; isGeneratedTextOutdated?: boolean; createdAt: string; updatedAt: string }
@@ -10,7 +10,7 @@ export type ProjectSettings = Pick<LocalProject, "name" | "rscLevel" | "regulati
 export type StoredAttachment = { id: string; projectId: string; occurrenceId: string; name: string; file: File }
 
 const string = z.string()
-const identificationSchema = z.object({ name: string, cpf: string, admissionDate: string, siape: string, position: string, institution: string, campus: string, currentLevel: string, degree: string, personalEmail: string, professionalEmail: string, phone: string })
+const identificationSchema = z.object({ name: string, cpf: string, admissionDate: string, siape: string, position: string, institution: string, campus: string, currentLevel: string, degree: string, personalEmail: string, professionalEmail: string, phone: string, hasPreviousRsc: z.boolean().optional(), previousRscGrantDate: string.optional(), previousRscProcessNumber: string.optional() })
 const formationSchema = z.object({ id: string, type: string, title: string, institution: string, area: string, startDate: string, endDate: string, status: string, documentReference: string, attachmentName: string, notes: string, createdAt: string, updatedAt: string })
 const occurrenceSchema = z.object({ id: string, criterionId: string.optional(), selectedLevel: z.enum(["rsc-i", "rsc-ii", "rsc-iii"]).optional(), period: string, quantity: z.number().finite(), description: string, results: string, competencies: string, evidence: string, attachmentNames: z.array(string), generatedText: string.optional(), editedText: string.optional(), isManuallyEdited: z.boolean().optional(), isGeneratedTextOutdated: z.boolean().optional(), createdAt: string, updatedAt: string })
 export const localProjectSchema = z.object({ localId: string.min(1), name: string, rscLevel: string, regulation: string, revision: z.number().int().positive(), createdAt: string, updatedAt: string, schemaVersion: string, formations: z.array(formationSchema).optional(), requirementOccurrences: z.array(occurrenceSchema).optional(), memorialSections: z.array(z.object({ id: string, content: string })).optional(), identification: identificationSchema.optional() })

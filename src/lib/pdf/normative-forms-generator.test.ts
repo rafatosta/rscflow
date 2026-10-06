@@ -27,6 +27,9 @@ const project: LocalProject = {
     personalEmail: "joao@example.com",
     professionalEmail: "joao@ifba.edu.br",
     phone: "(71) 99999-9999",
+    hasPreviousRsc: true,
+    previousRscGrantDate: "2040-01-01",
+    previousRscProcessNumber: "23000.123456/2020-12",
   },
   requirementOccurrences: [],
 }
@@ -56,6 +59,9 @@ describe("gerador dos formulários normativos", () => {
     expect(texts.join(" ")).toContain("Subtotal")
     expect(texts.join(" ")).toContain("TOTAL GERAL")
     expect(texts.join(" ")).toContain("2–4, 5")
+    expect(texts.join(" ")).toContain("RSC anterior concedido")
+    expect(texts.join(" ")).toContain("2040-01-01")
+    expect(texts.join(" ")).toContain("23000.123456/2020-12")
 
     await task.destroy()
   }, 15_000)

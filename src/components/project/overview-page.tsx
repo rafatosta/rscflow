@@ -25,7 +25,9 @@ function formatRegulation(regulation: Regulation) {
 }
 
 function isIdentificationComplete(identification?: Identification) {
-  return identification !== undefined && Object.values(identification).every((value) => value.trim())
+  return identification !== undefined && Object.entries(identification)
+    .filter(([key]) => !["hasPreviousRsc", "previousRscGrantDate", "previousRscProcessNumber"].includes(key))
+    .every(([, value]) => typeof value === "string" && value.trim())
 }
 
 function getCompletion(project: LocalProject) {
